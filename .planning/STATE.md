@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 03-rfp-analysis 03-02-PLAN.md
-last_updated: "2026-03-23T19:31:18.977Z"
+stopped_at: Completed 03-03-PLAN.md — analyze-proposal Edge Function
+last_updated: "2026-03-23T19:33:29.474Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Plan: 5 of 5
 | Phase 02-document-ingestion P04 | 4 min | 2 tasks | 5 files |
 | Phase 03-rfp-analysis P01 | 8 | 2 tasks | 9 files |
 | Phase 03-rfp-analysis P02 | 198 | 2 tasks | 6 files |
+| Phase 03-rfp-analysis P03 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 03-rfp-analysis]: ANTHROPIC_API_KEY lives only in Supabase Edge Function secrets -- never in .env.local
 - [Phase 03-rfp-analysis]: claim_next_job(p_job_type) polymorphic job queue -- extend by adding new job_type values, not new tables
 - [Phase 03-rfp-analysis]: 8(a) regex: trailing \b after ')' fails -- replaced with (?\!\w) negative lookahead
+- [Phase 03-rfp-analysis]: cache_control on rfp_text system block only — instructions block changes per call, no caching
+- [Phase 03-rfp-analysis]: failJob() leaves proposal at ready on analysis failure — user keeps parsed document view
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T19:31:18.973Z
-Stopped at: Completed 03-rfp-analysis 03-02-PLAN.md
+Last session: 2026-03-23T19:33:29.470Z
+Stopped at: Completed 03-03-PLAN.md — analyze-proposal Edge Function
 Resume file: None
