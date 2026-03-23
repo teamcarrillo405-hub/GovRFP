@@ -178,12 +178,148 @@ Supabase email template must use `token_hash` URL format — configure in Supaba
 
 ---
 
-## Next: Phase 2 — Document Ingestion
+## Phase 2 — Document Ingestion (COMPLETE 2026-03-23)
 
-`/gsd:plan-phase 2`
+### Architecture decisions locked
+- **OCR:** AWS Textract `DetectDocumentText` (sync, bytes ≤10MB) — NOT Tesseract.js (85MB wasm, 85-90% accuracy, OOM risk in Edge Function)
+- **Async jobs:** Postgres `document_jobs` table + pg_cron + Supabase Edge Function — NOT storage.objects webhook (double-trigger footgun) or Inngest
+- **PDF parsing:** `unpdf` 1.4.0 — import from `'unpdf/serverless'` (not default) to avoid Promise.withResolvers crash on Node 20
+- **DOCX parsing:** `mammoth` 1.12.0 — `extractRawText({buffer})`
+- **Real-time:** Supabase Realtime Postgres Changes on `document_jobs` filtered by `proposal_id`
+- **File upload:** Signed upload URL (browser → Supabase Storage directly, bypasses 4.5MB Vercel limit)
+- **INGEST-05:** Store `rfp_structure` JSON in Phase 2 (regex heuristic); sidebar React component deferred to Phase 4
 
-- PDF + DOCX upload to Supabase Storage (50MB limit on free tier — fine for RFPs)
-- Async background job — Supabase Edge Function triggered on upload
-- OCR fallback for scanned PDFs — decision needed: Tesseract.js (free, lower accuracy) vs. AWS Textract (~$1.50/1000 pages)
-- Job progress tracking + real-time status (Supabase Realtime)
-- Parsed RFP structure sidebar (section outline + requirement list)
+### Plans
+- [x] 02-01-PLAN.md — Wave 0: packages + migration + test stubs
+- [x] 02-02-PLAN.md — Wave 1: PDF/DOCX/Textract parsing library
+- [x] 02-03-PLAN.md — Wave 1 (parallel): upload API route + Edge Function
+- [x] 02-04-PLAN.md — Wave 2: FileUpload + ProcessingStatus + proposal pages
+
+### New env vars
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION` (default: us-east-1)
+
+### Supabase manual config (cannot be automated via migration)
+- Create `rfp-documents` bucket: private, 50MB limit, MIME types: pdf + docx
+- Enable Realtime on `document_jobs` table (Database > Replication)
+- Add pg_cron job: `* * * * *` (every 60s, fallback from 15s — verify sub-minute support in dashboard)
+- Add Edge Function secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
+
+### Execution deviations (auto-fixed during build)
+- `unpdf` v1.4.0 has no `serverless` sub-path export — use `from 'unpdf'` directly (Node 24 has native `Promise.withResolvers`)
+- `unpdf` `extractText()` returns `{ totalPages, text: string[] }` — not a plain string or array
+- `supabase/functions/` excluded from `tsconfig.json` (Deno globals break Node tsc)
+- `isSubscriptionActive()` signature: `(status: string | null, trialEndsAt: string | null): boolean`
+
+### Tests: 69 passing across 11 test files
+
+### File structure (Phase 2 additions)
+```
+src/
+  app/
+    (dashboard)/
+      proposals/
+        new/page.tsx            # Upload form — subscription gated
+        [id]/page.tsx           # Proposal detail — status + doc info (await params)
+    api/
+      documents/
+        upload-url/route.ts     # POST: auth + subscription + signed URL + DB rows
+  components/
+    documents/
+      FileUpload.tsx            # 'use client' — file picker, direct Storage PUT
+      ProcessingStatus.tsx      # 'use client' — Realtime postgres_changes on document_jobs
+  lib/
+    documents/
+      parse-pdf.ts              # extractPdfText(), isScannedPdf() — uses 'unpdf'
+      parse-docx.ts             # parseDocx() — mammoth.extractRawText
+      textract.ts               # extractTextWithTextract() — DetectDocumentTextCommand, 10MB guard
+      rfp-structure.ts          # extractRfpStructure() — regex: sections + shall/must/will
+supabase/
+  migrations/
+    00002_document_ingestion.sql  # document_jobs table + claim_next_document_job() + proposals columns
+  functions/
+    process-documents/
+      index.ts                  # Deno Edge Function: job poll → parse → OCR → update proposals
+tests/
+  documents/
+    upload-url.test.ts          # INGEST-01,02 — route unit tests
+    parse-pdf.test.ts           # INGEST-03 — isScannedPdf heuristic unit tests
+    parse-docx.test.ts          # INGEST-02 — mammoth extraction
+    job-queue.test.ts           # INGEST-04 — migration structural + atomic claim
+    rfp-structure.test.ts       # INGEST-05 — section + requirement extraction
+  fixtures/
+    sample.pdf, sample-scanned.pdf, sample.docx
+```
+
+### Manual setup required before Phase 2 works in production
+1. Create `rfp-documents` Supabase Storage bucket: private, 50MB, MIME types pdf+docx
+2. Enable Realtime on `document_jobs` table (Dashboard > Database > Replication)
+3. Add pg_cron job: `* * * * *` calling `process-documents` Edge Function via `net.http_post`
+4. Set Edge Function secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
+5. Run migration `00002_document_ingestion.sql`
+
+
+## Phase 3 — RFP Analysis (COMPLETE 2026-03-23)
+
+### Architecture decisions locked
+- **Model:** `claude-sonnet-4-6` — 1M context window; no chunking needed for any real RFP
+- **Prompt caching:** `cache_control: { type: 'ephemeral' }` on the `rfp_text` system block ONLY — saves ~47% per analysis (~$0.30 vs $0.57 for 50-page RFP)
+- **Structured extraction:** `strict: true` tool_use + `tool_choice: { type: 'tool', name: '...' }` — 3 sequential calls, all hitting cache on calls 2+3
+- **ANALYZE-04:** Pure regex (no LLM) — SET_ASIDE_PATTERNS + FAR 52.219-* clause number detection
+- **Win probability:** Hybrid — Claude assesses scope_alignment×0.30, past_perf×0.15, competition×0.10; computed certifications_match×0.25, set_aside_match×0.20
+- **Job queue:** Extend `document_jobs` with `job_type` column; `claim_next_job(p_job_type)` + backward-compat alias `claim_next_document_job()`
+- **ANTHROPIC_API_KEY:** Supabase Edge Function secret ONLY — never in `.env.local`
+- **Data model:** `rfp_analysis` table (single row per proposal) with JSONB columns + GIN indexes
+
+### Plans
+- [x] 03-01-PLAN.md — Wave 0: DB migration (rfp_analysis + job_type) + TypeScript types + test stubs
+- [x] 03-02-PLAN.md — Wave 1: set-aside-detector, section-lm-detector, win-score utility library
+- [x] 03-03-PLAN.md — Wave 1 (parallel): analyze-proposal Edge Function (3 Claude calls) + process-documents update
+- [x] 03-04-PLAN.md — Wave 2: ComplianceMatrix, WinScoreCard, SetAsideFlags, SectionLMCrosswalk UI + analysis page
+
+### Execution deviations (auto-fixed during build)
+- `8(a)` regex `\b8\s*\(a\)\b` always fails (`)` not a word char) — auto-fixed to `\b8\s*\(a\)(?!\w)` (negative lookahead)
+- Prompt caching: `cache_control` goes on SECOND system block (rfp_text) only — first block (instructions) has no cache_control
+
+### Tests: 102 passing across 16 test files
+
+### File structure (Phase 3 additions)
+```
+src/
+  lib/
+    analysis/
+      types.ts                  # AnalysisRequirement, ComplianceMatrixRow, WinFactors, SetAsideFlag, SectionLMEntry, RfpAnalysis, WIN_SCORE_WEIGHTS
+      set-aside-detector.ts     # detectSetAsides(), detectPrimarySetAside(), generateSetAsideFlags() — pure regex
+      section-lm-detector.ts    # detectSectionLM() — 6 Section L + 6 Section M patterns
+      win-score.ts              # computeWinScore(), computeCertificationsScore(), computeSetAsideScore()
+  components/
+    analysis/
+      ComplianceMatrix.tsx      # requirements table with mandatory/desired + coverage badges
+      WinScoreCard.tsx          # score + 5-factor breakdown with bars and reasoning
+      SetAsideFlags.tsx         # match/no-match badges with inline SVG icons
+      SectionLMCrosswalk.tsx    # L/M table; blue notice for non-UCF solicitations
+  app/
+    (dashboard)/
+      proposals/
+        [id]/
+          analysis/page.tsx     # Server page: auth + rfp_analysis load + 4 sub-components
+supabase/
+  migrations/
+    00003_rfp_analysis.sql      # rfp_analysis table + GIN indexes + job_type column + claim_next_job() + backward-compat alias
+  functions/
+    analyze-proposal/
+      index.ts                  # Deno Edge Function: claim job → 3 Claude calls (cached) → hybrid win score → upsert rfp_analysis
+tests/
+  analysis/
+    set-aside-detector.test.ts  # ANALYZE-04 — 8 program patterns + FAR clause fallback
+    win-score.test.ts           # ANALYZE-03 — weighted average + certifications/set-aside computation
+    section-lm-detector.test.ts # ANALYZE-05 — Section L/M pattern detection
+    analysis-job-queue.test.ts  # job_type column + claim_next_job() structural tests
+    rfp-analysis-schema.test.ts # rfp_analysis migration structure + GIN index verification
+```
+
+### Manual setup required before Phase 3 works in production
+1. Set Supabase Edge Function secret: `ANTHROPIC_API_KEY`
+2. Add second pg_cron job: `* * * * *` calling `analyze-proposal` Edge Function
+3. Run migration `00003_rfp_analysis.sql`

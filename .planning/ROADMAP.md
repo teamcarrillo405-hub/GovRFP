@@ -76,7 +76,7 @@ Plans:
 - [x] 03-01-PLAN.md — DB migration (rfp_analysis table + job queue extension), TypeScript types, test stubs, Anthropic SDK devDep
 - [x] 03-02-PLAN.md — Pure utility library: set-aside detector, Section L/M detector, win score computation + tests
 - [x] 03-03-PLAN.md — analyze-proposal Edge Function (3 Claude calls with caching) + process-documents enqueue update
-- [ ] 03-04-PLAN.md — Analysis UI: ComplianceMatrix, WinScoreCard, SetAsideFlags, SectionLMCrosswalk + analysis page
+- [x] 03-04-PLAN.md — Analysis UI: ComplianceMatrix, WinScoreCard, SetAsideFlags, SectionLMCrosswalk + analysis page
 
 **UI hint**: yes
 
@@ -110,6 +110,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
-| 3. RFP Analysis | 3/4 | In Progress|  |
+| 3. RFP Analysis | 4/4 | Complete   | 2026-03-23 |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
 | 5. Export Pipeline | 0/TBD | Not started | - |
