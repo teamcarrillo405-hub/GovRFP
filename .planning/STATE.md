@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: "Completed 01-foundation/01-02-PLAN.md — Auth flow: proxy.ts, signup, login, email verification, password reset"
-last_updated: "2026-03-23T17:14:06.696Z"
+stopped_at: "Completed 01-foundation/01-03-PLAN.md — Stripe billing: checkout, webhooks, portal, subscription gating"
+last_updated: "2026-03-23T17:15:27.084Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 1 (Foundation) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 3 of 5
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 9 | 2 tasks | 23 files |
 | Phase 01-foundation P02 | 4 | 2 tasks | 12 files |
+| Phase 01-foundation P03 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Moved .planning and .git temporarily during create-next-app bootstrap to avoid non-empty-directory error
 - [Phase 01-foundation]: parseCookieHeader value coercion: map undefined to empty string to satisfy CookieMethodsServer type constraint in proxy.ts
 - [Phase 01-foundation]: proxy.ts uses getUser() not getSession() for all session validation — validates JWT against Supabase server-side
+- [Phase 01-foundation]: Stripe v20: current_period_end is on SubscriptionItem (items.data[0]), not Subscription root — must use subscription.items.data[0].current_period_end in webhook handlers
+- [Phase 01-foundation]: Billing DB writes use createAdminClient (service_role) in webhooks to bypass RLS — stripe_customer_id is the lookup key since webhooks have no user session
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T17:14:06.691Z
-Stopped at: Completed 01-foundation/01-02-PLAN.md — Auth flow: proxy.ts, signup, login, email verification, password reset
+Last session: 2026-03-23T17:15:27.080Z
+Stopped at: Completed 01-foundation/01-03-PLAN.md — Stripe billing: checkout, webhooks, portal, subscription gating
 Resume file: None
