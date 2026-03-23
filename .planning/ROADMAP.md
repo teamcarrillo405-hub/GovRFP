@@ -30,7 +30,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User loses access to AI features and new proposal creation when subscription lapses; existing proposals remain viewable read-only
   4. User can create and edit a contractor profile with certifications (8(a)/HUBZone/SDVOSB/WOSB/SDB), NAICS codes, past projects (with full contract details), key personnel bios, and a capability statement narrative
   5. Each user's data (proposals, documents, profile) is fully isolated — no cross-account access is possible via row-level security
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Bootstrap Next.js 16, install deps, DB schema, Supabase/Stripe clients, test infra
+- [ ] 01-02-PLAN.md — Auth flow: signup, email verification (PKCE), login, password reset, proxy.ts
+- [ ] 01-03-PLAN.md — Billing: Stripe checkout with trial, webhooks, Customer Portal, subscription gating
+- [ ] 01-04-PLAN.md — Profile: company info, certifications, NAICS, past projects, key personnel, capability statement
+- [ ] 01-05-PLAN.md — Tests: RLS isolation, billing gating, profile validation, auth verification
+
 **UI hint**: yes
 
 ### Phase 2: Document Ingestion
@@ -81,11 +89,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/5 | Planning complete | - |
 | 2. Document Ingestion | 0/TBD | Not started | - |
 | 3. RFP Analysis | 0/TBD | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
