@@ -70,7 +70,15 @@ Plans:
   3. User receives a win probability score (0-100) with reasoning breakdown across: scope alignment, certifications match, set-aside match, past performance relevance, and competition level
   4. System detects set-aside preferences in the RFP and displays a visible flag when they match the contractor's certifications profile
   5. User can view a Section L/M crosswalk table showing which Section L instruction maps to which Section M evaluation criterion
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — DB migration (rfp_analysis table + job queue extension), TypeScript types, test stubs, Anthropic SDK devDep
+- [ ] 03-02-PLAN.md — Pure utility library: set-aside detector, Section L/M detector, win score computation + tests
+- [ ] 03-03-PLAN.md — analyze-proposal Edge Function (3 Claude calls with caching) + process-documents enqueue update
+- [ ] 03-04-PLAN.md — Analysis UI: ComplianceMatrix, WinScoreCard, SetAsideFlags, SectionLMCrosswalk + analysis page
+
+**UI hint**: yes
 
 ### Phase 4: Proposal Drafting + Editor
 **Goal**: Contractors can generate AI-drafted proposal sections tailored to their profile, edit them in a full-featured browser editor, regenerate individual sections with custom instructions, and see compliance gaps highlighted in real time
@@ -102,6 +110,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
-| 3. RFP Analysis | 0/TBD | Not started | - |
+| 3. RFP Analysis | 0/4 | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
 | 5. Export Pipeline | 0/TBD | Not started | - |
