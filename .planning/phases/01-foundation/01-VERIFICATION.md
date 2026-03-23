@@ -1,18 +1,15 @@
 ---
 phase: 01-foundation
-verified: 2026-03-23T10:35:00Z
-status: gaps_found
-score: 4/5 must-haves verified
-re_verification: false
-gaps:
-  - truth: "User can sign up with email/password, verify via email link, log in, stay logged in across sessions, and reset a forgotten password"
-    status: partial
-    reason: "Auth pages and server actions are fully implemented. However, src/proxy.ts — which guards /dashboard, /profile, /account, /api/* — is never invoked because no middleware.ts file exists. In Next.js the proxy function only runs if exported from middleware.ts; without that file, unauthenticated users can reach all protected routes directly. Sessions stay logged in (Supabase SSR cookie pattern is correct), but the redirect enforcement is not wired."
-    artifacts:
-      - path: "src/proxy.ts"
-        issue: "Exports proxy() function but no src/middleware.ts imports and invokes it — the function is never called in the Next.js request pipeline"
-    missing:
-      - "Create src/middleware.ts that imports proxy from './proxy' and exports it as the default middleware export, plus re-exports the config matcher"
+verified: 2026-03-23T11:15:00Z
+status: passed
+score: 5/5 must-haves verified
+re_verification:
+  previous_status: gaps_found
+  previous_score: 4/5
+  gaps_closed:
+    - "proxy.ts wired into Next.js middleware chain via src/middleware.ts"
+  gaps_remaining: []
+  regressions: []
 human_verification:
   - test: "Email verification link flow"
     expected: "Clicking the verification email link redirects to /dashboard after successful verifyOtp"
@@ -31,9 +28,9 @@ human_verification:
 # Phase 1: Foundation Verification Report
 
 **Phase Goal:** Contractors can create accounts, subscribe, and build a complete profile so every subsequent AI feature has user context and contractor data to draw from
-**Verified:** 2026-03-23T10:35:00Z
-**Status:** gaps_found — 1 gap blocking auth route enforcement
-**Re-verification:** No — initial verification
+**Verified:** 2026-03-23T11:15:00Z
+**Status:** passed — all 5 must-haves verified
+**Re-verification:** Yes — after gap closure (proxy.ts wired via middleware.ts)
 
 ## Goal Achievement
 
@@ -41,13 +38,13 @@ human_verification:
 
 | #   | Truth                                                                                                             | Status      | Evidence                                                                                         |
 | --- | ----------------------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| 1   | User can sign up, verify email, log in, stay logged in, and reset password                                       | ⚠️ PARTIAL  | All auth pages/actions exist and are substantive; proxy.ts guards are ORPHANED — no middleware.ts wires them |
+| 1   | User can sign up, verify email, log in, stay logged in, and reset password                                       | ✓ VERIFIED  | All auth pages/actions exist and are substantive; src/middleware.ts now exports proxy as middleware — route protection is active |
 | 2   | User can start 14-day free trial without credit card, subscribe via Stripe, view status, cancel from account     | ✓ VERIFIED  | checkout/route.ts has trial_period_days:14 + payment_method_collection:if_required; portal/route.ts creates Customer Portal session; account/page.tsx renders status badge + billing dates |
-| 3   | User loses access to AI features when subscription lapses; existing proposals remain viewable read-only          | ✓ VERIFIED  | isSubscriptionActive() utility verified by 5 tests; dashboard layout shows lapse banner; no AI routes exist in Phase 1 (gating applied when routes are built in Phase 3/4) |
+| 3   | User loses access to AI features when subscription lapses; existing proposals remain viewable read-only          | ✓ VERIFIED  | isSubscriptionActive() utility verified by 5 tests; dashboard layout shows lapse banner; gating applied when AI routes are built in Phase 3/4 |
 | 4   | User can create/edit contractor profile with certifications, NAICS, past projects, key personnel, capability statement | ✓ VERIFIED  | ProfileForm with all 5 cert options wired to updateProfile server action writing to Supabase; PastProjectsClient + KeyPersonnelClient CRUD fully wired |
 | 5   | Each user's data is fully isolated via row-level security                                                        | ✓ VERIFIED  | 4 tables all have RLS enabled + per-user policies in migration; 8 RLS tests pass |
 
-**Score:** 4/5 truths verified (1 partial — proxy orphaned)
+**Score:** 5/5 truths verified
 
 ---
 
@@ -55,7 +52,8 @@ human_verification:
 
 | Artifact                                             | Purpose                                      | Exists | Substantive | Wired    | Status         |
 | ---------------------------------------------------- | -------------------------------------------- | ------ | ----------- | -------- | -------------- |
-| `src/proxy.ts`                                       | Session refresh + protected route enforcement | Yes    | Yes         | ORPHANED | ⚠️ ORPHANED    |
+| `src/middleware.ts`                                  | Wires proxy() into Next.js request pipeline  | Yes    | Yes         | Yes      | ✓ VERIFIED     |
+| `src/proxy.ts`                                       | Session refresh + protected route enforcement | Yes    | Yes         | Yes      | ✓ VERIFIED     |
 | `src/app/(auth)/signup/page.tsx`                     | Signup form UI                               | Yes    | Yes         | Yes      | ✓ VERIFIED     |
 | `src/app/(auth)/signup/actions.ts`                   | signUpAction with Zod + PKCE                 | Yes    | Yes         | Yes      | ✓ VERIFIED     |
 | `src/app/(auth)/login/page.tsx`                      | Login form UI                                | Yes    | Yes         | Yes      | ✓ VERIFIED     |
@@ -83,8 +81,9 @@ human_verification:
 
 | From                                  | To                                    | Via                                    | Status       | Details                                                                           |
 | ------------------------------------- | ------------------------------------- | -------------------------------------- | ------------ | --------------------------------------------------------------------------------- |
-| `src/proxy.ts`                        | Next.js request pipeline              | `middleware.ts` (missing)              | NOT_WIRED    | proxy() exported but no middleware.ts exists to invoke it                        |
-| `auth/confirm/route.ts`               | Supabase verifyOtp                    | `supabase.auth.verifyOtp()`            | WIRED        | Confirmed in source: verifyOtp called with token_hash + type; redirects on success |
+| `src/middleware.ts`                   | `src/proxy.ts`                        | `export { proxy as middleware, config }` | WIRED      | One-line re-export confirmed in file; Next.js will invoke proxy() on every matching request |
+| `src/proxy.ts`                        | Next.js request pipeline              | `src/middleware.ts`                    | WIRED        | middleware.ts exports proxy as middleware + config matcher — previously the blocking gap |
+| `auth/confirm/route.ts`               | Supabase verifyOtp                    | `supabase.auth.verifyOtp()`            | WIRED        | verifyOtp called with token_hash + type; redirects on success |
 | `billing/checkout/route.ts`           | Stripe API                            | `stripe.checkout.sessions.create()`    | WIRED        | Creates session with trial config; returns session.url                           |
 | `billing/portal/route.ts`             | Stripe Customer Portal                | `stripe.billingPortal.sessions.create()` | WIRED      | Confirmed in source                                                               |
 | `webhooks/stripe/route.ts`            | Supabase profiles table               | `createAdminClient()` + `.update()`    | WIRED        | 5 event types write subscription_status, current_period_end to profiles          |
@@ -112,7 +111,7 @@ human_verification:
 | isSubscriptionActive('trialing') = true    | Verified in test suite (access-gate.test.ts)               | true          | ✓ PASS  |
 | isSubscriptionActive('canceled') = false   | Verified in test suite (access-gate.test.ts)               | false         | ✓ PASS  |
 | checkout route has trial_period_days: 14   | Verified in test suite (trial-checkout.test.ts)            | present       | ✓ PASS  |
-| proxy.ts invoked by middleware             | `ls src/middleware.ts`                                     | FILE NOT FOUND | ✗ FAIL  |
+| proxy.ts invoked by middleware             | `src/middleware.ts` content confirmed                      | `export { proxy as middleware, config } from './proxy'` | ✓ PASS |
 
 ---
 
@@ -122,7 +121,7 @@ human_verification:
 | ----------- | ----------- | ---------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------- |
 | AUTH-01     | 01-02       | User can create account with email and password                                                | ✓ SATISFIED     | signup/actions.ts: signUpAction with Zod validation + Supabase signUp |
 | AUTH-02     | 01-02, 01-05 | Email verification required before access                                                     | ✓ SATISFIED     | /auth/confirm verifyOtp route; tested in confirm.test.ts              |
-| AUTH-03     | 01-02       | User can log in and stay logged in across sessions                                             | ⚠️ PARTIAL      | loginAction + cookie-based sessions functional; but proxy.ts not wired — no forced redirect on session expiry |
+| AUTH-03     | 01-02       | User can log in and stay logged in across sessions                                             | ✓ SATISFIED     | loginAction + cookie-based sessions; proxy.ts now active via middleware.ts enforces redirect on unauthenticated access |
 | AUTH-04     | 01-02       | User can reset password via email                                                              | ✓ SATISFIED     | reset-password/actions.ts + update-password/actions.ts both present  |
 | AUTH-05     | 01-05       | User data isolated via RLS                                                                     | ✓ SATISFIED     | 4 tables with RLS policies; 8 tests pass verifying migration SQL      |
 | BILLING-01  | 01-03, 01-05 | 14-day free trial without payment info                                                        | ✓ SATISFIED     | checkout: trial_period_days:14, payment_method_collection:if_required; handle_new_user trigger sets trial_ends_at |
@@ -139,11 +138,7 @@ human_verification:
 
 ### Anti-Patterns Found
 
-| File                          | Line | Pattern                                      | Severity    | Impact                                                                              |
-| ----------------------------- | ---- | -------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
-| `src/proxy.ts`                | 1-57 | Orphaned module — never imported or called   | Blocker     | Auth route protection does not execute — protected routes accessible without auth  |
-
-No TODO/FIXME comments, placeholder returns, or hardcoded empty data found in Phase 1 source files. `window.location.reload()` in client wrappers is documented as intentional MVP pattern.
+No blockers. The previously identified orphaned `src/proxy.ts` is now fully wired via `src/middleware.ts`. No TODO/FIXME comments, placeholder returns, or hardcoded empty data found in Phase 1 source files.
 
 ---
 
@@ -177,25 +172,9 @@ No TODO/FIXME comments, placeholder returns, or hardcoded empty data found in Ph
 
 ### Gaps Summary
 
-**1 gap blocking full goal achievement:**
-
-**proxy.ts orphaned — auth route protection not wired**
-
-`src/proxy.ts` contains the session refresh and route protection logic (redirecting unauthenticated users to `/login`, redirecting authenticated users away from `/login`/`/signup`), but Next.js only runs this code if it is exported from a file named `middleware.ts`. That file does not exist. As a result:
-
-- A user who is not logged in can navigate directly to `/dashboard`, `/profile`, or `/account` without being redirected
-- A user who is logged in will not be auto-redirected away from `/login` or `/signup`
-
-The `(dashboard)/layout.tsx` does call `getUser()` and redirect to `/login` if there is no session, which provides a partial defense for dashboard routes rendered server-side. However, this is not a reliable substitute for middleware: it only fires on React render, not at the edge before the request is routed, and it does not cover all protected paths listed in proxy.ts (`/api/proposals`, `/api/generate`, `/api/billing`).
-
-**Fix:** Create `src/middleware.ts`:
-```typescript
-export { proxy as middleware, config } from './proxy'
-```
-
-This one-line file wires the existing proxy function and re-exports the matcher config so Next.js applies it to the correct routes.
+No gaps. The single blocking gap from initial verification — `src/proxy.ts` orphaned from the Next.js middleware chain — was resolved by creating `src/middleware.ts` with `export { proxy as middleware, config } from './proxy'`. All 5 observable truths now pass, all 14 requirements are satisfied, and 34/34 unit tests pass.
 
 ---
 
-_Verified: 2026-03-23T10:35:00Z_
+_Verified: 2026-03-23T11:15:00Z_
 _Verifier: Claude (gsd-verifier)_
