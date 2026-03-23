@@ -50,7 +50,14 @@ Plans:
   2. User sees a progress indicator during processing and is notified (via UI update) when the RFP is ready — no manual refresh required
   3. When a scanned (image-only) PDF is uploaded, the system automatically routes it through OCR and returns extracted text without user intervention
   4. User can view the parsed RFP structure — section outline and requirement list — in a sidebar while working on their proposal
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Install packages, DB migration (document_jobs + proposals extension), test stubs + fixtures
+- [ ] 02-02-PLAN.md — Core parsing library: PDF (unpdf), DOCX (mammoth), Textract OCR, RFP structure extraction
+- [ ] 02-03-PLAN.md — Upload API route (signed URL + job queue) + Supabase Edge Function (background processor)
+- [ ] 02-04-PLAN.md — Upload UI (drag-and-drop), real-time processing status, proposal pages, dashboard update
+
 **UI hint**: yes
 
 ### Phase 3: RFP Analysis
@@ -94,7 +101,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
-| 2. Document Ingestion | 0/TBD | Not started | - |
+| 2. Document Ingestion | 0/4 | Not started | - |
 | 3. RFP Analysis | 0/TBD | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
 | 5. Export Pipeline | 0/TBD | Not started | - |
