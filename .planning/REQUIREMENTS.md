@@ -41,10 +41,10 @@
 ### Billing
 
 - [x] **BILLING-01**: User can start a 14-day free trial without entering payment information
-- [ ] **BILLING-02**: User can subscribe with a credit card via Stripe Checkout at the end of the trial or at any time
-- [ ] **BILLING-03**: User loses access to AI features and new proposal creation when subscription is canceled or payment fails; existing proposals remain viewable (read-only)
-- [ ] **BILLING-04**: User can view their current subscription status and next billing date in account settings
-- [ ] **BILLING-05**: User can cancel their subscription at any time from account settings
+- [x] **BILLING-02**: User can subscribe with a credit card via Stripe Checkout at the end of the trial or at any time
+- [x] **BILLING-03**: User loses access to AI features and new proposal creation when subscription is canceled or payment fails; existing proposals remain viewable (read-only)
+- [x] **BILLING-04**: User can view their current subscription status and next billing date in account settings
+- [x] **BILLING-05**: User can cancel their subscription at any time from account settings
 
 ### AI Proposal Drafting
 
@@ -109,10 +109,10 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 | AUTH-04 | Phase 1 — Foundation | Complete |
 | AUTH-05 | Phase 1 — Foundation | Complete |
 | BILLING-01 | Phase 1 — Foundation | Complete |
-| BILLING-02 | Phase 1 — Foundation | Pending |
-| BILLING-03 | Phase 1 — Foundation | Pending |
-| BILLING-04 | Phase 1 — Foundation | Pending |
-| BILLING-05 | Phase 1 — Foundation | Pending |
+| BILLING-02 | Phase 1 — Foundation | Complete |
+| BILLING-03 | Phase 1 — Foundation | Complete |
+| BILLING-04 | Phase 1 — Foundation | Complete |
+| BILLING-05 | Phase 1 — Foundation | Complete |
 | PROFILE-01 | Phase 1 — Foundation | Complete |
 | PROFILE-02 | Phase 1 — Foundation | Complete |
 | PROFILE-03 | Phase 1 — Foundation | Complete |
