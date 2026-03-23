@@ -101,16 +101,41 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 
 ## Traceability
 
-*Filled in by roadmap agent.*
-
-| Requirement | Phase | Plan |
-|-------------|-------|------|
-| INGEST-01 – INGEST-04 | TBD | TBD |
-| INGEST-05 | TBD | TBD |
-| ANALYZE-01 – ANALYZE-05 | TBD | TBD |
-| PROFILE-01 – PROFILE-04 | TBD | TBD |
-| AUTH-01 – AUTH-05 | TBD | TBD |
-| BILLING-01 – BILLING-05 | TBD | TBD |
-| DRAFT-01 – DRAFT-06 | TBD | TBD |
-| EDITOR-01 – EDITOR-04 | TBD | TBD |
-| EXPORT-01 – EXPORT-02 | TBD | TBD |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUTH-01 | Phase 1 — Foundation | Pending |
+| AUTH-02 | Phase 1 — Foundation | Pending |
+| AUTH-03 | Phase 1 — Foundation | Pending |
+| AUTH-04 | Phase 1 — Foundation | Pending |
+| AUTH-05 | Phase 1 — Foundation | Pending |
+| BILLING-01 | Phase 1 — Foundation | Pending |
+| BILLING-02 | Phase 1 — Foundation | Pending |
+| BILLING-03 | Phase 1 — Foundation | Pending |
+| BILLING-04 | Phase 1 — Foundation | Pending |
+| BILLING-05 | Phase 1 — Foundation | Pending |
+| PROFILE-01 | Phase 1 — Foundation | Pending |
+| PROFILE-02 | Phase 1 — Foundation | Pending |
+| PROFILE-03 | Phase 1 — Foundation | Pending |
+| PROFILE-04 | Phase 1 — Foundation | Pending |
+| INGEST-01 | Phase 2 — Document Ingestion | Pending |
+| INGEST-02 | Phase 2 — Document Ingestion | Pending |
+| INGEST-03 | Phase 2 — Document Ingestion | Pending |
+| INGEST-04 | Phase 2 — Document Ingestion | Pending |
+| INGEST-05 | Phase 2 — Document Ingestion | Pending |
+| ANALYZE-01 | Phase 3 — RFP Analysis | Pending |
+| ANALYZE-02 | Phase 3 — RFP Analysis | Pending |
+| ANALYZE-03 | Phase 3 — RFP Analysis | Pending |
+| ANALYZE-04 | Phase 3 — RFP Analysis | Pending |
+| ANALYZE-05 | Phase 3 — RFP Analysis | Pending |
+| DRAFT-01 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-02 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-03 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-04 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-05 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-06 | Phase 4 — Proposal Drafting + Editor | Pending |
+| EDITOR-01 | Phase 4 — Proposal Drafting + Editor | Pending |
+| EDITOR-02 | Phase 4 — Proposal Drafting + Editor | Pending |
+| EDITOR-03 | Phase 4 — Proposal Drafting + Editor | Pending |
+| EDITOR-04 | Phase 4 — Proposal Drafting + Editor | Pending |
+| EXPORT-01 | Phase 5 — Export Pipeline | Pending |
+| EXPORT-02 | Phase 5 — Export Pipeline | Pending |
