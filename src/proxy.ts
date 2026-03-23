@@ -10,7 +10,10 @@ export async function proxy(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return parseCookieHeader(request.headers.get('cookie') ?? '')
+          return parseCookieHeader(request.headers.get('cookie') ?? '').map(({ name, value }) => ({
+            name,
+            value: value ?? '',
+          }))
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
