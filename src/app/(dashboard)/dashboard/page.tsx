@@ -51,6 +51,13 @@ export default async function DashboardPage() {
   const completion = getProfileCompletion(profile)
   const completionPercent = Math.round((completion.complete / completion.total) * 100)
 
+  const { data: proposals } = await supabase
+    .from('proposals')
+    .select('id, title, status, file_name, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
@@ -84,6 +91,18 @@ export default async function DashboardPage() {
 
       {/* Navigation grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link
+          href="/proposals/new"
+          className="group rounded-lg border-2 border-blue-200 bg-blue-50 p-5 hover:border-blue-400 hover:shadow-sm transition-all sm:col-span-2"
+        >
+          <h3 className="text-sm font-semibold text-blue-900 group-hover:text-blue-700 mb-1">
+            Upload RFP
+          </h3>
+          <p className="text-xs text-blue-700">
+            Upload a government RFP (PDF or Word) to start building your proposal.
+          </p>
+        </Link>
+
         <Link
           href="/profile"
           className="group rounded-lg border border-gray-200 bg-white p-5 hover:border-blue-300 hover:shadow-sm transition-all"
@@ -132,6 +151,38 @@ export default async function DashboardPage() {
           </p>
         </Link>
       </div>
+
+      {/* Recent Proposals */}
+      {proposals && proposals.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Recent Proposals</h2>
+          <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
+            {proposals.map((p) => (
+              <Link
+                key={p.id}
+                href={`/proposals/${p.id}`}
+                className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{p.title}</p>
+                  {p.file_name && (
+                    <p className="text-xs text-gray-500 mt-0.5">{p.file_name}</p>
+                  )}
+                </div>
+                <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                  p.status === 'ready'
+                    ? 'bg-green-50 text-green-700'
+                    : p.status === 'processing'
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {p.status === 'ready' ? 'Ready' : p.status === 'processing' ? 'Processing' : 'Draft'}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
