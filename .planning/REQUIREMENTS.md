@@ -48,19 +48,19 @@
 
 ### AI Proposal Drafting
 
-- [ ] **DRAFT-01**: System generates a complete Executive Summary section tailored to the RFP scope and the contractor's profile (certifications, capability statement, past performance)
-- [ ] **DRAFT-02**: System generates a complete Technical Approach section based on the RFP's technical requirements and the contractor's relevant past performance
-- [ ] **DRAFT-03**: System generates a complete Management Plan section including key personnel bios injected from the contractor profile
-- [ ] **DRAFT-04**: System generates a complete Past Performance section with narrative descriptions drawn from the contractor's past project records, matched to the RFP scope
-- [ ] **DRAFT-05**: System generates a Price Narrative section framing the contractor's approach to pricing (narrative only; no actual numbers generated)
-- [ ] **DRAFT-06**: User can regenerate any individual proposal section with optional natural-language instructions (e.g., "focus more on cybersecurity certifications")
+- [x] **DRAFT-01**: System generates a complete Executive Summary section tailored to the RFP scope and the contractor's profile (certifications, capability statement, past performance)
+- [x] **DRAFT-02**: System generates a complete Technical Approach section based on the RFP's technical requirements and the contractor's relevant past performance
+- [x] **DRAFT-03**: System generates a complete Management Plan section including key personnel bios injected from the contractor profile
+- [x] **DRAFT-04**: System generates a complete Past Performance section with narrative descriptions drawn from the contractor's past project records, matched to the RFP scope
+- [x] **DRAFT-05**: System generates a Price Narrative section framing the contractor's approach to pricing (narrative only; no actual numbers generated)
+- [x] **DRAFT-06**: User can regenerate any individual proposal section with optional natural-language instructions (e.g., "focus more on cybersecurity certifications")
 
 ### Editor
 
-- [ ] **EDITOR-01**: User can edit all proposal sections in a rich text editor supporting headings, bullet lists, numbered lists, bold, italic, underline, and tables
-- [ ] **EDITOR-02**: Editor auto-saves content every 30 seconds; user sees a "saved" timestamp indicator
-- [ ] **EDITOR-03**: Compliance matrix is displayed alongside the editor and updates coverage status as the user edits (a requirement is marked addressed when its key terms appear in the relevant section)
-- [ ] **EDITOR-04**: Editor visually highlights text regions where compliance requirements are not yet addressed, enabling the user to identify gaps without leaving the editor
+- [x] **EDITOR-01**: User can edit all proposal sections in a rich text editor supporting headings, bullet lists, numbered lists, bold, italic, underline, and tables
+- [x] **EDITOR-02**: Editor auto-saves content every 30 seconds; user sees a "saved" timestamp indicator
+- [x] **EDITOR-03**: Compliance matrix is displayed alongside the editor and updates coverage status as the user edits (a requirement is marked addressed when its key terms appear in the relevant section)
+- [x] **EDITOR-04**: Editor visually highlights text regions where compliance requirements are not yet addressed, enabling the user to identify gaps without leaving the editor
 
 ### Export
 
@@ -127,15 +127,15 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 | ANALYZE-03 | Phase 3 — RFP Analysis | Complete |
 | ANALYZE-04 | Phase 3 — RFP Analysis | Complete |
 | ANALYZE-05 | Phase 3 — RFP Analysis | Complete |
-| DRAFT-01 | Phase 4 — Proposal Drafting + Editor | Pending |
-| DRAFT-02 | Phase 4 — Proposal Drafting + Editor | Pending |
-| DRAFT-03 | Phase 4 — Proposal Drafting + Editor | Pending |
-| DRAFT-04 | Phase 4 — Proposal Drafting + Editor | Pending |
-| DRAFT-05 | Phase 4 — Proposal Drafting + Editor | Pending |
-| DRAFT-06 | Phase 4 — Proposal Drafting + Editor | Pending |
-| EDITOR-01 | Phase 4 — Proposal Drafting + Editor | Pending |
-| EDITOR-02 | Phase 4 — Proposal Drafting + Editor | Pending |
-| EDITOR-03 | Phase 4 — Proposal Drafting + Editor | Pending |
-| EDITOR-04 | Phase 4 — Proposal Drafting + Editor | Pending |
+| DRAFT-01 | Phase 4 — Proposal Drafting + Editor | Complete |
+| DRAFT-02 | Phase 4 — Proposal Drafting + Editor | Complete |
+| DRAFT-03 | Phase 4 — Proposal Drafting + Editor | Complete |
+| DRAFT-04 | Phase 4 — Proposal Drafting + Editor | Complete |
+| DRAFT-05 | Phase 4 — Proposal Drafting + Editor | Complete |
+| DRAFT-06 | Phase 4 — Proposal Drafting + Editor | Complete |
+| EDITOR-01 | Phase 4 — Proposal Drafting + Editor | Complete |
+| EDITOR-02 | Phase 4 — Proposal Drafting + Editor | Complete |
+| EDITOR-03 | Phase 4 — Proposal Drafting + Editor | Complete |
+| EDITOR-04 | Phase 4 — Proposal Drafting + Editor | Complete |
 | EXPORT-01 | Phase 5 — Export Pipeline | Pending |
 | EXPORT-02 | Phase 5 — Export Pipeline | Pending |

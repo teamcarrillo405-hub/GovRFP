@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-03-23T21:08:29.941Z"
+status: Ready to execute
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-23T23:27:53.861Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 18
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 04 — proposal-drafting-editor
 
 ## Current Position
 
-Phase: 1 (Foundation) — EXECUTING
-Plan: 5 of 5
+Phase: 04 (proposal-drafting-editor) — EXECUTING
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Plan: 5 of 5
 | Phase 03-rfp-analysis P01 | 8 | 2 tasks | 9 files |
 | Phase 03-rfp-analysis P02 | 198 | 2 tasks | 6 files |
 | Phase 03-rfp-analysis P03 | 8 | 2 tasks | 3 files |
+| Phase 04-proposal-drafting-editor P01 | 12 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 03-rfp-analysis]: 8(a) regex: trailing \b after ')' fails -- replaced with (?\!\w) negative lookahead
 - [Phase 03-rfp-analysis]: cache_control on rfp_text system block only — instructions block changes per call, no caching
 - [Phase 03-rfp-analysis]: failJob() leaves proposal at ready on analysis failure — user keeps parsed document view
+- [Phase 04-proposal-drafting-editor]: @anthropic-ai/sdk promoted to production dependency — Phase 4 draft generation runs from Next.js App Router route handler, not Edge Function
+- [Phase 04-proposal-drafting-editor]: ANTHROPIC_API_KEY now required in both Supabase Edge Function secrets AND .env.local for Phase 4+
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T21:08:29.936Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-proposal-drafting-editor/04-UI-SPEC.md
+Last session: 2026-03-23T23:27:53.856Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

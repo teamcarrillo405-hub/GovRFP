@@ -92,7 +92,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Install Tiptap v2 packages, DB migration (proposal_sections), shared types, test stubs
+- [x] 04-01-PLAN.md — Install Tiptap v2 packages, DB migration (proposal_sections), shared types, test stubs
 - [ ] 04-02-PLAN.md — Draft streaming API route + per-section prompt builders with profile injection
 - [ ] 04-03-PLAN.md — Tiptap extension array, ComplianceGap mark, compliance scanner
 - [ ] 04-04-PLAN.md — Editor page: ProposalEditor, SectionEditor, EditorToolbar, CompliancePanel, RegenerateDialog, auto-save
@@ -119,5 +119,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
 | 3. RFP Analysis | 4/4 | Complete   | 2026-03-23 |
-| 4. Proposal Drafting + Editor | 0/5 | Planning complete | - |
+| 4. Proposal Drafting + Editor | 1/5 | In Progress|  |
 | 5. Export Pipeline | 0/TBD | Not started | - |
