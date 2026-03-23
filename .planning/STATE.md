@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 02-document-ingestion/02-03-PLAN.md
-last_updated: "2026-03-23T18:41:30.589Z"
+stopped_at: Completed 02-document-ingestion/02-04-PLAN.md
+last_updated: "2026-03-23T18:50:01.315Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -54,6 +54,7 @@ Plan: 5 of 5
 | Phase 02-document-ingestion P01 | 525642 | 2 tasks | 14 files |
 | Phase 02-document-ingestion P02 | 4 min | 2 tasks | 7 files |
 | Phase 02-document-ingestion P03 | 15 | 2 tasks | 5 files |
+| Phase 02-document-ingestion P04 | 4 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Recent decisions affecting current work:
 - [Phase 02-document-ingestion]: isScannedPdf uses every-page-below-threshold logic (all pages must be below 100 chars)
 - [Phase 02-document-ingestion]: Excluded supabase/functions from tsconfig.json — Deno runtime incompatible with Node.js tsc
 - [Phase 02-document-ingestion]: Upload route returns 402 for inactive subscription; checkSubscription+isSubscriptionActive matches actual export signature
+- [Phase 02-document-ingestion]: ProcessingStatus reloads window on completed so RSC re-fetches rfp_text/rfp_structure — avoids client-side state sync complexity
 
 ### Pending Todos
 
@@ -95,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T18:41:30.584Z
-Stopped at: Completed 02-document-ingestion/02-03-PLAN.md
+Last session: 2026-03-23T18:50:01.311Z
+Stopped at: Completed 02-document-ingestion/02-04-PLAN.md
 Resume file: None

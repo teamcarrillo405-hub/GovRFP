@@ -13,7 +13,7 @@ HCC ProposalAI goes from zero to a full AI-assisted RFP proposal writing SaaS in
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Auth, billing enforcement, contractor profile, and full database schema (completed 2026-03-23)
-- [ ] **Phase 2: Document Ingestion** - RFP upload, async parse pipeline, OCR fallback, and job queue
+- [x] **Phase 2: Document Ingestion** - RFP upload, async parse pipeline, OCR fallback, and job queue (completed 2026-03-23)
 - [ ] **Phase 3: RFP Analysis** - Claude structured extraction, compliance matrix, and win probability score
 - [ ] **Phase 4: Proposal Drafting + Editor** - Streaming AI drafts, Tiptap editor, compliance live-linking
 - [ ] **Phase 5: Export Pipeline** - Word (.docx) and PDF export from Tiptap JSON
@@ -56,7 +56,7 @@ Plans:
 - [x] 02-01-PLAN.md — Install packages, DB migration (document_jobs + proposals extension), test stubs + fixtures
 - [x] 02-02-PLAN.md — Core parsing library: PDF (unpdf), DOCX (mammoth), Textract OCR, RFP structure extraction
 - [x] 02-03-PLAN.md — Upload API route (signed URL + job queue) + Supabase Edge Function (background processor)
-- [ ] 02-04-PLAN.md — Upload UI (drag-and-drop), real-time processing status, proposal pages, dashboard update
+- [x] 02-04-PLAN.md — Upload UI (drag-and-drop), real-time processing status, proposal pages, dashboard update
 
 **UI hint**: yes
 
@@ -101,7 +101,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
-| 2. Document Ingestion | 3/4 | In Progress|  |
+| 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
 | 3. RFP Analysis | 0/TBD | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
 | 5. Export Pipeline | 0/TBD | Not started | - |
