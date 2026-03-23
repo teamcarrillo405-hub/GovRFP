@@ -49,8 +49,9 @@ describe('scanCompliance', () => {
   })
 
   it('returns partial when 30-59% keywords present', () => {
-    // Only include a couple keywords: "construction services"
-    const doc = makeParagraphDoc('construction services')
+    // requirement 4+ letter keywords: contractor, shall, provide, construction, management, services, federal, buildings (8 total)
+    // Need 30-59% = 3-4 matches out of 8. Use 3 keywords: "construction management services"
+    const doc = makeParagraphDoc('construction management services')
     const req = makeReq()
     const result = scanCompliance(doc, [req], 'Technical Approach')
     expect(result.get('REQ-001')).toBe('partial')
