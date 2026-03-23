@@ -36,4 +36,23 @@ describe('document_jobs job_type extension', () => {
     )
     expect(migration).toContain("'analysis'")
   })
+
+  it('analyze-proposal Edge Function calls claim_next_job with analysis type', () => {
+    const analyzeProposalSrc = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/analyze-proposal/index.ts'),
+      'utf-8'
+    )
+    expect(analyzeProposalSrc).toContain('claim_next_job')
+    expect(analyzeProposalSrc).toContain("'analysis'")
+  })
+
+  it('process-documents enqueues analysis job on success', () => {
+    const processDocsSrc = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/process-documents/index.ts'),
+      'utf-8'
+    )
+    expect(processDocsSrc).toContain('job_type')
+    expect(processDocsSrc).toContain("'analysis'")
+    expect(processDocsSrc).toContain("'pending'")
+  })
 })

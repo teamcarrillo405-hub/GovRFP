@@ -184,6 +184,33 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Job ${job.id} completed successfully`)
 
+    // 7. Enqueue analysis job (Phase 3) — runs in separate Edge Function
+    // Check subscription before queuing to avoid wasted analysis on lapsed users
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('subscription_status, trial_ends_at')
+      .eq('id', job.user_id)
+      .single()
+
+    const subActive =
+      userProfile?.subscription_status === 'active' ||
+      (userProfile?.subscription_status === 'trialing' &&
+       new Date(userProfile.trial_ends_at ?? 0) > new Date())
+
+    if (subActive) {
+      await supabase.from('document_jobs').insert({
+        proposal_id: job.proposal_id,
+        user_id: job.user_id,
+        storage_path: job.storage_path,
+        file_type: job.file_type,
+        job_type: 'analysis',
+        status: 'pending',
+      })
+      console.log(`Enqueued analysis job for proposal ${job.proposal_id}`)
+    } else {
+      console.log(`Skipped analysis enqueue for proposal ${job.proposal_id} — subscription inactive`)
+    }
+
     return new Response(JSON.stringify({ success: true, proposalId: job.proposal_id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
