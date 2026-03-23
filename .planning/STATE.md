@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 02-document-ingestion-01-PLAN.md
-last_updated: "2026-03-23T18:32:27.101Z"
+stopped_at: Completed 02-document-ingestion 02-02-PLAN.md
+last_updated: "2026-03-23T18:41:01.130Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 8
 ---
 
 # Project State
@@ -52,6 +52,7 @@ Plan: 5 of 5
 | Phase 01-foundation P04 | 294 | 2 tasks | 13 files |
 | Phase 01-foundation P05 | 5 | 2 tasks | 6 files |
 | Phase 02-document-ingestion P01 | 525642 | 2 tasks | 14 files |
+| Phase 02-document-ingestion P02 | 4 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: File-read code-structure tests: billing and auth tests read source files as strings to assert config constants — avoids mocking Next.js or Stripe
 - [Phase 02-document-ingestion]: Used archiver dev dep for DOCX fixture generation (archiver was not pre-installed, docx package absent)
 - [Phase 02-document-ingestion]: Fixed tsconfig.json target ES2017->ES2018 to allow dotAll regex flag used in existing Phase 1 RLS tests
+- [Phase 02-document-ingestion]: Import from 'unpdf' not 'unpdf/serverless' — v1.4.0 has no serverless sub-path; Node 24 supports Promise.withResolvers natively
+- [Phase 02-document-ingestion]: isScannedPdf uses every-page-below-threshold logic (all pages must be below 100 chars)
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T18:32:27.098Z
-Stopped at: Completed 02-document-ingestion-01-PLAN.md
+Last session: 2026-03-23T18:40:33.667Z
+Stopped at: Completed 02-document-ingestion 02-02-PLAN.md
 Resume file: None

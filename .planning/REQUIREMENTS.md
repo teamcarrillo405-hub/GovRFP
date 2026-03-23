@@ -13,7 +13,7 @@
 - [x] **INGEST-02**: User can upload an RFP as a Word (.docx) file (up to 50MB)
 - [x] **INGEST-03**: System detects when a PDF is image-only (scanned) and routes it through OCR fallback automatically
 - [x] **INGEST-04**: RFP processing (parse + extraction) runs as a background job; user sees progress indicator and is notified when processing completes
-- [ ] **INGEST-05**: User can view the parsed RFP structure (section outline + requirement list) in a sidebar while editing their proposal
+- [x] **INGEST-05**: User can view the parsed RFP structure (section outline + requirement list) in a sidebar while editing their proposal
 
 ### AI Analysis
 
@@ -121,7 +121,7 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 | INGEST-02 | Phase 2 — Document Ingestion | Complete |
 | INGEST-03 | Phase 2 — Document Ingestion | Complete |
 | INGEST-04 | Phase 2 — Document Ingestion | Complete |
-| INGEST-05 | Phase 2 — Document Ingestion | Pending |
+| INGEST-05 | Phase 2 — Document Ingestion | Complete |
 | ANALYZE-01 | Phase 3 — RFP Analysis | Pending |
 | ANALYZE-02 | Phase 3 — RFP Analysis | Pending |
 | ANALYZE-03 | Phase 3 — RFP Analysis | Pending |
