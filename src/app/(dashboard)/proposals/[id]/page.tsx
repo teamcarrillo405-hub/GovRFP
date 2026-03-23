@@ -37,6 +37,7 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   const isProcessing = proposal.status === 'processing'
   const isReady = proposal.status === 'ready'
+  const isAnalyzed = proposal.status === 'analyzed'
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
@@ -153,8 +154,58 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* Analysis results available */}
+      {isAnalyzed && (
+        <div className="space-y-6">
+          {/* Document metadata */}
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Document Info</h2>
+            <dl className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <dt className="text-gray-500">Type</dt>
+                <dd className="font-medium text-gray-900 mt-0.5">
+                  {proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Pages</dt>
+                <dd className="font-medium text-gray-900 mt-0.5">
+                  {proposal.page_count ?? 'N/A'}
+                </dd>
+              </div>
+              {proposal.is_scanned && (
+                <div>
+                  <dt className="text-gray-500">OCR</dt>
+                  <dd className="font-medium text-gray-900 mt-0.5">
+                    Scanned document — text extracted via OCR
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {/* Analysis CTA */}
+          <div className="rounded-lg border border-green-200 bg-green-50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Analysis Complete</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Requirements extracted, compliance matrix built, and win probability scored.
+                </p>
+              </div>
+              <Link
+                href={`/proposals/${id}/analysis`}
+                className="inline-flex items-center rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800"
+              >
+                View Analysis
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Draft/archived state — no document uploaded yet or archived */}
-      {!isProcessing && !isReady && (
+      {!isProcessing && !isReady && !isAnalyzed && (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
           <p className="text-sm text-gray-500">
             {proposal.status === 'draft' && !proposal.file_name
