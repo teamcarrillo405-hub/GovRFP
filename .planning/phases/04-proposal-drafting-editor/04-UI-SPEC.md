@@ -49,28 +49,32 @@ Exceptions:
 
 ## Typography
 
+Shell UI type scale contains 4 sizes (12, 14, 16, 20px). Editor canvas content scale is scoped to `.ProseMirror` and operates independently — these are document content sizes, not UI chrome sizes.
+
 | Role | Size | Weight | Line Height | Tailwind Class |
 |------|------|--------|-------------|----------------|
 | Body | 14px | 400 (regular) | 1.5 | `text-sm` |
-| Label | 12px | 500 (medium) | 1.4 | `text-xs font-medium` |
+| Label | 12px | 400 (regular) | 1.4 | `text-xs` |
 | Heading (section title) | 16px | 600 (semibold) | 1.4 | `text-base font-semibold` |
-| Display (page title) | 20px | 700 (bold) | 1.2 | `text-xl font-bold` |
+| Display (page title) | 20px | 600 (semibold) | 1.2 | `text-xl font-semibold` |
 
-Source: Matches existing Phase 3 components (ComplianceMatrix uses `text-sm`, `text-xs font-medium`, `font-semibold`).
+Two weights only: **400 (regular)** and **600 (semibold)**. No other weights permitted in shell UI.
 
-### Editor Canvas Typography (Tiptap content)
+Source: Matches existing Phase 3 components (ComplianceMatrix uses `text-sm`, `text-xs`, `font-semibold`).
 
-These apply inside the `.ProseMirror` rendered content area — not the shell UI:
+### Editor Canvas Typography (Tiptap content — scoped to `.ProseMirror`)
+
+These apply inside the `.ProseMirror` rendered content area — not the shell UI. This scale is independent of the shell UI scale above.
 
 | Element | Size | Weight | Line Height |
 |---------|------|--------|-------------|
 | Paragraph | 16px | 400 | 1.6 |
-| Heading 1 | 24px | 700 | 1.2 |
-| Heading 2 | 20px | 600 | 1.25 |
-| Heading 3 | 16px | 600 | 1.3 |
+| Heading 1 | 24px | 600 (semibold) | 1.2 |
+| Heading 2 | 20px | 600 (semibold) | 1.25 |
+| Heading 3 | 16px | 600 (semibold) | 1.3 |
 | Table cell | 14px | 400 | 1.5 |
 
-Apply via Tailwind prose-style targeting: `[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold` etc. on the SectionEditor wrapper div.
+Apply via Tailwind prose-style targeting: `[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-semibold` etc. on the SectionEditor wrapper div.
 
 ---
 
@@ -90,8 +94,8 @@ All values use Tailwind v4 utility classes. No custom CSS variables needed.
 Source: Phase 1-3 pattern (blue-700 for primary CTAs, gray-50/200/500/700/900 surfaces, amber/yellow for warnings).
 
 **Accent reserved for:**
-1. "Generate" button (primary CTA per section — first generation)
-2. "Regenerate" button in RegenerateDialog confirmation
+1. "Generate [Section Name]" button (primary CTA per section — first generation)
+2. "Regenerate Section" button in RegenerateDialog confirmation
 3. Active section tab indicator (bottom border or background)
 4. Save status spinner while auto-save is in progress
 
@@ -156,20 +160,22 @@ The editor page uses a two-column layout:
 - Separator: `w-px h-5 bg-gray-300 mx-1`
 - Toolbar groups: [H1 H2 H3] | [Bold Italic Underline] | [BulletList NumberedList] | [Table]
 - All toolbar icons: inline SVG, 16px × 16px, stroke-based
+- Each toolbar button MUST carry `aria-label` (e.g., `aria-label="Bold"`).
 
 ### SectionEditor (Tiptap canvas — 'use client')
 
 - Wrapper: `relative` — positions streaming overlay
 - Canvas: `[&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[520px] [&_.ProseMirror]:p-6`
 - Streaming state: overlay `absolute inset-0 bg-white/60 flex items-center justify-center` — visible while SSE stream is open
-- Streaming indicator text: "Generating..." in `text-sm text-blue-700 font-medium`
+- Streaming indicator text: "Generating..." in `text-sm text-blue-700 font-semibold`
 - ComplianceGap mark: rendered as `<mark class="bg-amber-100 rounded-sm px-0.5">` — applied by Tiptap mark extension
 
 ### GenerateBar (below canvas)
 
 - Container: `flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md`
 - Left: auto-save indicator (see below)
-- Right: Generate/Regenerate button + "Add instructions" text toggle
+- Right: Generate/Regenerate Section button + "Add instructions" text toggle
+- The Generate/Regenerate Section button is the primary visual focal point of the editor page — the sole blue-700 element in the GenerateBar.
 
 ### Auto-save Indicator
 
@@ -180,14 +186,14 @@ The editor page uses a two-column layout:
 
 ### Generate Button (first generation — section is empty)
 
-- Class: `inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-medium rounded-md hover:bg-blue-800 transition-colors`
+- Class: `inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors`
 - Label: "Generate [Section Name]" (e.g., "Generate Executive Summary")
 - Disabled state during streaming: `opacity-50 cursor-not-allowed`
 
-### Regenerate Button (section has content)
+### Regenerate Section Button (section has content)
 
-- Class: `inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors`
-- Label: "Regenerate"
+- Class: `inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition-colors`
+- Label: "Regenerate Section"
 - Opens RegenerateDialog
 
 ### RegenerateDialog (modal — 'use client')
@@ -198,13 +204,14 @@ The editor page uses a two-column layout:
 - Instruction textarea: `w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-blue-500`
 - Textarea placeholder: "Optional: Add specific instructions (e.g., focus more on cybersecurity certifications)"
 - Cancel button: `px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50`
-- Confirm button: `px-4 py-2 bg-blue-700 text-white text-sm font-medium rounded-md hover:bg-blue-800`
+- Confirm button: `px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800`
+- Confirm button label: "Generate New Draft"
 
 ### CompliancePanel ('use client')
 
 - Container: `w-80 shrink-0 flex flex-col border-l border-gray-200 bg-gray-50`
 - Header: `px-4 py-3 border-b border-gray-200` — title "Compliance" in `text-sm font-semibold text-gray-700`
-- Coverage summary: `px-4 py-2 text-xs text-gray-500` — "{N} addressed, {M} unaddressed"
+- Coverage summary: `px-4 py-2 text-xs text-gray-400` — "{N} addressed, {M} unaddressed"
 - Requirements list: `flex-1 overflow-y-auto divide-y divide-gray-200`
 - Requirement row: `px-4 py-3`
 - Requirement text: `text-xs text-gray-700 leading-relaxed mb-1`
@@ -216,7 +223,7 @@ The editor page uses a two-column layout:
 
 ### Streaming State
 
-Triggered: user clicks Generate or Regenerate, SSE stream opens.
+Triggered: user clicks Generate or Regenerate Section, SSE stream opens.
 
 1. Generate button becomes disabled (`opacity-50 cursor-not-allowed`)
 2. Editor canvas shows `bg-amber-50 border-amber-200` border (streaming active color)
@@ -258,10 +265,10 @@ error → idle (retry on next interval)
 | Element | Copy | Requirement |
 |---------|------|-------------|
 | Primary CTA — empty section | "Generate [Section Name]" | DRAFT-01 through DRAFT-05 |
-| Primary CTA — has content | "Regenerate" | DRAFT-06 |
+| Primary CTA — has content | "Regenerate Section" | DRAFT-06 |
 | RegenerateDialog title | "Regenerate [Section Name]" | DRAFT-06 |
 | RegenerateDialog instruction placeholder | "Optional: Add specific instructions (e.g., focus more on cybersecurity certifications)" | DRAFT-06 |
-| RegenerateDialog confirm button | "Generate" | DRAFT-06 |
+| RegenerateDialog confirm button | "Generate New Draft" | DRAFT-06 |
 | Streaming active indicator | "Generating..." | DRAFT-01-06 |
 | Auto-save idle | "Saved at HH:MM:SS" | EDITOR-02 |
 | Auto-save in progress | "Saving..." | EDITOR-02 |
@@ -274,7 +281,7 @@ error → idle (retry on next interval)
 | Generation error | "Generation failed. Check your connection and try again." | DRAFT-01-06 |
 | Section tab labels | "Executive Summary" / "Technical Approach" / "Management Plan" / "Past Performance" / "Price Narrative" | DRAFT-01-05 |
 
-**Destructive actions in this phase:** None. Regenerate replaces content but the RegenerateDialog serves as the confirmation step — no secondary "are you sure?" needed because the instruction textarea provides deliberate intent signal. No permanent deletion occurs in Phase 4.
+**Destructive actions in this phase:** None. Regenerate Section replaces content but the RegenerateDialog serves as the confirmation step — no secondary "are you sure?" needed because the instruction textarea provides deliberate intent signal. No permanent deletion occurs in Phase 4.
 
 ---
 
@@ -306,6 +313,8 @@ No third-party component registries are used in Phase 4. All UI is hand-built wi
 7. **Font.** Geist Sans is already loaded in globals.css via `--font-geist-sans`. The editor canvas inherits this. No additional font loading needed.
 
 8. **No emojis anywhere.** Use inline SVG icons for all toolbar controls and status indicators. The MEMORY rule is explicit: no emojis, no emoticons — cheap. Use SVG icons, color, or typography instead.
+
+9. **Toolbar accessibility.** Every toolbar button must have an `aria-label` attribute matching its action name (e.g., `aria-label="Bold"`, `aria-label="Insert table"`). Screen readers must be able to identify each control without relying on the icon alone.
 
 ---
 
