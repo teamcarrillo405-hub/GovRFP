@@ -89,7 +89,15 @@ Plans:
   2. User can edit all generated sections in a rich text editor supporting headings, bullet lists, numbered lists, bold, italic, underline, and tables; edits auto-save every 30 seconds with a visible timestamp
   3. User can regenerate any individual section with optional natural-language instructions (e.g., "focus more on cybersecurity certifications") and see the new draft streamed in
   4. Compliance matrix updates coverage status as the user edits and visually highlights text regions where requirements are not yet addressed
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Install Tiptap v2 packages, DB migration (proposal_sections), shared types, test stubs
+- [ ] 04-02-PLAN.md — Draft streaming API route + per-section prompt builders with profile injection
+- [ ] 04-03-PLAN.md — Tiptap extension array, ComplianceGap mark, compliance scanner
+- [ ] 04-04-PLAN.md — Editor page: ProposalEditor, SectionEditor, EditorToolbar, CompliancePanel, RegenerateDialog, auto-save
+- [ ] 04-05-PLAN.md — Navigation wiring + human verification of complete editor flow
+
 **UI hint**: yes
 
 ### Phase 5: Export Pipeline
@@ -111,5 +119,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
 | 3. RFP Analysis | 4/4 | Complete   | 2026-03-23 |
-| 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
+| 4. Proposal Drafting + Editor | 0/5 | Planning complete | - |
 | 5. Export Pipeline | 0/TBD | Not started | - |
