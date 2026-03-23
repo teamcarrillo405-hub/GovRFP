@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: "Completed 01-foundation/01-04-PLAN.md — contractor profile editor: company info, past projects CRUD, key personnel CRUD, capability statement, dashboard"
-last_updated: "2026-03-23T17:24:45.291Z"
+status: Phase complete — ready for verification
+stopped_at: "Completed 01-foundation/01-05-PLAN.md — test suite: RLS isolation, subscription gating, profile CRUD, capability statement, auth confirm, trial checkout (34 tests pass)"
+last_updated: "2026-03-23T17:29:48.412Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -50,6 +50,7 @@ Plan: 5 of 5
 | Phase 01-foundation P02 | 4 | 2 tasks | 12 files |
 | Phase 01-foundation P03 | 5 | 2 tasks | 7 files |
 | Phase 01-foundation P04 | 294 | 2 tasks | 13 files |
+| Phase 01-foundation P05 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Billing DB writes use createAdminClient (service_role) in webhooks to bypass RLS — stripe_customer_id is the lookup key since webhooks have no user session
 - [Phase 01-foundation]: Client wrapper pattern (PastProjectsClient/KeyPersonnelClient) for interactive CRUD: keeps RSC benefits while enabling inline form toggling without full-page round-trips
 - [Phase 01-foundation]: Zod 4 uses .issues not .errors on ZodError — plan specs used .errors which does not exist; fixed to .issues in all server actions
+- [Phase 01-foundation]: Migration-as-source-of-truth: RLS tests read SQL migration file directly to assert policy presence — no running Supabase needed in CI
+- [Phase 01-foundation]: File-read code-structure tests: billing and auth tests read source files as strings to assert config constants — avoids mocking Next.js or Stripe
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T17:24:45.286Z
-Stopped at: Completed 01-foundation/01-04-PLAN.md — contractor profile editor: company info, past projects CRUD, key personnel CRUD, capability statement, dashboard
+Last session: 2026-03-23T17:29:48.406Z
+Stopped at: Completed 01-foundation/01-05-PLAN.md — test suite: RLS isolation, subscription gating, profile CRUD, capability statement, auth confirm, trial checkout (34 tests pass)
 Resume file: None

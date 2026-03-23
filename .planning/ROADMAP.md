@@ -12,7 +12,7 @@ HCC ProposalAI goes from zero to a full AI-assisted RFP proposal writing SaaS in
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Auth, billing enforcement, contractor profile, and full database schema
+- [x] **Phase 1: Foundation** - Auth, billing enforcement, contractor profile, and full database schema (completed 2026-03-23)
 - [ ] **Phase 2: Document Ingestion** - RFP upload, async parse pipeline, OCR fallback, and job queue
 - [ ] **Phase 3: RFP Analysis** - Claude structured extraction, compliance matrix, and win probability score
 - [ ] **Phase 4: Proposal Drafting + Editor** - Streaming AI drafts, Tiptap editor, compliance live-linking
@@ -37,7 +37,7 @@ Plans:
 - [x] 01-02-PLAN.md — Auth flow: signup, email verification (PKCE), login, password reset, proxy.ts
 - [x] 01-03-PLAN.md — Billing: Stripe checkout with trial, webhooks, Customer Portal, subscription gating
 - [x] 01-04-PLAN.md — Profile: company info, certifications, NAICS, past projects, key personnel, capability statement
-- [ ] 01-05-PLAN.md — Tests: RLS isolation, billing gating, profile validation, auth verification
+- [x] 01-05-PLAN.md — Tests: RLS isolation, billing gating, profile validation, auth verification
 
 **UI hint**: yes
 
@@ -93,7 +93,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 4/5 | In Progress|  |
+| 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 0/TBD | Not started | - |
 | 3. RFP Analysis | 0/TBD | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
