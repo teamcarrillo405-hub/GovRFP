@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 01-foundation/01-01-PLAN.md — Next.js 16 scaffold, schema, test infra
-last_updated: "2026-03-23T17:05:38.238Z"
+stopped_at: "Completed 01-foundation/01-02-PLAN.md — Auth flow: proxy.ts, signup, login, email verification, password reset"
+last_updated: "2026-03-23T17:14:06.696Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 1 (Foundation) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 2 of 5
 
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 9 | 2 tasks | 23 files |
+| Phase 01-foundation P02 | 4 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Tiptap JSON (not HTML) is the editor storage format from day one — affects Phase 4 build order and Phase 5 export converter
 - [Phase 01-foundation]: Used @supabase/ssr (not deprecated @supabase/auth-helpers-nextjs) for Next.js 16 App Router cookie-based sessions
 - [Phase 01-foundation]: Moved .planning and .git temporarily during create-next-app bootstrap to avoid non-empty-directory error
+- [Phase 01-foundation]: parseCookieHeader value coercion: map undefined to empty string to satisfy CookieMethodsServer type constraint in proxy.ts
+- [Phase 01-foundation]: proxy.ts uses getUser() not getSession() for all session validation — validates JWT against Supabase server-side
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T17:05:38.233Z
-Stopped at: Completed 01-foundation/01-01-PLAN.md — Next.js 16 scaffold, schema, test infra
+Last session: 2026-03-23T17:14:06.691Z
+Stopped at: Completed 01-foundation/01-02-PLAN.md — Auth flow: proxy.ts, signup, login, email verification, password reset
 Resume file: None

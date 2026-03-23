@@ -32,10 +32,10 @@
 
 ### Authentication & Accounts
 
-- [ ] **AUTH-01**: User can create an account with email and password
-- [ ] **AUTH-02**: User receives an email verification link after sign-up and must verify before accessing the product
-- [ ] **AUTH-03**: User can log in with email and password and remain logged in across browser sessions
-- [ ] **AUTH-04**: User can request a password reset via email
+- [x] **AUTH-01**: User can create an account with email and password
+- [x] **AUTH-02**: User receives an email verification link after sign-up and must verify before accessing the product
+- [x] **AUTH-03**: User can log in with email and password and remain logged in across browser sessions
+- [x] **AUTH-04**: User can request a password reset via email
 - [x] **AUTH-05**: User's proposals, documents, and profile data are isolated to their account via row-level security; no cross-account data access is possible
 
 ### Billing
@@ -103,10 +103,10 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 — Foundation | Pending |
-| AUTH-02 | Phase 1 — Foundation | Pending |
-| AUTH-03 | Phase 1 — Foundation | Pending |
-| AUTH-04 | Phase 1 — Foundation | Pending |
+| AUTH-01 | Phase 1 — Foundation | Complete |
+| AUTH-02 | Phase 1 — Foundation | Complete |
+| AUTH-03 | Phase 1 — Foundation | Complete |
+| AUTH-04 | Phase 1 — Foundation | Complete |
 | AUTH-05 | Phase 1 — Foundation | Complete |
 | BILLING-01 | Phase 1 — Foundation | Complete |
 | BILLING-02 | Phase 1 — Foundation | Pending |
