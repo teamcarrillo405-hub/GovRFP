@@ -17,11 +17,11 @@
 
 ### AI Analysis
 
-- [ ] **ANALYZE-01**: System extracts individual requirements from the RFP (shall/must/will statements, Section L instructions) and classifies each as mandatory or desired
-- [ ] **ANALYZE-02**: System generates a compliance matrix mapping each extracted requirement to a proposal section with initial coverage status (addressed / unaddressed)
-- [ ] **ANALYZE-03**: System generates a win probability score (0–100) with a reasoning breakdown covering: scope alignment, certifications match, set-aside match, past performance relevance, competition level
-- [ ] **ANALYZE-04**: System detects set-aside preferences in the RFP (e.g., 8(a), HUBZone, SDVOSB) and flags when they match the contractor's certifications profile
-- [ ] **ANALYZE-05**: System generates a Section L/M crosswalk table mapping each Section L instruction to the corresponding Section M evaluation criterion
+- [x] **ANALYZE-01**: System extracts individual requirements from the RFP (shall/must/will statements, Section L instructions) and classifies each as mandatory or desired
+- [x] **ANALYZE-02**: System generates a compliance matrix mapping each extracted requirement to a proposal section with initial coverage status (addressed / unaddressed)
+- [x] **ANALYZE-03**: System generates a win probability score (0–100) with a reasoning breakdown covering: scope alignment, certifications match, set-aside match, past performance relevance, competition level
+- [x] **ANALYZE-04**: System detects set-aside preferences in the RFP (e.g., 8(a), HUBZone, SDVOSB) and flags when they match the contractor's certifications profile
+- [x] **ANALYZE-05**: System generates a Section L/M crosswalk table mapping each Section L instruction to the corresponding Section M evaluation criterion
 
 ### Contractor Profile
 
@@ -122,11 +122,11 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 | INGEST-03 | Phase 2 — Document Ingestion | Complete |
 | INGEST-04 | Phase 2 — Document Ingestion | Complete |
 | INGEST-05 | Phase 2 — Document Ingestion | Complete |
-| ANALYZE-01 | Phase 3 — RFP Analysis | Pending |
-| ANALYZE-02 | Phase 3 — RFP Analysis | Pending |
-| ANALYZE-03 | Phase 3 — RFP Analysis | Pending |
-| ANALYZE-04 | Phase 3 — RFP Analysis | Pending |
-| ANALYZE-05 | Phase 3 — RFP Analysis | Pending |
+| ANALYZE-01 | Phase 3 — RFP Analysis | Complete |
+| ANALYZE-02 | Phase 3 — RFP Analysis | Complete |
+| ANALYZE-03 | Phase 3 — RFP Analysis | Complete |
+| ANALYZE-04 | Phase 3 — RFP Analysis | Complete |
+| ANALYZE-05 | Phase 3 — RFP Analysis | Complete |
 | DRAFT-01 | Phase 4 — Proposal Drafting + Editor | Pending |
 | DRAFT-02 | Phase 4 — Proposal Drafting + Editor | Pending |
 | DRAFT-03 | Phase 4 — Proposal Drafting + Editor | Pending |
