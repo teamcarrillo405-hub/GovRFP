@@ -25,10 +25,10 @@
 
 ### Contractor Profile
 
-- [ ] **PROFILE-01**: User can create and edit a contractor profile with: company name, UEI/CAGE, business certifications (8(a), HUBZone, SDVOSB, WOSB, SDB), and NAICS codes
-- [ ] **PROFILE-02**: User can add, edit, and delete past project records with fields: contract number, agency, contract value, period of performance, scope narrative, NAICS code, outcome
-- [ ] **PROFILE-03**: User can add, edit, and delete key personnel records with fields: name, title, relevant experience narrative, certifications
-- [ ] **PROFILE-04**: User can write a capability statement narrative (free-form text up to 2000 characters) that is automatically injected into AI-generated proposal sections
+- [x] **PROFILE-01**: User can create and edit a contractor profile with: company name, UEI/CAGE, business certifications (8(a), HUBZone, SDVOSB, WOSB, SDB), and NAICS codes
+- [x] **PROFILE-02**: User can add, edit, and delete past project records with fields: contract number, agency, contract value, period of performance, scope narrative, NAICS code, outcome
+- [x] **PROFILE-03**: User can add, edit, and delete key personnel records with fields: name, title, relevant experience narrative, certifications
+- [x] **PROFILE-04**: User can write a capability statement narrative (free-form text up to 2000 characters) that is automatically injected into AI-generated proposal sections
 
 ### Authentication & Accounts
 
@@ -36,11 +36,11 @@
 - [ ] **AUTH-02**: User receives an email verification link after sign-up and must verify before accessing the product
 - [ ] **AUTH-03**: User can log in with email and password and remain logged in across browser sessions
 - [ ] **AUTH-04**: User can request a password reset via email
-- [ ] **AUTH-05**: User's proposals, documents, and profile data are isolated to their account via row-level security; no cross-account data access is possible
+- [x] **AUTH-05**: User's proposals, documents, and profile data are isolated to their account via row-level security; no cross-account data access is possible
 
 ### Billing
 
-- [ ] **BILLING-01**: User can start a 14-day free trial without entering payment information
+- [x] **BILLING-01**: User can start a 14-day free trial without entering payment information
 - [ ] **BILLING-02**: User can subscribe with a credit card via Stripe Checkout at the end of the trial or at any time
 - [ ] **BILLING-03**: User loses access to AI features and new proposal creation when subscription is canceled or payment fails; existing proposals remain viewable (read-only)
 - [ ] **BILLING-04**: User can view their current subscription status and next billing date in account settings
@@ -107,16 +107,16 @@ These are explicitly excluded from the product. Reasoning is preserved to preven
 | AUTH-02 | Phase 1 — Foundation | Pending |
 | AUTH-03 | Phase 1 — Foundation | Pending |
 | AUTH-04 | Phase 1 — Foundation | Pending |
-| AUTH-05 | Phase 1 — Foundation | Pending |
-| BILLING-01 | Phase 1 — Foundation | Pending |
+| AUTH-05 | Phase 1 — Foundation | Complete |
+| BILLING-01 | Phase 1 — Foundation | Complete |
 | BILLING-02 | Phase 1 — Foundation | Pending |
 | BILLING-03 | Phase 1 — Foundation | Pending |
 | BILLING-04 | Phase 1 — Foundation | Pending |
 | BILLING-05 | Phase 1 — Foundation | Pending |
-| PROFILE-01 | Phase 1 — Foundation | Pending |
-| PROFILE-02 | Phase 1 — Foundation | Pending |
-| PROFILE-03 | Phase 1 — Foundation | Pending |
-| PROFILE-04 | Phase 1 — Foundation | Pending |
+| PROFILE-01 | Phase 1 — Foundation | Complete |
+| PROFILE-02 | Phase 1 — Foundation | Complete |
+| PROFILE-03 | Phase 1 — Foundation | Complete |
+| PROFILE-04 | Phase 1 — Foundation | Complete |
 | INGEST-01 | Phase 2 — Document Ingestion | Pending |
 | INGEST-02 | Phase 2 — Document Ingestion | Pending |
 | INGEST-03 | Phase 2 — Document Ingestion | Pending |

@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Bootstrap Next.js 16, install deps, DB schema, Supabase/Stripe clients, test infra
+- [x] 01-01-PLAN.md — Bootstrap Next.js 16, install deps, DB schema, Supabase/Stripe clients, test infra
 - [ ] 01-02-PLAN.md — Auth flow: signup, email verification (PKCE), login, password reset, proxy.ts
 - [ ] 01-03-PLAN.md — Billing: Stripe checkout with trial, webhooks, Customer Portal, subscription gating
 - [ ] 01-04-PLAN.md — Profile: company info, certifications, NAICS, past projects, key personnel, capability statement
@@ -93,7 +93,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Planning complete | - |
+| 1. Foundation | 1/5 | In Progress|  |
 | 2. Document Ingestion | 0/TBD | Not started | - |
 | 3. RFP Analysis | 0/TBD | Not started | - |
 | 4. Proposal Drafting + Editor | 0/TBD | Not started | - |
