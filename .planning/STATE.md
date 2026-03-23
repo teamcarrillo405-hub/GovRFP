@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 02-document-ingestion 02-02-PLAN.md
-last_updated: "2026-03-23T18:41:01.130Z"
+stopped_at: Completed 02-document-ingestion/02-03-PLAN.md
+last_updated: "2026-03-23T18:41:30.589Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -53,6 +53,7 @@ Plan: 5 of 5
 | Phase 01-foundation P05 | 5 | 2 tasks | 6 files |
 | Phase 02-document-ingestion P01 | 525642 | 2 tasks | 14 files |
 | Phase 02-document-ingestion P02 | 4 min | 2 tasks | 7 files |
+| Phase 02-document-ingestion P03 | 15 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02-document-ingestion]: Fixed tsconfig.json target ES2017->ES2018 to allow dotAll regex flag used in existing Phase 1 RLS tests
 - [Phase 02-document-ingestion]: Import from 'unpdf' not 'unpdf/serverless' — v1.4.0 has no serverless sub-path; Node 24 supports Promise.withResolvers natively
 - [Phase 02-document-ingestion]: isScannedPdf uses every-page-below-threshold logic (all pages must be below 100 chars)
+- [Phase 02-document-ingestion]: Excluded supabase/functions from tsconfig.json — Deno runtime incompatible with Node.js tsc
+- [Phase 02-document-ingestion]: Upload route returns 402 for inactive subscription; checkSubscription+isSubscriptionActive matches actual export signature
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T18:40:33.667Z
-Stopped at: Completed 02-document-ingestion 02-02-PLAN.md
+Last session: 2026-03-23T18:41:30.584Z
+Stopped at: Completed 02-document-ingestion/02-03-PLAN.md
 Resume file: None
