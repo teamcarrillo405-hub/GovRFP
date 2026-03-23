@@ -184,6 +184,24 @@ export default async function ProposalDetailPage({ params }: Props) {
             </dl>
           </div>
 
+          {/* Draft Proposal CTA — primary action when analyzed */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Ready to Draft</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Analysis complete. Generate AI-drafted proposal sections in the editor.
+                </p>
+              </div>
+              <Link
+                href={`/proposals/${id}/editor`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors"
+              >
+                Draft Proposal
+              </Link>
+            </div>
+          </div>
+
           {/* Analysis CTA */}
           <div className="rounded-lg border border-green-200 bg-green-50 p-6">
             <div className="flex items-center justify-between">
