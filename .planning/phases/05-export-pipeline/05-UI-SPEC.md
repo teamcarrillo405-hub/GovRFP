@@ -53,11 +53,11 @@ Exceptions:
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 regular | 1.5 (Tailwind default) |
-| Label / Badge | 12px (`text-xs`) | 500 medium | 1.25 |
+| Label / Badge | 12px (`text-xs`) | 400 regular (`font-normal`) | 1.25 |
 | Button | 14px (`text-sm`) | 600 semibold (`font-semibold`) | n/a (single line) |
 | Page heading | 20px (`text-xl`) | 600 semibold (`font-semibold`) | 1.2 |
 
-Source: Derived from `EditorPage` (`text-xl font-semibold`), `ProposalEditor` buttons (`text-sm font-semibold`), `ComplianceMatrix` labels (`text-xs font-medium`).
+Source: Derived from `EditorPage` (`text-xl font-semibold`), `ProposalEditor` buttons (`text-sm font-semibold`), `ComplianceMatrix` labels (`text-xs font-normal`). Two weights only: 400 and 600. Any `text-xs font-medium` badge classes from prior phases are rendered as `text-xs font-normal` in Phase 5.
 
 No new type sizes introduced in Phase 5. Export buttons follow button role above.
 
