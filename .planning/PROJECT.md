@@ -84,6 +84,15 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 | @react-pdf/renderer for PDF (not Puppeteer) | Same bundle size constraint | ✓ Good — requires `serverExternalPackages` + `runtime = 'nodejs'` (documented) |
 | Buffer pattern for streaming drafts | `setContent()` called once on stream completion, not per chunk | ✓ Good — avoids Tiptap cursor jump on partial content |
 
+## Current Milestone: v1.1 RFP Structure Sidebar
+
+**Goal:** Surface the parsed RFP section outline and requirements list in a collapsible sidebar while contractors edit their proposal, closing the INGEST-05 item deferred from Phase 2.
+
+**Target features:**
+- RFP structure sidebar component (parsed section tree + requirements list)
+- Toggle/collapse sidebar in the editor layout
+- Click-to-scroll linking from sidebar items to proposal sections
+
 ## Current State
 
 **v1.0 shipped — ready for production deployment.**
@@ -92,7 +101,24 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 - Full RFP → draft → export flow working end-to-end
 - Awaiting: production Supabase migration, env vars, Stripe webhook endpoint, pg_cron jobs
 
-**v2.0 planning:** Team accounts + GovRFP integration are the highest-priority next features.
+**v1.1 in progress:** Closing deferred INGEST-05 (RFP structure sidebar). v2.0 (team accounts + GovRFP integration) follows after v1.1 ships.
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 after v1.0 milestone completion*
+*Last updated: 2026-03-24 after v1.1 milestone start*

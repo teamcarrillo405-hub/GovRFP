@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: v1.0 milestone complete
-stopped_at: Completed 05-04-PLAN.md — ExportButtons component and editor integration complete
-last_updated: "2026-03-24T19:50:11.993Z"
+milestone: v1.1
+milestone_name: RFP Structure Sidebar
+status: defining requirements
+stopped_at: —
+last_updated: "2026-03-24T20:00:00.000Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-22)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
-**Current focus:** Phase 05 — export-pipeline
+**Current focus:** Milestone v1.1 — RFP Structure Sidebar
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-24 — Milestone v1.1 started
 
 ## Performance Metrics
 
