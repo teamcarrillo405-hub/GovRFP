@@ -54,13 +54,13 @@ Exceptions:
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 (`leading-relaxed`) | Requirement text within expanded sections |
-| Label | 12px (`text-xs`) | 500 (medium) | 1.4 | Section titles in sidebar list, requirement count badge text |
+| Label | 12px (`text-xs`) | 400 (regular) | 1.4 | Section titles in sidebar list, requirement count badge text |
 | Heading | 14px (`text-sm`) | 600 (semibold) | 1.2 | Sidebar panel header "RFP Structure", section row titles |
 | Caption | 12px (`text-xs`) | 400 (regular) | 1.4 | Empty state body copy, count summary line |
 
 **Source:** CompliancePanel.tsx `text-sm font-semibold` header, `text-xs text-gray-700 leading-relaxed` body, `text-xs text-gray-400` caption; established pattern across all Phase 3–4 components.
 
-Weights declared: regular (400) + semibold (600). Medium (500) used only for badge labels (consistent with existing badge pattern in ComplianceMatrix.tsx `font-medium`).
+Weights declared: regular (400) + semibold (600). Badges and section labels rely on size and color for distinction — no third weight.
 
 ---
 
@@ -131,7 +131,7 @@ When editor scrolls, the sidebar row corresponding to the currently visible prop
 - Background: `bg-white`
 - Title: `text-blue-700 font-semibold`
 
-Inactive rows: no left border, `bg-transparent`, `text-gray-700 font-medium`.
+Inactive rows: no left border, `bg-transparent`, `text-gray-700 font-normal`.
 
 ---
 
