@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: RFP Structure Sidebar
-status: defining requirements
-stopped_at: —
-last_updated: "2026-03-24T20:00:00.000Z"
+status: roadmap complete
+stopped_at: Phase 6 — ready for planning
+last_updated: "2026-03-24T20:30:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,14 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
-**Current focus:** Milestone v1.1 — RFP Structure Sidebar
+**Current focus:** Milestone v1.1 — Phase 6: RFP Structure Sidebar
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 6 — RFP Structure Sidebar (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-24 — Milestone v1.1 started
+Status: Roadmap complete — ready for `/gsd:plan-phase 6`
+Last activity: 2026-03-24 — v1.1 roadmap created (Phase 6)
 
 ## Performance Metrics
 
@@ -124,19 +124,18 @@ Recent decisions affecting current work:
 - [Phase 05-export-pipeline]: export const runtime = 'nodejs' in PDF route — prevents edge runtime + react-reconciler conflict
 - [Phase 05-export-pipeline]: Word button uses accent fill (bg-blue-700) as primary action; PDF uses outline as secondary — Word is submission format, PDF is review-only
 - [Phase 05-export-pipeline]: ExportButtons uses independent loading state per button — downloading Word does NOT disable PDF button (each fetch lifecycle is separate)
+- [v1.1 Roadmap]: Phase 6 is a single frontend-only phase — no new DB schema, no new packages; rfp_structure JSONB already stored in proposals table from Phase 2
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- [Phase 2]: OCR fallback strategy unresolved — Tesseract.js vs. AWS Textract vs. Google Document AI tradeoffs need research before Phase 2 planning
-- [Phase 4]: Tiptap streaming AI injection edge cases (cursor behavior, ProseMirror transaction handling) need proof-of-concept before Phase 4 planning
-- [Phase 1]: Per-user token budget UX (hard cutoff vs. soft warning, what counts toward limits) needs product decision before billing plans are written
+None for Phase 6 — all data dependencies are already in place (rfp_structure in proposals table from Phase 2, Tiptap editor from Phase 4).
 
 ## Session Continuity
 
-Last session: 2026-03-24T19:18:07.183Z
-Stopped at: Completed 05-04-PLAN.md — ExportButtons component and editor integration complete
+Last session: 2026-03-24T20:30:00.000Z
+Stopped at: v1.1 roadmap created — Phase 6 defined
 Resume file: None
