@@ -96,7 +96,7 @@ Plans:
 - [x] 04-02-PLAN.md — Draft streaming API route + per-section prompt builders with profile injection
 - [x] 04-03-PLAN.md — Tiptap extension array, ComplianceGap mark, compliance scanner
 - [x] 04-04-PLAN.md — Editor page: ProposalEditor, SectionEditor, EditorToolbar, CompliancePanel, RegenerateDialog, auto-save
-- [ ] 04-05-PLAN.md — Navigation wiring + human verification of complete editor flow
+- [x] 04-05-PLAN.md — Navigation wiring + human verification of complete editor flow
 
 **UI hint**: yes
 
