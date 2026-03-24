@@ -107,7 +107,15 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can export the complete proposal as a Word (.docx) file with Heading 1/Heading 2 styles, paragraph formatting, and table structure preserved and compatible with Microsoft Word on Windows
   2. User can export the complete proposal as a PDF file suitable for internal review, with fonts and layout consistent across environments
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Install docx + @react-pdf/renderer, next.config.ts serverExternalPackages, Wave 0 test stubs
+- [ ] 05-02-PLAN.md — Tiptap-to-docx converter + Word export API route (EXPORT-01)
+- [ ] 05-03-PLAN.md — Tiptap-to-pdf converter + PDF export API route (EXPORT-02)
+- [ ] 05-04-PLAN.md — ExportButtons UI component + editor page integration + human verification
+
+**UI hint**: yes
 
 ## Progress
 
@@ -119,5 +127,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Document Ingestion | 4/4 | Complete   | 2026-03-23 |
 | 3. RFP Analysis | 4/4 | Complete   | 2026-03-23 |
-| 4. Proposal Drafting + Editor | 4/5 | In Progress|  |
-| 5. Export Pipeline | 0/TBD | Not started | - |
+| 4. Proposal Drafting + Editor | 5/5 | Complete   | 2026-03-24 |
+| 5. Export Pipeline | 0/4 | Not started | - |
