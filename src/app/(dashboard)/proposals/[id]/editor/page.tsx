@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getUser, createClient } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import ProposalEditor from '@/components/editor/ProposalEditor'
+import ExportButtons from '@/components/export/ExportButtons'
 import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import Link from 'next/link'
@@ -68,7 +69,10 @@ export default async function EditorPage({ params }: Props) {
         <span className="text-gray-900 font-medium">Editor</span>
       </nav>
 
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">{proposal.title}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">{proposal.title}</h1>
+        <ExportButtons proposalId={id} />
+      </div>
 
       <ProposalEditor
         proposalId={id}
