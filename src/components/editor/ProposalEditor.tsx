@@ -7,10 +7,12 @@ import { SECTION_NAMES } from '@/lib/editor/types'
 import { stripComplianceMarks } from '@/lib/editor/compliance-gap-mark'
 import { scanCompliance } from '@/lib/editor/compliance-scanner'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
+import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import SectionEditor, { type SectionEditorHandle } from './SectionEditor'
 import EditorToolbar from './EditorToolbar'
 import CompliancePanel from './CompliancePanel'
 import RegenerateDialog from './RegenerateDialog'
+import RfpStructureSidebar from './RfpStructureSidebar'
 
 interface SectionState {
   content: JSONContent | null
@@ -25,6 +27,7 @@ interface Props {
   initialSections: ProposalSection[]
   requirements: AnalysisRequirement[]
   complianceMatrix: ComplianceMatrixRow[]
+  rfpStructure: RfpStructure | null
 }
 
 function initSectionsMap(initialSections: ProposalSection[]): Map<SectionName, SectionState> {
@@ -45,6 +48,7 @@ export default function ProposalEditor({
   initialSections,
   requirements,
   complianceMatrix,
+  rfpStructure,
 }: Props) {
   const [activeSection, setActiveSection] = useState<SectionName>('Executive Summary')
   const [sections, setSections] = useState<Map<SectionName, SectionState>>(
@@ -252,6 +256,8 @@ export default function ProposalEditor({
 
   return (
     <div className="flex gap-0">
+      <RfpStructureSidebar rfpStructure={rfpStructure} />
+
       {/* Editor column */}
       <div className="flex-1 min-w-0">
         {/* Section tabs */}

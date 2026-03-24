@@ -5,6 +5,7 @@ import ProposalEditor from '@/components/editor/ProposalEditor'
 import ExportButtons from '@/components/export/ExportButtons'
 import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
+import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import Link from 'next/link'
 
 interface Props {
@@ -27,7 +28,7 @@ export default async function EditorPage({ params }: Props) {
   // Load proposal — RLS enforces user_id
   const { data: proposal } = await supabase
     .from('proposals')
-    .select('id, title, rfp_text, status')
+    .select('id, title, rfp_text, status, rfp_structure')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -36,6 +37,8 @@ export default async function EditorPage({ params }: Props) {
   if (!proposal || proposal.status !== 'analyzed') {
     redirect(`/proposals/${id}`)
   }
+
+  const rfpStructure = (proposal.rfp_structure ?? null) as RfpStructure | null
 
   // Load sections, analysis in parallel
   const [sectionsResult, analysisResult] = await Promise.all([
@@ -79,6 +82,7 @@ export default async function EditorPage({ params }: Props) {
         initialSections={sections}
         requirements={requirements}
         complianceMatrix={complianceMatrix}
+        rfpStructure={rfpStructure}
       />
     </main>
   )
