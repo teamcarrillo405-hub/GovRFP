@@ -14,7 +14,19 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+**All 5 phases shipped and verified — HCC ProposalAI v1.0 complete**
+
+- [x] Upload RFP as PDF or Word (.docx) — Validated in Phase 2
+- [x] AI extraction of requirements, deadlines, evaluation criteria — Validated in Phase 3
+- [x] Auto-generate compliance matrix with mandatory/desired flags — Validated in Phase 3
+- [x] Win probability score (0–100) with factor breakdown — Validated in Phase 3
+- [x] AI-drafted proposal sections (all 5) with contractor profile injection — Validated in Phase 4
+- [x] Section-by-section regeneration with custom instructions — Validated in Phase 4
+- [x] In-browser rich text editor with compliance live-link and auto-save — Validated in Phase 4
+- [x] Export to Word (.docx) preserving heading styles, lists, tables — Validated in Phase 5
+- [x] Export to PDF (Letter size, Helvetica, consistent layout) — Validated in Phase 5
+- [x] Contractor profile (certifications, NAICS, past projects, team bios) — Validated in Phase 1
+- [x] Per-seat/month subscription with 14-day no-card trial (Stripe) — Validated in Phase 1
 
 ### Active
 
@@ -90,5 +102,15 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 | Per-seat pricing | Aligns with contractor budgeting norms; simple billing model | — Pending |
 | Solo account MVP | Reduces auth/permissions complexity; validates core product before team features | — Pending |
 
+## Current State
+
+**v1.0 complete — all 5 phases shipped.** 180 tests passing. Ready for production deployment.
+
+- Phase 1: Foundation (Auth + Billing + Profile) — Complete 2026-03-23
+- Phase 2: Document Ingestion (Upload + OCR + Async Parse) — Complete 2026-03-23
+- Phase 3: RFP Analysis (Claude extraction + Compliance Matrix + Win Score) — Complete 2026-03-23
+- Phase 4: Proposal Drafting + Editor (Streaming AI + Tiptap + Compliance live-link) — Complete 2026-03-24
+- Phase 5: Export Pipeline (Word .docx + PDF) — Complete 2026-03-24
+
 ---
-*Last updated: 2026-03-22 after initial project setup*
+*Last updated: 2026-03-24 after Phase 5 completion — v1.0 milestone*
