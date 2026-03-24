@@ -41,7 +41,10 @@ Full archive: `.planning/milestones/v1.0-ROADMAP.md`
   3. User clicks a section heading in the sidebar and the proposal editor scrolls to that section
   4. User scrolls through the proposal editor and the currently visible section is highlighted in the sidebar automatically
   5. User expands a section in the sidebar to see its individual requirements listed underneath, and can collapse it to hide them
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Sidebar component with data plumbing, display, toggle, expand/collapse
+- [ ] 06-02-PLAN.md — Click-to-scroll navigation and active section highlighting
 **UI hint**: yes
 
 ## Progress
@@ -53,4 +56,4 @@ Full archive: `.planning/milestones/v1.0-ROADMAP.md`
 | 3. RFP Analysis | v1.0 | 4/4 | Complete | 2026-03-23 |
 | 4. Proposal Drafting + Editor | v1.0 | 5/5 | Complete | 2026-03-24 |
 | 5. Export Pipeline | v1.0 | 4/4 | Complete | 2026-03-24 |
-| 6. RFP Structure Sidebar | v1.1 | 0/? | Not started | - |
+| 6. RFP Structure Sidebar | v1.1 | 0/2 | Not started | - |
