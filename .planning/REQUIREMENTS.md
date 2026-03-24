@@ -1,141 +1,71 @@
-# HCC ProposalAI — v1 Requirements
+# Requirements: HCC ProposalAI v1.1
 
-**Defined:** 2026-03-23
-**Status:** Active
+**Defined:** 2026-03-24
+**Core Value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
 
----
+## v1.1 Requirements
 
-## v1 Requirements
+### Sidebar Display
 
-### Document Ingestion
+- [ ] **SIDEBAR-01**: User sees a collapsible RFP structure sidebar in the proposal editor showing parsed sections and their requirements
+- [ ] **SIDEBAR-02**: User can toggle the sidebar open/closed via a button in the editor toolbar
+- [ ] **SIDEBAR-03**: User sees each RFP section listed with its title and requirement count badge
+- [ ] **SIDEBAR-04**: User can expand/collapse individual sections to reveal their associated requirements
 
-- [x] **INGEST-01**: User can upload an RFP as a PDF file (up to 50MB)
-- [x] **INGEST-02**: User can upload an RFP as a Word (.docx) file (up to 50MB)
-- [x] **INGEST-03**: System detects when a PDF is image-only (scanned) and routes it through OCR fallback automatically
-- [x] **INGEST-04**: RFP processing (parse + extraction) runs as a background job; user sees progress indicator and is notified when processing completes
-- [x] **INGEST-05**: User can view the parsed RFP structure (section outline + requirement list) in a sidebar while editing their proposal
+### Navigation
 
-### AI Analysis
+- [ ] **SIDEBAR-05**: User can click a section heading in the sidebar to scroll the proposal editor to that section
+- [ ] **SIDEBAR-06**: The active proposal section is highlighted in the sidebar as the user scrolls through the editor
 
-- [x] **ANALYZE-01**: System extracts individual requirements from the RFP (shall/must/will statements, Section L instructions) and classifies each as mandatory or desired
-- [x] **ANALYZE-02**: System generates a compliance matrix mapping each extracted requirement to a proposal section with initial coverage status (addressed / unaddressed)
-- [x] **ANALYZE-03**: System generates a win probability score (0–100) with a reasoning breakdown covering: scope alignment, certifications match, set-aside match, past performance relevance, competition level
-- [x] **ANALYZE-04**: System detects set-aside preferences in the RFP (e.g., 8(a), HUBZone, SDVOSB) and flags when they match the contractor's certifications profile
-- [x] **ANALYZE-05**: System generates a Section L/M crosswalk table mapping each Section L instruction to the corresponding Section M evaluation criterion
+### Data
 
-### Contractor Profile
+- [ ] **SIDEBAR-07**: Sidebar reads `rfp_structure` JSONB from the proposals table — no new API calls or schema changes required
 
-- [x] **PROFILE-01**: User can create and edit a contractor profile with: company name, UEI/CAGE, business certifications (8(a), HUBZone, SDVOSB, WOSB, SDB), and NAICS codes
-- [x] **PROFILE-02**: User can add, edit, and delete past project records with fields: contract number, agency, contract value, period of performance, scope narrative, NAICS code, outcome
-- [x] **PROFILE-03**: User can add, edit, and delete key personnel records with fields: name, title, relevant experience narrative, certifications
-- [x] **PROFILE-04**: User can write a capability statement narrative (free-form text up to 2000 characters) that is automatically injected into AI-generated proposal sections
+## Future Requirements
 
-### Authentication & Accounts
+### Collaboration (v2.0)
 
-- [x] **AUTH-01**: User can create an account with email and password
-- [x] **AUTH-02**: User receives an email verification link after sign-up and must verify before accessing the product
-- [x] **AUTH-03**: User can log in with email and password and remain logged in across browser sessions
-- [x] **AUTH-04**: User can request a password reset via email
-- [x] **AUTH-05**: User's proposals, documents, and profile data are isolated to their account via row-level security; no cross-account data access is possible
+- **COLLAB-01**: User can invite teammates to a proposal with role-based access (owner / editor / viewer)
+- **COLLAB-02**: Users see real-time presence indicators while co-editing
+- **COLLAB-03**: User can leave comments and annotations on proposal sections
+- **COLLAB-04**: User can view version history and restore previous drafts
 
-### Billing
+### Integrations (v2.0)
 
-- [x] **BILLING-01**: User can start a 14-day free trial without entering payment information
-- [x] **BILLING-02**: User can subscribe with a credit card via Stripe Checkout at the end of the trial or at any time
-- [x] **BILLING-03**: User loses access to AI features and new proposal creation when subscription is canceled or payment fails; existing proposals remain viewable (read-only)
-- [x] **BILLING-04**: User can view their current subscription status and next billing date in account settings
-- [x] **BILLING-05**: User can cancel their subscription at any time from account settings
+- **INTEG-01**: User can import an RFP directly from GovRFP (`contractor-rfp-website`) with one click
+- **INTEG-02**: User can prefill contractor certifications from SAM.gov entity registration data
 
-### AI Proposal Drafting
+### Analytics (v2.0)
 
-- [x] **DRAFT-01**: System generates a complete Executive Summary section tailored to the RFP scope and the contractor's profile (certifications, capability statement, past performance)
-- [x] **DRAFT-02**: System generates a complete Technical Approach section based on the RFP's technical requirements and the contractor's relevant past performance
-- [x] **DRAFT-03**: System generates a complete Management Plan section including key personnel bios injected from the contractor profile
-- [x] **DRAFT-04**: System generates a complete Past Performance section with narrative descriptions drawn from the contractor's past project records, matched to the RFP scope
-- [x] **DRAFT-05**: System generates a Price Narrative section framing the contractor's approach to pricing (narrative only; no actual numbers generated)
-- [x] **DRAFT-06**: User can regenerate any individual proposal section with optional natural-language instructions (e.g., "focus more on cybersecurity certifications")
-
-### Editor
-
-- [x] **EDITOR-01**: User can edit all proposal sections in a rich text editor supporting headings, bullet lists, numbered lists, bold, italic, underline, and tables
-- [x] **EDITOR-02**: Editor auto-saves content every 30 seconds; user sees a "saved" timestamp indicator
-- [x] **EDITOR-03**: Compliance matrix is displayed alongside the editor and updates coverage status as the user edits (a requirement is marked addressed when its key terms appear in the relevant section)
-- [x] **EDITOR-04**: Editor visually highlights text regions where compliance requirements are not yet addressed, enabling the user to identify gaps without leaving the editor
-
-### Export
-
-- [ ] **EXPORT-01**: User can export the complete proposal as a Word (.docx) file with proper heading styles (Heading 1, Heading 2), paragraph formatting, and table structure preserved
-- [ ] **EXPORT-02**: User can export the complete proposal as a PDF file suitable for internal review and distribution
-
----
-
-## v2 Requirements (Deferred)
-
-These features are confirmed valuable but deferred to allow validation of the core solo workflow first.
-
-- **FUTURE-01**: Past performance auto-narrative — AI tailors each past project description to the current RFP's evaluation criteria (requires stable past project schema from PROFILE-02)
-- **FUTURE-02**: RFP structure sidebar during editing — parsed RFP outline visible in collapsible sidebar panel
-- **FUTURE-03**: Multi-user team collaboration — role-based access, section ownership, conflict resolution (adds significant auth/permissions complexity)
-- **FUTURE-04**: Version history with diff view — tracked changes and version comparison for solo users
-- **FUTURE-05**: GovRFP deep-link integration — one-click "respond to this RFP" from GovRFP into ProposalAI
-- **FUTURE-06**: Agency-specific template libraries — curated formatting for common agency submission portals
-- **FUTURE-07**: Email/CRM integrations — Salesforce, HubSpot connectors for enterprise BD teams
-
----
+- **ANAL-01**: User can log win/loss outcomes for submitted bids
+- **ANAL-02**: HCC operators can view usage dashboard (active users, proposals drafted, export volume)
 
 ## Out of Scope
 
-These are explicitly excluded from the product. Reasoning is preserved to prevent re-introduction.
-
-| Feature | Why Excluded |
-|---------|--------------|
-| Direct portal submission (SAM.gov, PIEE) | Each portal has different auth, form schemas, and file requirements; legal liability if submission fails; portals change without notice |
-| RFP discovery / opportunity search | Separate product (GovRFP handles this); complicates pricing and user flow |
-| Real-time collaborative editing (Google Docs-style) | Requires OT/CRDT infrastructure; not needed for solo MVP |
-| Custom AI model fine-tuning | Claude API long-context handles this via in-context injection; fine-tuning offers diminishing returns |
-| Freemium / free tier | Attracts non-serious users, inflates cost; per-seat + 14-day trial is better fit for B2B GovCon |
-| Automated pricing / price volume generation | AI errors in pricing create legal and financial exposure |
-| Email/CRM integration | Not needed by small contractors who are the target market |
-
----
+| Feature | Reason |
+|---------|--------|
+| Direct SAM.gov / agency portal submission | Legal complexity, agency-specific formats |
+| Custom AI model fine-tuning | Claude API with prompt engineering sufficient; fine-tuning adds cost without clear upside at current scale |
+| Freemium tier | Per-seat + trial validated; freemium adds support cost without revenue |
+| Offline / native app | Web-first; contractor workflows are browser-based |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 — Foundation | Complete |
-| AUTH-02 | Phase 1 — Foundation | Complete |
-| AUTH-03 | Phase 1 — Foundation | Complete |
-| AUTH-04 | Phase 1 — Foundation | Complete |
-| AUTH-05 | Phase 1 — Foundation | Complete |
-| BILLING-01 | Phase 1 — Foundation | Complete |
-| BILLING-02 | Phase 1 — Foundation | Complete |
-| BILLING-03 | Phase 1 — Foundation | Complete |
-| BILLING-04 | Phase 1 — Foundation | Complete |
-| BILLING-05 | Phase 1 — Foundation | Complete |
-| PROFILE-01 | Phase 1 — Foundation | Complete |
-| PROFILE-02 | Phase 1 — Foundation | Complete |
-| PROFILE-03 | Phase 1 — Foundation | Complete |
-| PROFILE-04 | Phase 1 — Foundation | Complete |
-| INGEST-01 | Phase 2 — Document Ingestion | Complete |
-| INGEST-02 | Phase 2 — Document Ingestion | Complete |
-| INGEST-03 | Phase 2 — Document Ingestion | Complete |
-| INGEST-04 | Phase 2 — Document Ingestion | Complete |
-| INGEST-05 | Phase 2 — Document Ingestion | Complete |
-| ANALYZE-01 | Phase 3 — RFP Analysis | Complete |
-| ANALYZE-02 | Phase 3 — RFP Analysis | Complete |
-| ANALYZE-03 | Phase 3 — RFP Analysis | Complete |
-| ANALYZE-04 | Phase 3 — RFP Analysis | Complete |
-| ANALYZE-05 | Phase 3 — RFP Analysis | Complete |
-| DRAFT-01 | Phase 4 — Proposal Drafting + Editor | Complete |
-| DRAFT-02 | Phase 4 — Proposal Drafting + Editor | Complete |
-| DRAFT-03 | Phase 4 — Proposal Drafting + Editor | Complete |
-| DRAFT-04 | Phase 4 — Proposal Drafting + Editor | Complete |
-| DRAFT-05 | Phase 4 — Proposal Drafting + Editor | Complete |
-| DRAFT-06 | Phase 4 — Proposal Drafting + Editor | Complete |
-| EDITOR-01 | Phase 4 — Proposal Drafting + Editor | Complete |
-| EDITOR-02 | Phase 4 — Proposal Drafting + Editor | Complete |
-| EDITOR-03 | Phase 4 — Proposal Drafting + Editor | Complete |
-| EDITOR-04 | Phase 4 — Proposal Drafting + Editor | Complete |
-| EXPORT-01 | Phase 5 — Export Pipeline | Pending |
-| EXPORT-02 | Phase 5 — Export Pipeline | Pending |
+| SIDEBAR-01 | Phase 6 | Pending |
+| SIDEBAR-02 | Phase 6 | Pending |
+| SIDEBAR-03 | Phase 6 | Pending |
+| SIDEBAR-04 | Phase 6 | Pending |
+| SIDEBAR-05 | Phase 6 | Pending |
+| SIDEBAR-06 | Phase 6 | Pending |
+| SIDEBAR-07 | Phase 6 | Pending |
+
+**Coverage:**
+- v1.1 requirements: 7 total
+- Mapped to phases: 7
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-03-24*
+*Last updated: 2026-03-24 after initial v1.1 definition*
