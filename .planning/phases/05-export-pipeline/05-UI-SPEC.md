@@ -1,10 +1,11 @@
 ---
 phase: 5
 slug: export-pipeline
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-03-24
+reviewed_at: 2026-03-24T00:00:00Z
 ---
 
 # Phase 5 — UI Design Contract
@@ -42,7 +43,7 @@ Declared values (must be multiples of 4):
 | 3xl | 64px | Page-level top padding (`py-8` = 32px; no 64px usage in existing pages) |
 
 Exceptions:
-- Toolbar buttons: `p-1.5` (6px) for icon button padding — established in EditorToolbar, replicate in ExportButtons
+- Toolbar buttons: `p-2` (8px) for icon button padding — grid-aligned approximation of EditorToolbar's `p-1.5`; ExportButtons use `p-2` to stay on the 4px grid
 - Generate bar: `px-4 py-3` (16px / 12px) — replicate export button group padding to match existing generate bar
 - Touch targets: minimum 32px × 32px (`min-w-[32px] min-h-[32px]`) — established in `btnBase` in EditorToolbar; apply to any icon-adjacent controls
 
@@ -236,11 +237,11 @@ No third-party registries. No shadcn blocks. Phase 5 adds one new hand-rolled cl
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED (2026-03-24)
