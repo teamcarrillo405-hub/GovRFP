@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 04-05-PLAN.md — Phase 4 fully verified
-last_updated: "2026-03-24T00:19:31.922Z"
+status: Milestone complete
+stopped_at: Completed 05-04-PLAN.md — ExportButtons component and editor integration complete
+last_updated: "2026-03-24T19:39:00.814Z"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  completed_phases: 5
+  total_plans: 22
+  completed_plans: 22
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
-**Current focus:** Phase 04 — proposal-drafting-editor
+**Current focus:** Phase 05 — export-pipeline
 
 ## Current Position
 
-Phase: 5
+Phase: 05
 Plan: Not started
 
 ## Performance Metrics
@@ -63,6 +63,10 @@ Plan: Not started
 | Phase 04-proposal-drafting-editor P02 | 9 | 2 tasks | 5 files |
 | Phase 04-proposal-drafting-editor P04 | 12 | 2 tasks | 8 files |
 | Phase 04-proposal-drafting-editor P05 | 10 | 2 tasks | 1 files |
+| Phase 05-export-pipeline P01 | 5 | 2 tasks | 7 files |
+| Phase 05-export-pipeline P02 | 5 | 2 tasks | 4 files |
+| Phase 05-export-pipeline P03 | 7 | 2 tasks | 4 files |
+| Phase 05-export-pipeline P04 | 2 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -109,6 +113,15 @@ Recent decisions affecting current work:
 - [Phase 04-proposal-drafting-editor]: SectionEditor exposes editor via forwardRef/useImperativeHandle — parent needs editor reference for streaming setContent
 - [Phase 04-proposal-drafting-editor]: Draft Proposal button positioned above View Analysis — drafting is primary CTA post-analysis
 - [Phase 04-proposal-drafting-editor]: Human verified Phase 4 complete: streaming, editing, auto-save, compliance panel, no emojis all confirmed
+- [Phase 05-export-pipeline]: serverExternalPackages: ['@react-pdf/renderer'] in next.config.ts prevents TypeError in App Router route handlers — Next.js react-server condition strips react-reconciler internals without this config
+- [Phase 05-export-pipeline]: Ordered lists use manual text prefix (1. 2.) instead of docx numbering XML — avoids AbstractNumbering/ConcreteNumbering XML requirement
+- [Phase 05-export-pipeline]: stripComplianceMarks called in route handler before converter — keeps converter pure
+- [Phase 05-export-pipeline]: Proposal title loaded from proposals table and sanitized for Content-Disposition filename
+- [Phase 05-export-pipeline]: React.createElement (not JSX) used in tiptap-to-pdf.ts — .ts files cannot use JSX syntax without Babel transform
+- [Phase 05-export-pipeline]: PDF export uses 'LETTER' page size — US government submission standard, not A4
+- [Phase 05-export-pipeline]: export const runtime = 'nodejs' in PDF route — prevents edge runtime + react-reconciler conflict
+- [Phase 05-export-pipeline]: Word button uses accent fill (bg-blue-700) as primary action; PDF uses outline as secondary — Word is submission format, PDF is review-only
+- [Phase 05-export-pipeline]: ExportButtons uses independent loading state per button — downloading Word does NOT disable PDF button (each fetch lifecycle is separate)
 
 ### Pending Todos
 
@@ -122,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T00:12:16.690Z
-Stopped at: Completed 04-05-PLAN.md — Phase 4 fully verified
+Last session: 2026-03-24T19:18:07.183Z
+Stopped at: Completed 05-04-PLAN.md — ExportButtons component and editor integration complete
 Resume file: None
