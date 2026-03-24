@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { RfpSection, RfpRequirement, RfpStructure } from '@/lib/documents/rfp-structure'
 
 interface RfpStructureSidebarProps {
@@ -23,6 +23,15 @@ export default function RfpStructureSidebar({
 }: RfpStructureSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!activeRfpSection || !listRef.current) return
+    const activeEl = listRef.current.querySelector(`[data-section="${activeRfpSection}"]`)
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [activeRfpSection])
 
   const toggleSection = (sectionNumber: string) => {
     setExpandedSections((prev) => {
@@ -115,7 +124,7 @@ export default function RfpStructureSidebar({
           </p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto" role="list">
+        <div className="flex-1 overflow-y-auto" role="list" ref={listRef}>
           {rfpStructure.sections.map((section) => {
             const sectionRequirements = getRequirementsForSection(section, rfpStructure.requirements)
             const count = sectionRequirements.length
@@ -123,7 +132,7 @@ export default function RfpStructureSidebar({
             const isSectionExpanded = expandedSections.has(section.number)
 
             return (
-              <div key={section.number} role="listitem">
+              <div key={section.number} role="listitem" data-section={section.number}>
                 {/* Section row button */}
                 <button
                   className={[
@@ -135,8 +144,8 @@ export default function RfpStructureSidebar({
                   ].join(' ')}
                   aria-expanded={isSectionExpanded}
                   onClick={() => {
+                    onSectionClick?.(section.title)
                     toggleSection(section.number)
-                    if (onSectionClick) onSectionClick(section.title)
                   }}
                 >
                   {/* Chevron */}

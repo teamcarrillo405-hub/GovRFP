@@ -61,6 +61,7 @@ export default function ProposalEditor({
     new Map()
   )
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false)
+  const [activeRfpSection, setActiveRfpSection] = useState<string | null>(null)
 
   // Refs for interval logic (avoid stale closures)
   const editorRef = useRef<SectionEditorHandle>(null)
@@ -169,6 +170,71 @@ export default function ProposalEditor({
     })
   }, [])
 
+  // Click-to-scroll: find matching heading in editor and scroll to it
+  const handleRfpSectionClick = useCallback((sectionTitle: string) => {
+    const editor = editorRef.current?.editor
+    if (!editor) return
+
+    let targetPos: number | null = null
+    editor.state.doc.descendants((node, pos) => {
+      if (targetPos !== null) return false
+      if (node.type.name === 'heading' && node.textContent.toLowerCase().includes(sectionTitle.toLowerCase())) {
+        targetPos = pos
+        return false
+      }
+    })
+
+    if (targetPos !== null) {
+      editor.commands.setTextSelection(targetPos)
+      editor.commands.scrollIntoView()
+      editor.commands.focus()
+    }
+  }, [])
+
+  // Detect which RFP section the cursor is currently in
+  const detectActiveRfpSection = useCallback(() => {
+    const editor = editorRef.current?.editor
+    if (!editor || !rfpStructure) return
+
+    const { from } = editor.state.selection
+    let nearestHeading: string | null = null
+
+    editor.state.doc.nodesBetween(0, from, (node) => {
+      if (node.type.name === 'heading') {
+        const headingText = node.textContent
+        const matchedSection = rfpStructure.sections.find(
+          (s) => headingText.toLowerCase().includes(s.title.toLowerCase())
+        )
+        if (matchedSection) {
+          nearestHeading = matchedSection.number
+        }
+      }
+    })
+
+    setActiveRfpSection(nearestHeading)
+  }, [rfpStructure])
+
+  // Wire active section detection to editor events
+  useEffect(() => {
+    const editor = editorRef.current?.editor
+    if (!editor) return
+
+    const handler = () => detectActiveRfpSection()
+    editor.on('selectionUpdate', handler)
+    editor.on('update', handler)
+
+    return () => {
+      editor.off('selectionUpdate', handler)
+      editor.off('update', handler)
+    }
+  }, [detectActiveRfpSection])
+
+  // Run detection once after mount (editor ref may not be available on first render)
+  useEffect(() => {
+    const timer = setTimeout(() => detectActiveRfpSection(), 500)
+    return () => clearTimeout(timer)
+  }, [detectActiveRfpSection, activeSection])
+
   // Handle generate/stream
   const handleGenerate = async (section: SectionName, instruction?: string) => {
     if (isStreaming) return
@@ -256,7 +322,11 @@ export default function ProposalEditor({
 
   return (
     <div className="flex gap-0">
-      <RfpStructureSidebar rfpStructure={rfpStructure} />
+      <RfpStructureSidebar
+        rfpStructure={rfpStructure}
+        activeRfpSection={activeRfpSection}
+        onSectionClick={handleRfpSectionClick}
+      />
 
       {/* Editor column */}
       <div className="flex-1 min-w-0">
