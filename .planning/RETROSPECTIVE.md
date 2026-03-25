@@ -49,6 +49,49 @@
 
 ---
 
+## Milestone: v1.1 — RFP Structure Sidebar
+
+**Shipped:** 2026-03-25
+**Phases:** 1 (Phase 6) | **Plans:** 2 | **Sessions:** 2
+
+### What Was Built
+
+- **Collapsible RFP Structure sidebar** — reads `rfp_structure` JSONB already in DB; zero new API calls or schema changes
+- **Bidirectional navigation** — click sidebar section → editor scrolls to heading; cursor moves in editor → sidebar highlights active section
+- **Full E2E test suite (35 tests)** — global-setup with storageState, SeedClient for DB seeding, two Playwright projects (fast/pipeline), 32/32 passing in ~42s
+- **Tab overflow fix** — `overflow-x-auto scrollbar-none` prevents Price Narrative tab from being hidden when sidebar is expanded
+
+### What Worked
+
+- **Frontend-only phase** — no new DB schema, no new packages, no Edge Functions; pure component work on top of Phase 4 editor infrastructure shipped in 2 days
+- **Pre-wired props interface** — Plan 01 implemented Plan 02's `activeRfpSection` + `onSectionClick` props proactively; Plan 02 was essentially already done when it ran
+- **SeedClient pattern** — inserting known-good DB state (seeded analyzed proposal) before E2E tests made browser tests fast and deterministic without a real upload/analysis cycle
+
+### What Was Inefficient
+
+- **E2E tests discovered selector mismatches** — 4 of 32 tests failed on first run due to wrong button text (`Browse files` not `upload`), missing nav element, and strict mode violation; required a fix pass. Fix: check actual UI component text before writing selectors
+- **Playground testing needed a real RFP with section headings** — the sidebar's click-to-scroll only activates with parseable headings; the demo RFP had "No structure found". Not a bug but a gap between UAT expectation and real-world data
+
+### Patterns Established
+
+- **`scrollbar-none` CSS utility** — added to `globals.css` for any overflowing flex row (tab bars, horizontal nav)
+- **Playwright two-project split** — `fast` (smoke, ~42s) and `pipeline` (upload + AI generation, ~3min) as separate projects allows CI to run smoke tests on every PR
+- **`storageState` + `SeedClient` pattern** — global-setup saves auth once; `beforeAll`/`afterAll` seed/teardown per describe block; no test logs in every time
+
+### Key Lessons
+
+1. **Check actual component text before writing E2E selectors** — reading the component file takes 30 seconds and prevents 4 failing tests
+2. **Frontend-only milestones ship faster** — Phase 6 (1 phase, 2 plans, 2 days) vs v1.0 (5 phases, 22 plans, 3 days); no infra/auth complexity compounds
+3. **Proactive prop wiring across plans** — when Plan 01 implements Plan 02's interface upfront, Plan 02 becomes a verify + wire pass rather than a build pass
+
+### Cost Observations
+
+- Model mix: ~20% opus (planning), ~80% sonnet (execution)
+- Sessions: 2 sessions (planning session 2026-03-24, execution + E2E session 2026-03-25)
+- Notable: Single frontend phase with no DB work = minimal back-and-forth with external services
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -56,13 +99,16 @@
 | Milestone | Sessions | Phases | Key Change |
 |-----------|----------|--------|------------|
 | v1.0 MVP | 2 | 5 | First milestone — baseline established |
+| v1.1 Sidebar | 2 | 1 | Frontend-only milestone; E2E test suite added |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Zero-Dep Additions |
 |-----------|-------|--------------------|
 | v1.0 | 180 | 0 (all deps intentional) |
+| v1.1 | 35 E2E (32 passing) | 0 |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. *Accumulating — check back after v2.0*
+1. **Research.md prevents discovery-by-failure** — confirmed across both milestones; every critical detail caught in research phase
+2. **Read component files before writing E2E selectors** — confirmed v1.1; saves a full fix pass

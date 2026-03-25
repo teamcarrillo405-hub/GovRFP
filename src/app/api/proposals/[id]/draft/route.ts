@@ -60,7 +60,24 @@ export async function POST(
     messages: [{ role: 'user', content: `Draft the ${section} section now.` }],
   })
 
-  return new Response(stream.toReadableStream(), {
+  const encoder = new TextEncoder()
+  const readable = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of stream) {
+        if (
+          chunk.type === 'content_block_delta' &&
+          chunk.delta.type === 'text_delta'
+        ) {
+          const data = `data: ${JSON.stringify(chunk)}\n\n`
+          controller.enqueue(encoder.encode(data))
+        }
+      }
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+      controller.close()
+    },
+  })
+
+  return new Response(readable, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',

@@ -4,7 +4,7 @@
 
 HCC ProposalAI is a standalone SaaS platform that helps contractors win more government contracts by turning raw RFPs into structured, compliant proposal drafts using Claude AI. Contractors upload an RFP (PDF or Word, including scanned PDFs via AWS Textract OCR), and the system returns a compliance matrix, AI-drafted proposal sections, a win probability score, and an in-browser rich-text editor — then exports a polished Word or PDF document ready for submission.
 
-**Shipped v1.0** — full end-to-end flow in production: upload → parse → analyze → draft → edit → export.
+**Shipped v1.1** — full end-to-end flow plus RFP structure sidebar with click-to-scroll navigation and active section highlighting.
 
 ## Core Value
 
@@ -12,7 +12,7 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 
 ## Requirements
 
-### Validated (v1.0)
+### Validated (v1.0 + v1.1)
 
 - ✓ Upload RFP as PDF or Word (.docx) with OCR fallback for scanned PDFs — v1.0
 - ✓ AI extraction of requirements, deadlines, evaluation criteria (3 sequential Claude calls with prompt caching) — v1.0
@@ -26,10 +26,11 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 - ✓ Export to PDF (Letter size, Helvetica, consistent layout) — v1.0
 - ✓ Contractor profile (certifications, NAICS, past projects, key personnel bios) — v1.0
 - ✓ Per-seat/month subscription with 14-day no-card trial (Stripe) — v1.0
+- ✓ RFP structure sidebar — collapsible panel showing parsed sections + requirements, click-to-scroll, active section highlight — v1.1
 
 ### Active (v2.0 candidates)
 
-<!-- Next milestone — derived from v1.0 Out of Scope + known gaps -->
+<!-- Next milestone — derived from v1.1 Out of Scope + known gaps -->
 
 **Collaboration**
 - [ ] Multi-user team accounts — invite teammates to a proposal, role-based access (owner / editor / viewer)
@@ -40,7 +41,6 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 - [ ] SAM.gov entity data prefill — pull contractor certifications from SAM registration
 
 **Editor Enhancements**
-- [ ] RFP structure sidebar — parsed section tree visible while editing (deferred from Phase 2)
 - [ ] Version history — compare drafts, restore previous version
 - [ ] Comments / annotation on proposal sections
 

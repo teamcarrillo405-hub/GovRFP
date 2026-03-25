@@ -42,7 +42,7 @@ export function buildSectionPrompt(
   const certifications = profile?.certifications ?? []
   const capabilityStatement = profile?.capability_statement ?? ''
 
-  const COMMON_FOOTER = `\nWrite in clear, professional proposal language. Use headings (## format) and bullet points where appropriate. Output HTML suitable for a rich text editor.`
+  const COMMON_FOOTER = `\nWrite in clear, professional proposal language. Use HTML tags for structure (h2, h3, p, ul, li). Output raw HTML only — no markdown, no code fences, no backticks. Start directly with an HTML tag. Never use em dashes (— or –); use commas, colons, or rewrite the sentence instead.`
 
   let sectionText: string
 

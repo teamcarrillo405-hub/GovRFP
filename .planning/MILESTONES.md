@@ -1,5 +1,15 @@
 # Milestones
 
+## v1.1 RFP Structure Sidebar (Shipped: 2026-03-25)
+
+**Phases completed:** 1 phases, 2 plans, 2 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-24)
 
 **Phases completed:** 5 phases, 22 plans, 31 tasks

@@ -30,11 +30,12 @@ function scoreColor(score: number): string {
 
 function getScore(factor: WinFactors[keyof WinFactors]): number {
   if (typeof factor === 'number') return factor
-  return (factor as WinFactorDetail).score
+  if (!factor || typeof factor !== 'object') return 0
+  return (factor as WinFactorDetail).score ?? 0
 }
 
 function getReasoning(factor: WinFactors[keyof WinFactors]): string | undefined {
-  if (typeof factor === 'number') return undefined
+  if (typeof factor === 'number' || !factor || typeof factor !== 'object') return undefined
   return (factor as WinFactorDetail).reasoning
 }
 
@@ -53,7 +54,7 @@ export default function WinScoreCard({ winScore, winFactors }: Props) {
       {/* Factor breakdown */}
       <div className="flex-1 space-y-4">
         {FACTOR_ORDER.map((key) => {
-          const factor = winFactors[key]
+          const factor = winFactors?.[key]
           const score = getScore(factor)
           const reasoning = getReasoning(factor)
           const weight = Math.round(WIN_SCORE_WEIGHTS[key] * 100)

@@ -287,7 +287,20 @@ export default function ProposalEditor({
       // Buffer pattern: write to editor ONCE on completion (not per chunk)
       const editor = editorRef.current?.editor
       if (editor && fullText) {
-        editor.commands.setContent(fullText)
+        // Strip markdown code fences if Claude wrapped the output
+        let html = fullText.trim()
+        const fenceMatch = html.match(/^```(?:html)?\s*([\s\S]*?)```\s*$/)
+        if (fenceMatch) {
+          html = fenceMatch[1].trim()
+        }
+        // If it doesn't look like HTML, convert plain text to paragraphs
+        if (!html.startsWith('<')) {
+          html = html
+            .split(/\n\n+/)
+            .map((para) => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+            .join('')
+        }
+        editor.commands.setContent(html)
         isDirtyRef.current = true
       }
 
@@ -333,7 +346,7 @@ export default function ProposalEditor({
         {/* Section tabs */}
         <div
           className={[
-            'flex gap-0 border-b border-gray-200',
+            'flex gap-0 border-b border-gray-200 overflow-x-auto scrollbar-none',
             isStreaming ? 'pointer-events-none opacity-60' : '',
           ].join(' ')}
           role="tablist"
@@ -346,7 +359,7 @@ export default function ProposalEditor({
               aria-selected={section === activeSection}
               onClick={() => handleTabSwitch(section)}
               className={[
-                'px-4 py-2 text-sm font-medium cursor-pointer transition-colors whitespace-nowrap',
+                'px-3 py-2 text-sm font-medium cursor-pointer transition-colors whitespace-nowrap',
                 section === activeSection
                   ? 'border-b-2 border-blue-700 text-blue-700 bg-white'
                   : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100',
