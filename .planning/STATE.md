@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: RFP Structure Sidebar
-status: v1.1 milestone complete
-stopped_at: Completed 06-rfp-structure-sidebar 06-02-PLAN.md
-last_updated: "2026-03-25T20:50:57.801Z"
+milestone: v2.0
+milestone_name: Collaboration + Integrations
+status: defining requirements
+stopped_at: —
+last_updated: "2026-03-25T00:00:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -23,8 +23,10 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 
 ## Current Position
 
-Phase: 06 (rfp-structure-sidebar) — EXECUTING
-Plan: 2 of 2
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-25 — Milestone v2.0 started
 
 ## Performance Metrics
 

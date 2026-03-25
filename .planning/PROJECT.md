@@ -84,24 +84,27 @@ Reduce the time from RFP receipt to first draft from days to under 30 minutes, w
 | @react-pdf/renderer for PDF (not Puppeteer) | Same bundle size constraint | ✓ Good — requires `serverExternalPackages` + `runtime = 'nodejs'` (documented) |
 | Buffer pattern for streaming drafts | `setContent()` called once on stream completion, not per chunk | ✓ Good — avoids Tiptap cursor jump on partial content |
 
-## Current Milestone: v1.1 RFP Structure Sidebar
+## Current Milestone: v2.0 Collaboration + Integrations
 
-**Goal:** Surface the parsed RFP section outline and requirements list in a collapsible sidebar while contractors edit their proposal, closing the INGEST-05 item deferred from Phase 2.
+**Goal:** Expand ProposalAI from solo tool to team-capable platform with cross-product GovRFP integration and operator analytics.
 
 **Target features:**
-- RFP structure sidebar component (parsed section tree + requirements list)
-- Toggle/collapse sidebar in the editor layout
-- Click-to-scroll linking from sidebar items to proposal sections
+- Multi-user team accounts (invite teammates, RBAC: owner / editor / viewer)
+- Real-time co-editing presence indicators
+- GovRFP one-click RFP import (contractor-rfp-website → ProposalAI)
+- SAM.gov entity data prefill for contractor certifications
+- Version history (compare drafts, restore previous)
+- Section comments / annotation
+- Win/loss tracking (bid outcomes feed back into win score model)
+- HCC operator dashboard (active users, proposals drafted, export volume)
 
 ## Current State
 
-**v1.0 shipped — ready for production deployment.**
+**v1.1 shipped — full solo flow + RFP structure sidebar complete.**
 
-- 5 phases complete | 22 plans | 180 tests passing
-- Full RFP → draft → export flow working end-to-end
-- Awaiting: production Supabase migration, env vars, Stripe webhook endpoint, pg_cron jobs
-
-**v1.1 in progress:** Closing deferred INGEST-05 (RFP structure sidebar). v2.0 (team accounts + GovRFP integration) follows after v1.1 ships.
+- 6 phases complete | 24 plans | 35 E2E tests + 180 unit tests passing
+- Full RFP → draft → export flow with sidebar navigation
+- v2.0 in progress: team accounts, GovRFP integration, SAM.gov prefill, version history, comments, win/loss tracking, operator dashboard
 
 ## Evolution
 
@@ -121,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 after v1.1 milestone start*
+*Last updated: 2026-03-25 — v2.0 milestone started*
