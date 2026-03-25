@@ -1,83 +1,263 @@
-# Stack Research
+# Stack Research — v2.0 New Feature Additions
 
-**Domain:** AI-assisted RFP proposal writing SaaS
-**Researched:** 2026-03-23
-**Confidence:** HIGH (most layers verified against official docs or npm registry)
+**Domain:** Government proposal SaaS — v2.0 collaboration + integrations milestone
+**Researched:** 2026-03-25
+**Confidence:** HIGH (all packages verified via npm registry; architecture patterns verified via official docs)
+
+> This file covers ONLY the new packages needed for v2.0.
+> Existing stack (Next.js 16.2.1, React 19, Supabase, Stripe v20, Claude API, Tiptap v2.27.2, Zod v4, Vitest, Playwright) is locked and not re-researched.
 
 ---
 
-## Recommended Stack
+## Feature-to-Package Mapping
 
-### Core Technologies
+| Feature | New Packages | Uses Existing |
+|---------|-------------|---------------|
+| Multi-user team accounts + RBAC | `resend`, `@react-email/components` | Supabase RLS, Stripe quantity update |
+| Real-time co-editing presence | `yjs`, `@tiptap/extension-collaboration`, `@tiptap/extension-collaboration-cursor`, `@hocuspocus/provider`, `@hocuspocus/server`, `@hocuspocus/extension-database` | Tiptap v2, Supabase DB |
+| GovRFP one-click import | none (shared secret + fetch) | Next.js API routes |
+| SAM.gov entity prefill | none (direct REST fetch to api.sam.gov) | Next.js server actions |
+| Version history | `jsondiffpatch` | Supabase DB (JSONB snapshots), Tiptap JSON |
+| Section comments / annotation | none (custom Tiptap mark) | `@tiptap/pm`, Supabase DB |
+| Win/loss tracking | none | Supabase DB (new table), existing win-score lib |
+| HCC operator dashboard | none | Supabase DB (pg views/aggregates), existing auth |
+
+---
+
+## Recommended Stack Additions
+
+### Core New Dependencies
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Next.js | 15.x (stable) | Full-stack React framework | App Router is stable and production-ready in 15. New projects should not start on 14 — 15 is what Vercel ships on internally. Caching defaults changed (no implicit fetch caching), which is actually more correct for a SaaS with per-user data. Turbopack in dev is 5-10x faster HMR. |
-| React | 19.x | UI runtime | Required peer dep for Next.js 15. React Server Components + Server Actions are the correct primitives for AI streaming and form handling. |
-| TypeScript | 5.x | Type safety | Not optional for a product this complex — compliance matrix data structures, proposal sections, and Stripe webhook payloads all benefit from strict typing. |
-| Supabase | Cloud (JS SDK v2.99+) | Database, auth, file storage, RLS | Eliminates need for a separate auth service, separate file storage, and a separate database host. Row Level Security (RLS) policies handle per-user data isolation without application-layer filtering. Matches the existing GovRFP stack investment. |
-| Claude API | claude-sonnet-4-6 / claude-opus-4-6 | RFP parsing, compliance matrix, proposal drafting | Only option per project constraints. Sonnet 4 is the correct default: faster and cheaper than Opus 4 with sufficient quality for structured extraction and proposal generation. Use Opus 4 only for the win probability analysis where reasoning depth matters most. |
-| Stripe | stripe@17.x (Node SDK) + @stripe/stripe-js@5.x | Subscription billing | Industry standard for SaaS subscriptions. Handles SCA, retries, invoices, and tax automatically via Checkout. Per-seat model maps to Stripe's standard recurring Price + subscription model. |
-| Tiptap | @tiptap/core 2.x / 3.x | Rich text editor | ProseMirror-based, headless, React-native. Best DX for a custom editor that needs to live-link to the compliance matrix. Lexical is faster but Tiptap has better extension ecosystem and documentation. Quill is obsolete. |
+| `yjs` | ^13.6.30 | CRDT document state for collaborative editing | Industry standard for conflict-free real-time sync; required by Tiptap's collaboration extension; no alternative with comparable ecosystem |
+| `@tiptap/extension-collaboration` | 2.27.2 (pin exact) | Binds Yjs document to Tiptap editor | Official extension; pin to v2-latest — v3 is latest on npm but incompatible with existing Tiptap v2.27 setup |
+| `@tiptap/extension-collaboration-cursor` | 2.27.2 (pin exact) | Renders remote user cursors in editor | Official extension; same version constraint as above — v3 renamed to `extension-collaboration-caret` with CSS class changes |
+| `@hocuspocus/provider` | ^3.4.4 | WebSocket client connecting Tiptap to Hocuspocus server | Purpose-built Yjs provider for Tiptap; abstracts auth + reconnection; pairs with `@hocuspocus/server` |
+| `@hocuspocus/server` | ^3.4.4 | Yjs WebSocket server for document sync | Required for real-time editing; cannot run inside Vercel (serverless); deploy as separate Railway service |
+| `@hocuspocus/extension-database` | ^3.4.4 | Persists Yjs binary state to Supabase | Generic fetch/store hooks — connect to Supabase `proposal_ydoc` column (bytea) directly |
+| `jsondiffpatch` | ^0.7.3 | Diff Tiptap JSON snapshots for version history UI | Handles nested JSON diff + patch natively; produces delta format suitable for display; has HTML visualizer output. Use over `diff-match-patch` (stale, CJS-only) |
+| `resend` | ^6.9.4 | Transactional email for team invitations | Best DX for Next.js + React Email templates; DNS domain verification; 3,000 free emails/month; aligns with existing stack philosophy |
+| `@react-email/components` | ^1.0.10 | React component templates for invite emails | Same team as Resend; built-in preview server; familiar React patterns; no new templating language |
 
-### Supporting Libraries
+### Development Dependencies (no changes needed)
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| @supabase/ssr | 0.x (latest) | Supabase auth in Next.js App Router with SSR | Always — replaces deprecated `@supabase/auth-helpers-nextjs`. Handles cookie-based session storage correctly for both Server Components and Client Components. |
-| @anthropic-ai/sdk | 0.80.x | Anthropic TypeScript SDK | Server-side only (API routes / Server Actions). Never import in client components — exposes API key. |
-| mammoth | 1.x | Convert uploaded .docx to HTML/plain text for Claude ingestion | Use when user uploads a Word RFP. Extracts clean text from DOCX without requiring LibreOffice or server-side binary dependencies. |
-| pdf-parse | 1.1.x | Extract text from uploaded PDFs for Claude ingestion | Use when user uploads a PDF RFP. Lightweight, Node.js only. For complex PDFs with charts, fall through to Claude's native PDF vision via Files API instead. |
-| docx | 9.6.x | Generate .docx export of finished proposals | Server-side only. Programmatic Word document generation with styles, headings, tables. Actively maintained (published 13 days ago as of research date). |
-| @react-pdf/renderer | 4.x | Generate PDF export of finished proposals | Serverless-compatible (no Chromium binary required). Renders PDF from React components. Use for PDF export; do NOT use Puppeteer on Vercel — binary size exceeds serverless limits. |
-| zod | 3.x | Runtime validation of AI-extracted JSON, Stripe webhooks, form inputs | Validate everything Claude returns as structured data. Also use for webhook signature + payload validation. |
-| @tanstack/react-query | 5.x | Client-side async state management | Use for polling proposal generation status, optimistic updates during editing, and caching proposal list. Pairs well with Next.js App Router (server components for initial load, React Query for client interactions). |
-| react-dropzone | 14.x | File upload UI (drag-and-drop RFP upload) | Integrates cleanly with Supabase Storage upload. Handles file type filtering (PDF/DOCX only) client-side before upload. |
-| stripe (webhook) | stripe@17.x | Server-side webhook handler | Use in a dedicated API route (`/api/webhooks/stripe`). Listen to `customer.subscription.created`, `invoice.paid`, `customer.subscription.deleted` — not just checkout. Missing `invoice.paid` means users lose access after first renewal. |
+All testing infrastructure (Vitest, Playwright) remains unchanged. Hocuspocus server tests run in Node environment compatible with Vitest.
 
-### Development Tools
+---
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| Supabase CLI | Local Supabase instance, migrations, type generation | Run `supabase gen types typescript` after every migration to keep DB types in sync. Critical for RLS policy testing locally before pushing. |
-| Stripe CLI | Local webhook forwarding | Run `stripe listen --forward-to localhost:3000/api/webhooks/stripe` in dev. Do not test billing flows without this — webhook signature verification will fail. |
-| eslint + @typescript-eslint | Code quality | Include `@typescript-eslint/no-explicit-any` — the AI response parsing code will tempt you to use `any` everywhere. Don't. |
-| Playwright | E2E testing | Essential for testing the proposal editor flow end-to-end. Tiptap is notoriously hard to unit test; browser-level tests are the only reliable option. |
+## Architecture Decision: Real-Time Editing Infrastructure
+
+The biggest architectural addition in v2.0 is the Hocuspocus WebSocket server. This cannot run inside Next.js on Vercel.
+
+**Required topology:**
+
+```
+Browser (Tiptap + HocuspocusProvider)
+  --> WebSocket --> Hocuspocus Server (Railway, Node.js, port 1234)
+                     --> Supabase DB (persist binary Yjs state in proposals table)
+
+Browser (Supabase Realtime client)
+  --> Supabase Realtime Broadcast --> presence sidebar (who is viewing, NOT cursor positions)
+```
+
+**Why split this way:**
+
+- Hocuspocus handles document CRDT sync (Yjs binary updates) + cursor awareness — requires persistent WebSocket connection, incompatible with serverless
+- Supabase Realtime Presence handles "who's viewing this proposal" display in the sidebar — lightweight, works with existing Supabase client, no new server needed
+- Do NOT attempt to use Supabase Realtime as a Yjs provider: `y-supabase` npm package has 306 weekly downloads, author warns "not production ready", API changes frequently
+
+---
+
+## Package-by-Package Rationale
+
+### yjs ^13.6.30
+
+CRDT library. Required peer dependency of `@tiptap/extension-collaboration`. There is no alternative — Tiptap's collaboration stack is built entirely on Yjs. Version 13.x is the current stable series.
+
+### @tiptap/extension-collaboration + @tiptap/extension-collaboration-cursor at 2.27.2
+
+CRITICAL VERSION CONSTRAINT: Pin these to exactly `2.27.2`. The `latest` dist-tag on npm now points to v3.20.5 (Tiptap v3), which has breaking changes incompatible with existing v2.27 setup:
+
+- `extension-collaboration-cursor` renamed to `extension-collaboration-caret` in v3
+- CSS classes changed from `.collaboration-cursor__caret` to `.collaboration-carets__caret`
+- `history` option renamed to `undoRedo`
+- StarterKit incompatibility with existing v2 extensions
+
+The `v2-latest` dist-tag on npm confirms 2.27.2 as the correct v2 pin. Running `npm install @tiptap/extension-collaboration@latest` will pull v3 and break the existing setup.
+
+Also: when Collaboration extension is added, the StarterKit's built-in UndoRedo must be disabled — Collaboration ships its own Yjs-aware history. Add `{ starterKit: { history: false } }` to the existing editor configuration.
+
+### @hocuspocus/provider + @hocuspocus/server + @hocuspocus/extension-database ^3.4.4
+
+All three stay in sync at the same version (monorepo). v3.4.4 is current stable.
+
+- `@hocuspocus/provider` goes in the Next.js app (browser-side, client component)
+- `@hocuspocus/server` + `@hocuspocus/extension-database` go in a separate `hocuspocus-server/` Node.js service deployed to Railway
+
+Hocuspocus uses the `@hocuspocus/extension-database` generic hooks pattern to persist Yjs binary state:
+- `fetch`: `SELECT ydoc_state FROM proposals WHERE id = $1` (returns `Uint8Array | null`)
+- `store`: `UPDATE proposals SET ydoc_state = $1 WHERE id = $2`
+- Auth via `onAuthenticate` hook — verify Supabase JWT passed from browser on WebSocket connect
+
+### jsondiffpatch ^0.7.3
+
+For version history: when a user saves, store the current Tiptap JSON as a JSONB snapshot in a `proposal_versions` table. Use `jsondiffpatch.diff(old, new)` to produce a delta, then `jsondiffpatch.formatters.html.format(delta, old)` for visual display.
+
+Do NOT use `diff-match-patch` — the original npm package is 4 years unmaintained and CJS-only. `jsondiffpatch` handles nested JSON (which Tiptap's ProseMirror JSON format is) natively.
+
+### resend ^6.9.4 + @react-email/components ^1.0.10
+
+For team invite emails. The only setup cost is adding a DNS TXT record to the HCC domain and a `RESEND_API_KEY` env var. 3,000 free emails/month is more than sufficient at HCC's current scale.
+
+---
+
+## SAM.gov API Integration Details
+
+No new npm packages needed. Use native `fetch` in a Next.js Server Action.
+
+**Endpoint:** `https://api.sam.gov/entity-information/v3/entities`
+
+**Authentication:** API key as query parameter `?api_key=YOUR_KEY`. Key obtained from SAM.gov account profile page. Public data is accessible with a non-federal registered entity account.
+
+**Rate limits:**
+- Public access (no account): 10 req/day — insufficient for production
+- Registered entity account: 1,000 req/day — sufficient for HCC's user base at launch
+- Federal system account: 10,000 req/day — available if needed later
+
+**Lookup parameters:**
+- `ueiSAM` — 12-character UEI (primary; replaces DUNS)
+- `cageCode` — 5-character CAGE code
+- `legalBusinessName` — partial text search
+
+**Key returned fields for contractor profile prefill:**
+- `entityRegistration.legalBusinessName`
+- `entityRegistration.ueiSAM`, `entityRegistration.cageCode`
+- `entityRegistration.registrationStatus`
+- `assertions.goodsAndServices.naicsCode` (list)
+- `entityRegistration.businessTypes` (woman-owned, veteran-owned, 8(a), HUBZone, etc.)
+
+Store the SAM.gov API key in Supabase Edge Function secrets (same pattern as `ANTHROPIC_API_KEY`), never in `.env.local`.
+
+---
+
+## GovRFP Import Integration Details
+
+No new npm packages needed. Internal API call between two Next.js apps sharing the same operator.
+
+**Pattern:**
+1. GovRFP adds a "Send to ProposalAI" button on an RFP detail page
+2. Button calls `POST /api/integrations/govrfp/import` on ProposalAI
+3. Authentication: `Authorization: Bearer <GOVRFP_SHARED_SECRET>` header — both apps hold the same secret in env
+4. Payload: RFP metadata (title, agency, due date, source URL, document URL)
+5. ProposalAI creates a new proposal record and returns a redirect URL to the new proposal editor
+
+**New env var:** `GOVRFP_SHARED_SECRET` (same value set in both apps)
+
+This avoids OAuth complexity — single operator, not multi-tenant across organizations.
+
+---
+
+## Team Accounts + RBAC — No New Packages
+
+All RBAC is implemented via Supabase RLS + new tables. No external RBAC library needed.
+
+**Schema pattern:**
+```sql
+-- teams table (org-level container)
+-- team_members(team_id, user_id, role enum('owner','editor','viewer'), invited_by, joined_at)
+-- team_member_invitations(id, team_id, email, role, token uuid, expires_at, accepted_at)
+-- proposals: add team_id column
+
+-- RLS policy (proposals read — editor/viewer):
+-- EXISTS (SELECT 1 FROM team_members WHERE team_id = proposals.team_id AND user_id = auth.uid())
+
+-- RLS policy (proposals write — owner/editor only):
+-- EXISTS (SELECT 1 FROM team_members WHERE team_id = proposals.team_id AND user_id = auth.uid() AND role IN ('owner','editor'))
+```
+
+**Stripe per-seat update:** When a team member is added/removed, call `stripe.subscriptions.update` with new `quantity`. Uses existing Stripe v20 client — no new package needed.
+
+---
+
+## Section Comments — Custom Tiptap Mark (No New Packages, No Pro)
+
+Tiptap Pro comments are paywalled (no public price; requires sales contact; requires Tiptap Platform for threaded sync). Build a custom mark instead using existing `@tiptap/pm`.
+
+**Pattern** (proven community approach):
+1. Custom Tiptap `Mark` extension named `CommentMark` with `commentId` attribute
+2. Highlighted text stores `commentId` in the mark data
+3. `proposal_comments` table: `id`, `proposal_id`, `comment_id` (anchor), `parent_id` (nullable, for threading), `body`, `created_by`, `resolved_at`
+4. Comments sidebar component loads threads by `proposal_id` via Supabase query
+5. Clicking a comment highlights the corresponding mark in the editor via `editor.commands.setTextSelection`
+
+This gives Google Docs-like inline comments with no paid dependency.
+
+---
+
+## Version History — No New Packages Beyond jsondiffpatch
+
+**Schema:**
+```sql
+CREATE TABLE proposal_versions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  proposal_id uuid REFERENCES proposals(id) ON DELETE CASCADE,
+  created_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now(),
+  label text, -- e.g. "Before AI regeneration of Technical Approach"
+  content jsonb NOT NULL -- full Tiptap JSON snapshot
+);
+```
+
+**Restore:** `editor.commands.setContent(version.content)` — existing Tiptap API, no new packages.
+
+---
+
+## Win/Loss Tracking — No New Packages
+
+```sql
+CREATE TABLE bid_outcomes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  proposal_id uuid REFERENCES proposals(id) ON DELETE CASCADE,
+  outcome text CHECK (outcome IN ('won','lost','no_bid','pending')),
+  submitted_at date,
+  award_amount numeric,
+  notes text,
+  recorded_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now()
+);
+```
+
+Historical outcomes feed into win probability as new computed factors in the existing `win-score.ts` lib.
+
+---
+
+## HCC Operator Dashboard — No New Packages
+
+Postgres aggregate views + a `/admin` layout gated by `profiles.is_operator = true`. Use existing Supabase admin client.
 
 ---
 
 ## Installation
 
 ```bash
-# Bootstrap
-npx create-next-app@latest hcc-proposal-ai --typescript --tailwind --app --src-dir
+# Real-time editing (Tiptap collaboration)
+# IMPORTANT: pin to 2.27.2 — npm latest tag now points to Tiptap v3
+npm install yjs@^13.6.30
+npm install @tiptap/extension-collaboration@2.27.2
+npm install @tiptap/extension-collaboration-cursor@2.27.2
+npm install @hocuspocus/provider@^3.4.4
 
-# Core Supabase
-npm install @supabase/supabase-js @supabase/ssr
+# Version history diff
+npm install jsondiffpatch@^0.7.3
 
-# AI
-npm install @anthropic-ai/sdk
+# Team invite emails
+npm install resend@^6.9.4 @react-email/components@^1.0.10
+```
 
-# Editor
-npm install @tiptap/core @tiptap/react @tiptap/starter-kit @tiptap/extension-placeholder @tiptap/extension-character-count
-
-# Document parsing (server-side only)
-npm install mammoth pdf-parse
-
-# Document export (server-side only)
-npm install docx @react-pdf/renderer
-
-# Billing
-npm install stripe @stripe/stripe-js
-
-# Validation + state
-npm install zod @tanstack/react-query
-
-# File upload UI
-npm install react-dropzone
-
-# Dev tools
-npm install -D supabase stripe @playwright/test
+```bash
+# Hocuspocus server (separate hocuspocus-server/ service in monorepo or standalone repo)
+npm install @hocuspocus/server@^3.4.4 @hocuspocus/extension-database@^3.4.4 yjs@^13.6.30
 ```
 
 ---
@@ -86,58 +266,28 @@ npm install -D supabase stripe @playwright/test
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Next.js 15 | Next.js 14 | Never for a new project in 2026. 14 is in maintenance; 15 is stable with better defaults. |
-| Tiptap | Lexical | If you need raw performance with very large documents (10k+ word proposals). Lexical has lower memory usage. Tradeoff: worse docs, fewer ready-made extensions, steeper custom extension curve. |
-| Tiptap | Quill | Never. Quill 2.x development stalled; the ecosystem has moved on. Tiptap has superceded it for production use. |
-| @react-pdf/renderer | Puppeteer | If deploying to a long-running server (not Vercel/serverless) and need pixel-perfect HTML-to-PDF fidelity. Puppeteer exceeds Vercel function size limits. |
-| docx (npm) | docxtemplater | If you need template-based Word output (fill in placeholders in a .docx template). `docx` is better for programmatic generation from structured data, which is what this app produces. |
-| mammoth | officeParser | If you also need PPTX/XLSX parsing. mammoth is simpler and more reliable for DOCX-only use case. |
-| Supabase Storage | AWS S3 | If the team already has deep AWS infrastructure expertise and needs fine-grained IAM policies. Supabase Storage is S3-compatible under the hood; migrating later is low risk. |
-| Claude API (Anthropic native) | Vercel AI SDK with Anthropic provider | If you plan to add multi-provider AI support later. For a Claude-only product (per project constraint), the native `@anthropic-ai/sdk` is simpler and avoids an abstraction layer. |
+| Hocuspocus (self-hosted Railway) | Tiptap Cloud (managed) | If ops burden for a separate server is unacceptable; Tiptap Cloud removes that at a monthly cost with vendor lock-in |
+| Hocuspocus (self-hosted Railway) | Liveblocks | If you need presence + comments + version history all managed by a vendor and per-MAU pricing is acceptable |
+| Custom CommentMark (free) | Tiptap Pro Comments | If budget allows and you want zero custom code for the commenting UI |
+| `jsondiffpatch` | `diff-match-patch` | Never — `diff-match-patch` is 4 years unmaintained; `jsondiffpatch` is the maintained successor for JS |
+| Resend + React Email | Supabase Auth email templates | If emails are only auth-related (reset, confirm) — Supabase templates cover those; Resend is needed for invite flows |
+| Supabase RLS (custom) | CASL / Casbin | If roles become complex (permission sets, dynamic rules) — at 3 static roles, dedicated RBAC libraries are overkill |
+| Native fetch (SAM.gov) | Third-party SAM.gov npm wrapper | No production-grade npm wrapper exists; direct REST is well-documented by GSA |
 
 ---
 
-## What NOT to Use
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Puppeteer on Vercel | Chromium binary exceeds serverless function size limit (50MB max). Deployment will fail. | `@react-pdf/renderer` for PDF export. If Puppeteer is truly required, deploy a dedicated PDF microservice separately. |
-| `@supabase/auth-helpers-nextjs` | Deprecated. Bug fixes and new features are only going to `@supabase/ssr`. Auth will break with future Next.js updates. | `@supabase/ssr` |
-| Quill | Development is stagnant; no active maintenance. Lacks React 19 compatibility. | Tiptap |
-| Pages Router in Next.js | Entering maintenance mode per Vercel. No new features. App Router is the current standard. | App Router (Next.js 15) |
-| OpenAI API | Violates project constraint (Claude API only). Claude's 200k context window handles full RFPs without chunking that OpenAI's smaller windows require. | `@anthropic-ai/sdk` |
-| `@supabase/auth-helpers-shared` | Same deprecation issue as auth-helpers-nextjs. | `@supabase/ssr` |
-| pdf-lib | Good for PDF manipulation (adding pages, modifying existing PDFs), not extraction. Wrong tool for parsing RFP text. | `pdf-parse` for text extraction; Claude Files API for visual analysis. |
-| react-quill | React wrapper for the stagnant Quill library. Same problems. | Tiptap with `@tiptap/react` |
-
----
-
-## Stack Patterns by Variant
-
-**For RFP PDF upload and text extraction:**
-- Upload to Supabase Storage first (signed URL upload from client)
-- For text-extractable PDFs: run `pdf-parse` server-side to get raw text, then send text to Claude
-- For image-heavy/scan PDFs: use Claude's native Files API (`anthropic-beta: files-api-2025-04-14`) — upload the PDF as a file_id and send to Claude with the document block. Claude processes each page as an image.
-- Do not try to pre-parse scan PDFs with pdf-parse — it returns garbage on image-only PDFs.
-
-**For Word (.docx) RFP upload:**
-- Upload to Supabase Storage
-- Run `mammoth` server-side to convert DOCX to HTML/plain text
-- Send extracted text to Claude (do not send binary DOCX directly to Claude API)
-
-**For proposal export:**
-- Word export: generate server-side with `docx` npm package in an API route. Return as a downloadable blob.
-- PDF export: generate server-side with `@react-pdf/renderer` in an API route. Define a `ProposalDocument` component that maps proposal sections to PDF layout. Return as a blob.
-
-**For streaming AI responses:**
-- Use Claude's streaming API (`stream: true`) via Server Actions or route handlers
-- Pipe to the client using `ReadableStream` and consume with `useEffect` + `EventSource` or Vercel's `StreamingTextResponse` pattern
-- Do not buffer entire AI responses — proposals can be 3k-8k tokens and users should see words appearing
-
-**For subscription gating:**
-- Store `stripe_customer_id` and `subscription_status` on the Supabase `profiles` table
-- Update via Stripe webhook (not on checkout redirect — redirect can be missed)
-- Check subscription status in Next.js middleware before serving protected routes
+| `@tiptap/extension-collaboration@latest` | npm `latest` tag resolves to v3.20.5 — breaks existing v2.27 setup | Pin exactly to `2.27.2` |
+| `y-supabase` | 306 weekly downloads; author warns not production-ready; API unstable | Hocuspocus + `@hocuspocus/extension-database` |
+| `socket.io` | Hocuspocus uses native WebSocket; socket.io adds 50KB+ overhead with no benefit here | `@hocuspocus/provider` (already wraps ws) |
+| `@tiptap-pro/extension-comments` | Requires Tiptap Platform subscription + sales call; cloud-dependent for thread sync | Custom `CommentMark` + Supabase `proposal_comments` table |
+| `@tiptap-pro/extension-collaboration-history` | Same pro paywall; v3-only anyway | Postgres JSONB snapshots + `jsondiffpatch` |
+| `casl` or `casbin` | RBAC overkill for 3 static roles (owner/editor/viewer) | Supabase RLS policies (3 policies cover all access patterns) |
+| `next-ws` | Patches Next.js internals; fragile; unsupported on Vercel | Hocuspocus as separate Railway service |
+| Inngest | Already decided against in v1.0 (double-trigger footgun); no new use case justifies it | pg_cron (already in use for job polling) |
 
 ---
 
@@ -145,46 +295,40 @@ npm install -D supabase stripe @playwright/test
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| Next.js 15 | React 19 | React 19 is required peer dep. React 18 works but you lose concurrent features. |
-| @supabase/supabase-js 2.99+ | Node.js 20+ | Node.js 18 support dropped in v2.79. Use Node 20 or 22. |
-| @tiptap/core 2.x / 3.x | React 18 + 19 | Both versions support React 19. Stick to v2 for now — v3 is in active development and API surface is less stable. |
-| @react-pdf/renderer 4.x | React 19 | v4 has React 19 support. Earlier versions had issues with React 18+ hooks. |
-| docx 9.x | Node 18+ | Works in API routes. Do not import in client components — it's Node.js only. |
-| mammoth 1.x | Node 18+ | Server-only. Not browser-compatible without significant bundling effort. |
-| pdf-parse 1.x | Node 18+ | Server-only. Has a known issue with test files on import; only import inside the function that uses it, not at the top of a module. |
-| stripe (server SDK) 17.x | Node 20+ | Use the `stripe` package server-side only. Use `@stripe/stripe-js` client-side for Stripe.js/Elements. |
+| `@tiptap/extension-collaboration@2.27.2` | `@tiptap/starter-kit@^2.27.2`, `@tiptap/react@^2.27.2` | Must disable UndoRedo from StarterKit when adding Collaboration: `{ starterKit: { history: false } }` |
+| `@tiptap/extension-collaboration-cursor@2.27.2` | `@tiptap/extension-collaboration@2.27.2` | Must be installed alongside core collaboration extension |
+| `@hocuspocus/provider@3.4.4` | `yjs@^13.6.x` | Requires yjs 13.x |
+| `@hocuspocus/server@3.4.4` | `@hocuspocus/extension-database@3.4.4` | All `@hocuspocus/*` packages must be on the same minor version |
+| `jsondiffpatch@0.7.3` | Node.js 18+ | ESM-compatible; `import { diff, patch } from 'jsondiffpatch'` |
+| `resend@6.9.4` | Next.js Server Actions, Route Handlers | Server-side only; `RESEND_API_KEY` never sent to browser |
 
 ---
 
-## Claude API Model Selection Guide
+## New Environment Variables Required
 
-| Task | Recommended Model | Rationale |
-|------|------------------|-----------|
-| RFP parsing (extract requirements, deadlines, criteria) | claude-sonnet-4-6 | Structured extraction at scale. Cheaper than Opus. Fast enough for a progress bar UX. |
-| Compliance matrix generation | claude-sonnet-4-6 | Pattern matching against extracted requirements. No deep reasoning required. |
-| Proposal section drafting (all sections) | claude-sonnet-4-6 | High-quality prose generation. Sonnet 4 produces proposal-quality writing. |
-| Win probability score + reasoning breakdown | claude-opus-4-6 | This is the differentiator feature. The reasoning quality from Opus justifies the cost premium. One call per proposal, not per section. |
-| Section regeneration with custom instructions | claude-sonnet-4-6 | Conversational refinement. Speed matters here (user is waiting interactively). |
-
-Use prompt caching (`cache_control: { type: "ephemeral" }`) on the uploaded RFP document block for all subsequent calls in the same session. At 1,500-3,000 tokens per page for a 50-page RFP, caching saves significant cost on the compliance matrix + drafting sequence.
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `RESEND_API_KEY` | `.env.local` + Vercel | Transactional invite emails |
+| `SAM_GOV_API_KEY` | Supabase Edge Function secrets | SAM.gov entity lookup (registered account, 1,000 req/day) |
+| `GOVRFP_SHARED_SECRET` | `.env.local` + Vercel (and `contractor-rfp-website`) | Internal API auth for GovRFP one-click import |
+| `NEXT_PUBLIC_HOCUSPOCUS_URL` | `.env.local` + Vercel | WebSocket endpoint for HocuspocusProvider in browser |
+| `HOCUSPOCUS_AUTH_SECRET` | Hocuspocus server env only | Verify Supabase JWTs passed from browser on WebSocket connect |
 
 ---
 
 ## Sources
 
-- [Next.js 15 official release notes](https://nextjs.org/blog/next-15) — version and caching behavior changes confirmed
-- [Anthropic PDF Support docs](https://platform.claude.com/docs/en/docs/build-with-claude/pdf-support) — PDF limits (600 pages, 32MB), Files API pattern, prompt caching verified
-- [Anthropic Files API docs](https://platform.claude.com/docs/en/build-with-claude/files) — 500MB per file limit, beta header requirement confirmed
-- [@supabase/ssr npm](https://www.npmjs.com/package/@supabase/ssr) — deprecation of auth-helpers confirmed via official migration docs
-- [@supabase/supabase-js npm](https://www.npmjs.com/package/@supabase/supabase-js) — v2.99.3 current version confirmed
-- [@anthropic-ai/sdk npm](https://www.npmjs.com/package/@anthropic-ai/sdk) — v0.80.0 current version confirmed
-- [docx npm](https://www.npmjs.com/package/docx) — v9.6.1 current version confirmed (actively maintained)
-- [@tiptap/pm npm](https://www.npmjs.com/package/@tiptap/pm) — v3.14.0 latest, Tiptap v2/v3 status confirmed
-- [Liveblocks: Which rich text editor 2025](https://liveblocks.io/blog/which-rich-text-editor-framework-should-you-choose-in-2025) — Tiptap vs Lexical comparison (MEDIUM confidence, single source)
-- [Stripe + Next.js 15 guide](https://www.pedroalonso.net/blog/stripe-nextjs-complete-guide-2025/) — Server Actions pattern, webhook event requirements (MEDIUM confidence)
-- Puppeteer on Vercel serverless size limit — multiple sources confirm (MEDIUM confidence, community consensus)
+- npm registry (`npm show` verified 2026-03-25) — yjs 13.6.30, @hocuspocus/* 3.4.4, @tiptap/extension-collaboration 3.20.5 (latest) and 2.27.2 (v2-latest), jsondiffpatch 0.7.3, resend 6.9.4, @react-email/components 1.0.10
+- [Tiptap v2 Collaboration docs](https://tiptap.dev/docs/editor/extensions/functionality/collaboration) — package list, StarterKit undo conflict warning
+- [Tiptap upgrade v2 to v3 guide](https://tiptap.dev/docs/guides/upgrade-tiptap-v2) — confirmed v3 breaking changes (cursor renamed to caret, CSS class prefix change)
+- [Hocuspocus docs](https://tiptap.dev/docs/hocuspocus/getting-started/overview) — server setup, extension-database hooks pattern
+- [Supabase Realtime Presence docs](https://supabase.com/docs/guides/realtime/presence) — presence API confirmed stable and separate from Yjs sync
+- [Supabase community discussion on y-supabase](https://github.com/orgs/supabase/discussions/27105) — confirmed no official Supabase Yjs provider; y-supabase not production-ready
+- [GSA SAM.gov Entity Management API](https://open.gsa.gov/api/entity-api/) — endpoint, auth, rate limits, response fields verified
+- [Tiptap pricing page](https://tiptap.dev/pricing) — confirmed Comments extension requires paid platform (sales-only pricing)
+- [Community Tiptap comments article](https://dev.to/sereneinserenade/how-i-implemented-google-docs-like-commenting-in-tiptap-k2k) — custom CommentMark approach verified as production pattern
+- [Resend Next.js integration docs](https://resend.com/docs/send-with-nextjs) — confirmed React Email integration pattern
 
 ---
-
-*Stack research for: AI-assisted RFP proposal writing SaaS (HCC ProposalAI)*
-*Researched: 2026-03-23*
+*Stack research for: HCC ProposalAI v2.0 — collaboration + integrations*
+*Researched: 2026-03-25*

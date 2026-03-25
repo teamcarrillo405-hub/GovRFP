@@ -1,287 +1,209 @@
 # Project Research Summary
 
-**Project:** HCC ProposalAI
-**Domain:** AI-assisted RFP proposal writing SaaS (government contracting)
-**Researched:** 2026-03-23
+**Project:** HCC ProposalAI v2.0 — Team Collaboration, Integrations, Analytics
+**Domain:** B2B SaaS — AI-assisted government proposal writing
+**Researched:** 2026-03-25
 **Confidence:** HIGH
 
 ## Executive Summary
 
-HCC ProposalAI is a government proposal acceleration tool built for small and mid-size contractors — primarily HCC member firms — who currently spend 25–40+ hours manually writing each proposal response. The product solves a well-defined, painful workflow: upload an RFP, receive a compliance matrix and AI-drafted proposal sections in under 30 minutes, edit in a browser-based rich text editor, and export a submission-ready Word or PDF document. The target market is underserved by existing tools: enterprise GovCon platforms (GovDash, AutogenAI, Unanet) are priced and designed for large BD teams, while general-purpose RFP tools (Loopio, Responsive) lack GovCon-specific features like Section L/M parsing, FAR Part 15 awareness, and small business certification matching. HCC ProposalAI occupies the gap: GovCon-aware AI drafting at solo contractor pricing.
+HCC ProposalAI v2.0 adds 8 capabilities on top of a proven v1.x foundation (Next.js 16, Supabase, Stripe, Tiptap, Claude API). The milestone transforms the product from a solo contractor tool into a team collaboration platform with external data integrations and operator analytics. Research across all four domains confirms that the existing stack handles every v2.0 feature without a framework change — the additions are schema-first, incremental, and targeted. The single largest architectural addition is a separate Hocuspocus WebSocket server for real-time co-editing, but research strongly recommends deferring full Yjs CRDT collaborative editing to v3 and shipping presence-only awareness (via Supabase Realtime) in v2.0 — a decision that eliminates a dedicated WebSocket server, a data migration from JSONB to Yjs binary format, and substantial operational cost.
 
-The recommended approach is a Next.js 15 + Supabase + Claude API stack with a five-layer architecture: browser editor, API route handlers, service layer (Claude, ingest, export), Supabase data layer, and a Supabase Edge Function background job processor. The most important architectural decision is the async job queue pattern — RFP processing takes 30–90 seconds and cannot block the HTTP response. Document parsing, Claude extraction, compliance matrix generation, and initial section drafting all run in a background worker. The browser polls or subscribes to Supabase Realtime for status. Streaming is used only for user-initiated section generation and regeneration, where latency is directly perceived.
+The recommended build order is strict: team accounts are a hard dependency for presence indicators and section comments, so the foundation phase must ship before any collaborative or annotation features. The two external integrations (GovRFP import and SAM.gov prefill) are independent of each other and of team accounts — they can be parallelized or inserted anywhere in the sequence. Win/loss tracking and the operator dashboard are standalone and low-risk; they should start early to begin accumulating outcome data even if the analytics feedback loop ships in v3.
 
-The two highest risks are (1) Claude API cost blowout from uncontrolled token usage — mitigated by prompt caching on the RFP document block from the first API call, and model tiering (Sonnet for drafts, Opus only for win score reasoning); and (2) compliance matrix hallucination — mitigated by strict grounding prompts that require verbatim source citations for every extracted requirement. Both risks are catastrophic if discovered post-launch: cost blowout destroys margins at scale, and hallucinated compliance items create legal exposure for HCC member contractors submitting government bids. These must be designed in from Phase 1, not patched later.
-
----
+The top risks are architectural, not technical: (1) RLS policies silently break for all team members if the dual-access policy migration is written incorrectly or out of sequence; (2) Stripe subscription quantities diverge from actual seat counts if increments fire on invite-send instead of invite-accept; (3) the scope boundary between "presence indicators" and "real-time collaborative editing" must be enforced as an explicit success criterion in the plan — the two feel adjacent but have completely different infrastructure requirements. All three risks are preventable with well-structured phase plans and the right sequence of tests.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack is well-established for this domain with minimal ambiguity. Next.js 15 (App Router) is the correct starting point — 14 is in maintenance and 15's caching model is more correct for per-user SaaS data. Supabase handles auth, database, storage, and Realtime in a single integrated service, eliminating the need for separate auth and file storage providers. The Claude API (Anthropic native SDK) handles all AI tasks; the `@ai-sdk/anthropic` adapter can be used for streaming section drafts via the Vercel AI SDK pattern. Tiptap is the correct rich text editor — ProseMirror-based, React-native, and headless, with the extension ecosystem needed for compliance highlighting.
+The existing stack requires no framework-level changes for v2.0. New npm packages are minimal and targeted. The most significant additions are `yjs` + `@tiptap/extension-collaboration` + `@hocuspocus/provider` (reserved for v3 real-time co-editing), `jsondiffpatch` (version history diffs), and `resend` + `@react-email/components` (team invite emails). All integrations with SAM.gov and GovRFP use native `fetch` with no new npm packages.
 
-The one non-obvious stack decision: use `@react-pdf/renderer` for PDF export, not Puppeteer. Puppeteer's Chromium binary exceeds Vercel's 50MB serverless function size limit and deployments will fail. Use `docx` (v9.x) for Word export, built via a typed Tiptap-JSON-to-docx converter — not `html-docx-js`, which produces lossy conversions.
+**Core new dependencies:**
+- `yjs ^13.6.30`: CRDT document state — required peer dependency of Tiptap collaboration; hold for v3; pin alongside `@tiptap/extension-collaboration@2.27.2` (NOT `@latest`, which resolves to v3.20.5 and breaks the existing v2 setup)
+- `@hocuspocus/provider + server + extension-database ^3.4.4`: WebSocket sync for real-time co-editing — cannot run on Vercel; deploy as separate Railway service; defer to v3 unless presence-only (Supabase Realtime) is insufficient
+- `jsondiffpatch ^0.7.3`: JSON diff for version history UI — handles nested Tiptap ProseMirror JSON natively; do not use `diff-match-patch` (unmaintained, CJS-only)
+- `resend ^6.9.4` + `@react-email/components ^1.0.10`: Transactional invite emails; 3,000 free/month; DNS domain verification required
+- SAM.gov API + GovRFP import: No new packages — native `fetch` in Next.js Server Actions and API Routes
 
-**Core technologies:**
-- **Next.js 15 (App Router):** Full-stack React framework — correct caching defaults for per-user SaaS; Turbopack dev server; React Server Components + Server Actions for AI streaming and form handling
-- **React 19:** Required peer dep for Next.js 15 — enables concurrent features and Server Components
-- **TypeScript 5.x:** Required for this domain — compliance matrix schemas, proposal section types, and Stripe webhook payloads need strict typing
-- **Supabase (JS SDK v2.99+):** Database, auth, file storage, Realtime, Edge Functions in one service — eliminates need for separate auth and storage providers; RLS handles per-user data isolation
-- **Claude API (claude-sonnet-4-6 default / claude-opus-4-6 for win score):** Only AI option per project constraints; Sonnet for all drafting, Opus only for win probability reasoning
-- **Stripe (stripe@17.x + @stripe/stripe-js@5.x):** Per-seat subscription billing — handles SCA, renewals, and trial lifecycle
-- **Tiptap (@tiptap/core 2.x):** ProseMirror-based headless editor — best extension ecosystem for compliance highlighting and AI content injection
-- **Zod (3.x):** Runtime validation of all Claude structured outputs — never parse AI responses without schema validation
-- **@tanstack/react-query (5.x):** Client-side polling for job status, optimistic updates during editing
-- **docx (9.6.x) + @react-pdf/renderer (4.x):** Word and PDF export server-side — no Puppeteer on Vercel
+**Critical version constraint:** Pin `@tiptap/extension-collaboration` and `@tiptap/extension-collaboration-cursor` to exactly `2.27.2`. The `latest` tag on npm resolves to Tiptap v3 (incompatible CSS classes, renamed extensions, StarterKit breaking changes). When Collaboration extension is added, disable StarterKit's built-in UndoRedo: `{ starterKit: { history: false } }`.
 
-See `.planning/research/STACK.md` for full version compatibility table, model selection guide, and what NOT to use.
+**New environment variables required:** `RESEND_API_KEY`, `SAM_GOV_API_KEY` (Supabase Edge Function secret), `GOVRFP_SHARED_SECRET` (both apps), `NEXT_PUBLIC_HOCUSPOCUS_URL` (if v3 co-editing ships).
 
----
+See `.planning/research/STACK.md` for full version compatibility table and alternatives considered.
 
 ### Expected Features
 
-The GovCon proposal writing space has a clear MVP floor — features users assume exist — and a narrow set of true differentiators for the small business market. The feature dependency graph is critical: AI drafting requires a contractor profile, compliance gap highlighting requires both the compliance matrix and the editor, and win probability scoring requires parsed RFP content. Phase order must follow these dependencies.
+All 8 features have clear user expectations and implementation patterns. The must-have set for v2.0 is well-defined; the differentiators are achievable within the existing stack.
 
 **Must have (table stakes):**
-- PDF + DOCX RFP upload — no upload, no product; must handle scanned PDFs via OCR fallback
-- AI requirement extraction (Section L/M separated, shall/must/will statements) — foundational parse step
-- Compliance matrix generation with mandatory/desired flagging — first deliverable contractors expect
-- Contractor profile (certifications, NAICS, past projects, key personnel, capability statement) — required for non-generic AI output
-- AI-drafted proposal sections (Executive Summary, Technical Approach, Management Plan, Past Performance, Price Narrative) — core time-saver
-- Section-level regeneration with custom instructions — iterating on weak sections
-- In-browser rich text editor with auto-save — modern expectation; downloading to edit kills adoption
-- RFP structure sidebar — keeps requirements visible during editing; reduces missed items
-- Compliance matrix live-linked to editor (requirement coverage status) — closes the compliance loop
-- Win probability score (0–100) with 4–5 factor reasoning — go/no-bid decision support; key differentiator vs. general RFP tools
-- Export to Word (.docx) — submission format required by most agencies
-- Export to PDF — review and internal distribution
-- Per-seat subscription billing (Stripe) — revenue model
-- Solo account auth + secure document storage — basic security and persistence
+- Multi-user team accounts with Owner/Editor/Viewer RBAC — proposal-level invite flow, Stripe seat sync on acceptance (not on invite send), RLS migration across 4 tables
+- SAM.gov entity prefill via UEI/CAGE — reduces onboarding friction; covers legal business name, NAICS codes, socioeconomic certifications, registration expiry warning
+- GovRFP one-click RFP import — seamless cross-product handoff; server-to-server with signed secret; no second login for users
+- Win/loss outcome logging — contractors track this in spreadsheets today; the data must start collecting now even if the feedback loop model ships in v3
+- Version history with restore — snapshot on explicit save + AI regeneration events only (not on every auto-save); cap at 50 versions per section
+- Section comments with threading — requires team accounts live first; uses custom Tiptap CommentMark extension (not paywalled Tiptap Pro Comments)
+- Presence indicators (who is viewing which section) — Supabase Realtime Presence only; no Yjs; zero schema changes
+- HCC operator dashboard — internal only, aggregate metrics, gated by `app_metadata.role = 'hcc_admin'`
 
-**Should have (competitive differentiators, add post-validation):**
-- Section L/M cross-reference crosswalk table — saves 2–4 hours per proposal for experienced proposal managers
-- Past performance auto-narrative tailored to current RFP scope — contractors rewrite the same project descriptions every time
-- Real-time compliance gap highlighting in editor — surfaces missed requirements while editing, not after
-- Small business set-aside certification matching — low complexity, high signal for HCC target market
+**Should have (competitive differentiators):**
+- SAM.gov registration expiration warning — high value, trivially low complexity; contractors frequently miss annual renewal
+- `predicted_score` snapshot on bid_outcomes — enables "predicted vs. actual" win score calibration over time
+- AI cost tracking in operator dashboard — validates unit economics for HCC
+- GovRFP opportunity ID stored on proposals — enables closed-loop win/loss correlation across both products
 
-**Defer (v2+):**
-- Multi-user team collaboration — adds auth/permissions complexity; validate solo workflow first
-- Version history with diff view — useful but not mission-critical for solo users
-- GovRFP deep-link integration — requires coordination between two products
-- Agency-specific template library — requires curation effort; defer until usage patterns reveal agency concentration
+**Defer (v3+):**
+- Full Yjs CRDT real-time collaborative editing — requires Hocuspocus server + JSONB-to-Yjs data migration; confirmed out of v2 scope
+- SSO / SAML — enterprise tier only; far exceeds v2 complexity budget
+- Automated FPDS award tracking from USASpending.gov — false positive risk; manual logging is sufficient for v2
+- Section-level version history (vs. whole-document snapshots) — significantly more complex storage and diff logic
+- Win score reweighting from outcome data — data collection starts in v2; model adjustment is v3
+- Reps & Certs from SAM.gov — requires elevated system account permissions beyond the public endpoint
 
-See `.planning/research/FEATURES.md` for competitor feature matrix and full feature dependency graph.
-
----
+See `.planning/research/FEATURES.md` for full feature dependency graph, competitor analysis, and anti-feature rationale.
 
 ### Architecture Approach
 
-The system follows a five-layer architecture: browser (Next.js RSC + Tiptap client), API route handlers (thin — validate, delegate, return), service layer (ClaudeService, IngestService, ExportService), Supabase data layer (Postgres, Storage, Realtime), and a Supabase Edge Function background job processor. The key architectural insight is that all long-running work (document parsing + Claude extraction pipeline) is offloaded to the background job worker, which runs independently of the HTTP request cycle. The browser receives a `{ jobId }` immediately and subscribes to Realtime for status updates. Streaming is reserved for user-triggered section generation, where perceived latency matters.
+V2.0 is a schema-first expansion on top of the existing single-app Next.js + Supabase architecture. Every new feature integrates through two patterns: (1) new database tables with dual-access RLS policies (solo owner OR team member via `EXISTS` subquery), and (2) new API routes gated by a server-side `requireProposalRole()` utility built in the Team Accounts phase. The presence feature uses Supabase Realtime Presence channels with `private: true` and `realtime.messages` RLS policies referencing the new `team_memberships` table. External integrations (GovRFP, SAM.gov) are server-to-server fetch calls behind Next.js API Routes — the shared secret never touches browser Client Components. The operator dashboard uses the existing service-role admin client, gated by `app_metadata.role`.
 
-Three core patterns drive the architecture:
-1. **Async job queue** for document ingestion (30–90 second pipeline cannot block HTTP)
-2. **Streaming SSE** for section drafting (user sees words appear, not a 20-second spinner)
-3. **Structured output with Zod schemas** for compliance matrix and win score extraction (never raw text parsing)
+**Major components (new in v2.0):**
+1. `team_memberships` + `pending_invites` tables — proposal-level RBAC with invite token flow; indexes on `(proposal_id, user_id)` and `(user_id)` required for RLS performance; dual-policy pattern applied to `proposal_sections`, `rfp_analysis`, `document_jobs`
+2. Supabase Realtime Presence channel `proposal:{id}` — `PresenceAvatars` + `SectionPresenceIndicator` components; zero schema changes; `private: true` requires supabase-js v2.44.0+
+3. GovRFP import bridge — `GET /api/govrgp/import` server-to-server fetch to `contractor-rfp-website /api/rfp-export/[id]`; signed shared secret; creates proposal row and redirects
+4. SAM.gov prefill proxy — `POST /api/sam/prefill` calls SAM.gov v3 Entity API; never exposes raw response to browser; graceful fallback on 401/rate limit; caches result in `profiles.sam_entity_data`
+5. `section_versions` table — Tiptap JSON snapshots capped at 50/section; restore via `editor.commands.setContent()`; dual-policy RLS after team accounts land
+6. `section_comments` table + Realtime `postgres_changes` — threaded comments with resolve/reopen; custom CommentMark Tiptap extension; @mention notification via Resend
+7. `bid_outcomes` table — win/loss log with `predicted_score` snapshot; feeds operator dashboard win rate aggregate
+8. `export_logs` table + `/admin/*` protected section — aggregate metrics for HCC; `app_metadata` role guard; service_role queries only; never exposes individual contractor data
 
-**Major components:**
-1. **IngestService + Edge Function job processor** — file download from Storage, PDF/DOCX text extraction, Claude structured extraction pipeline, compliance matrix generation; runs async in background
-2. **ClaudeService** — encapsulates all Anthropic SDK calls; prompts are code in typed files, not string literals; Zod schemas enforce structure; separated by task (rfp-extraction, compliance-matrix, section-draft, win-score)
-3. **Tiptap Editor + ComplianceMatrix UI** — ProseMirror-based editor with live-linked compliance sidebar; editor content stored as Tiptap JSON (not HTML); auto-save debounced 2 seconds
-4. **ExportService** — converts Tiptap JSON to typed docx constructs via the `docx` library; separate to-pdf path via `@react-pdf/renderer`; both run as server-side route handlers
-5. **ContractorProfile** — Postgres table injected into Claude prompts at generation time (not embedded at parse time — fetched fresh so profile updates apply to regenerations)
-6. **Auth + Billing middleware** — Supabase SSR session validation + Stripe subscription status check before every `/api/generate` call; subscription check in middleware, not only on page load
-
-See `.planning/research/ARCHITECTURE.md` for full data flow diagram, build order, and anti-pattern descriptions.
-
----
+See `.planning/research/ARCHITECTURE.md` for full schema change summary, RLS policy SQL, component responsibilities, and v2.0 system diagram.
 
 ### Critical Pitfalls
 
-Five pitfalls have HIGH recovery cost or immediate production failure risk. These are not edge cases — they are predictable failures in this domain.
+1. **RLS policy explosion when team_id lands** — every existing table uses `auth.uid() = user_id`; a second team member silently sees zero rows (Supabase RLS returns empty, not 403). Write the dual-access RLS migration before any invite UI code. Apply to `proposals`, `document_jobs`, `rfp_analysis`, `proposal_sections`. Index `team_memberships(proposal_id, user_id)` — without it the EXISTS subquery does a full table scan on every row fetch.
 
-1. **PDF parsing reliability — garbled text and silent failures on scanned government RFPs** — government agencies frequently publish scanned PDFs; `pdf-parse` returns empty strings (not errors) on image pages, silently producing an incomplete compliance matrix. Prevention: detect PDF type before parsing; route scanned PDFs through OCR (Tesseract or managed service); validate parse quality with character count and section detection metrics; surface a "parse quality" badge to users. Address in: Document Ingestion phase.
+2. **Stripe seat quantity divergence** — increment Stripe subscription quantity only on invite acceptance, not on invite send. Read live quantity from Stripe (not DB cache) before computing delta. Add idempotency key tied to `team_member_id` + action. Run nightly reconciliation comparing DB seat count to Stripe quantity.
 
-2. **Claude API cost blowout from uncontrolled token usage** — a 150k-token RFP sent on every API call (6+ calls per proposal session) costs ~$2.70 in input tokens at Sonnet pricing; at 100 proposals/month, that wipes out per-seat margins before scaling. Prevention: implement `cache_control` on the RFP document block from the first API call (78% cost reduction); track `ai_cost_cents` per proposal in the database; implement per-user monthly token budgets. Address in: Document Ingestion architecture — must be designed before the first API call is written.
+3. **Presence scope creep into full co-editing** — "presence indicators" and "collaborative editing" look adjacent but have completely different infrastructure. Enforce this as an explicit success criterion in the phase plan: "Supabase Realtime Presence only — no Yjs, no Hocuspocus, no new server." Any mention of `hocuspocus` or Yjs binary format in the presence phase plan is a scope violation.
 
-3. **Compliance matrix hallucination — invented requirements and false coverage claims** — Claude pattern-matches on training data and may generate requirements it expects to see in a typical RFP, not only requirements present in the uploaded document; false "addressed" markers can cause bid disqualification or legal exposure for HCC members. Prevention: strict grounding prompts requiring verbatim source citations for every row; two-pass extraction (section headings first, then requirements per section); display page/section citations in the UI; "human review required" disclaimer. Address in: Compliance Matrix phase.
+4. **Version history storage blowout** — snapshotting on every auto-save (30s interval) accumulates ~28MB/proposal/day. Snapshot on: explicit user save, AI regeneration, and first edit after 30-minute idle only. Cap at 50 versions per section; auto-prune oldest non-labeled versions first.
 
-4. **Rich text editor complexity underestimated** — ProseMirror's schema and transaction system has a steep learning curve; pasting from Word introduces unwanted styles, AI content injection can reset cursor position, and editor state diverges from the database if stored as HTML. Prevention: commit to Tiptap from day one; store content as Tiptap JSON (not HTML); use `setContent`/`insertContentAt` for AI injection; configure paste sanitization; test AI streaming insertion before wiring to Claude. Address in: Rich Text Editor phase.
+5. **RBAC ghost permissions — viewer bypasses UI to call mutating API** — role enforcement must be server-side on every API route, not just UI conditional rendering. Build `requireProposalRole(proposalId, minRole)` utility in the Team Accounts phase and call it at the top of every mutating route handler before any business logic.
 
-5. **Word/PDF export fidelity gap** — exported `.docx` heading levels flatten, numbered lists restart, and table formatting breaks; PDF has font substitution issues across environments. Prevention: build a typed Tiptap-JSON-to-docx converter using the `docx` library directly (not `html-docx-js`); use `@react-pdf/renderer` for PDF to avoid environment font dependencies; add visual regression tests for export. Address in: Export phase (data model decisions in Editor phase).
+6. **SAM.gov API key 90-day rotation** — individual account keys expire every 90 days with no automated notification. Use a system account key if possible. Store `SAM_GOV_KEY_EXPIRES_AT` and add a server-side health check endpoint. Handle 401 responses with UI fallback ("Enter certifications manually"), never a 500.
 
-See `.planning/research/PITFALLS.md` for full recovery strategies, integration gotchas, and the "looks done but isn't" checklist.
+7. **GovRFP shared secret in client component** — import call must be server-to-server only. Use a signed JWT with 5-minute TTL rather than a raw long-lived shared secret. Never reference `GOVRFP_SHARED_SECRET` in a `'use client'` file.
 
----
+See `.planning/research/PITFALLS.md` for full recovery strategies, integration gotchas, and the "looks done but isn't" verification checklist.
 
 ## Implications for Roadmap
 
-The feature dependency graph and architecture build order align into six natural phases. The ordering is non-negotiable — each phase unblocks the next and the pitfall prevention strategy requires specific foundations before connecting AI.
+Based on research, the dependency graph points to a clear phase sequence. Team accounts are a hard upstream dependency for three features; the two external integrations are independent and parallelizable; win/loss and operator dashboard are low-risk parallel tracks.
 
-### Phase 1: Foundation — Auth, Database Schema, Contractor Profile
+### Phase 7: Team Accounts + RBAC Foundation
 
-**Rationale:** Every subsequent phase requires a user context (auth), a database schema (proposals, compliance_matrix_rows, jobs tables), and a contractor profile (required for non-generic AI output). Building auth and profile first also validates Supabase RLS before sensitive proposal documents are stored. This is the lowest-risk phase and establishes the scaffolding.
+**Rationale:** Hard dependency for presence indicators and section comments. The RLS migration must be the first artifact written — before any invite UI — or team members silently see empty data. Billing seat sync design must live in this same phase because it is tightly coupled to invite acceptance logic.
+**Delivers:** Multi-user proposals with Owner/Editor/Viewer roles, email invite flow (Resend), Stripe per-seat billing seat sync on acceptance, `requireProposalRole()` server-side utility
+**Addresses:** Feature 1 (Multi-User Team Accounts) from FEATURES.md
+**Avoids:** RLS policy explosion (Pitfall 1), Stripe seat divergence (Pitfall 2), RBAC ghost permissions (Pitfall 5)
+**Research flag:** Well-documented patterns for Supabase multi-tenant RLS + Stripe per-seat billing — standard phase, skip deep research
 
-**Delivers:** Working auth flow, contractor profile editor, Supabase schema with RLS, Stripe billing integration (subscription check middleware), Next.js project structure per architecture spec.
+### Phase 8: Real-Time Presence Indicators
 
-**Addresses:** "Accounts & Billing" and "Contractor Profile" features from PROJECT.md.
+**Rationale:** Ships in the same wave as or immediately after team accounts (presence has no value for solo users). Scope boundary must be enforced: Supabase Realtime Presence only, no Yjs, no new server infrastructure.
+**Delivers:** Avatar stack in editor header, per-section presence dot when another user is active, private channel authorization via `realtime.messages` RLS referencing `team_memberships`
+**Addresses:** Feature 2 (Real-Time Co-Editing Presence) — presence-only scope from FEATURES.md
+**Avoids:** Presence scope creep into full co-editing (Pitfall 3), Realtime channel authorization hole (Pitfall from PITFALLS.md)
+**Research flag:** Supabase Realtime Authorization is Public Beta — verify availability on the current project plan before committing to the `private: true` channel approach
 
-**Avoids:** Supabase Storage RLS misconfiguration pitfall (test cross-user access before any files are stored); Stripe webhook idempotency pitfall (implement correctly from the start, not retrofitted).
+### Phase 9: SAM.gov Entity Prefill + GovRFP Import
 
-**Research flag:** Standard patterns — well-documented Supabase Auth + Stripe subscription setup. Skip phase research.
+**Rationale:** Both are external API integrations with no dependency on team accounts. Can ship in the same phase or separately. SAM.gov is lower risk (read-only, well-documented REST API). GovRFP requires cross-repo coordination on a shared secret and data contract (`OpportunityExportPayload` interface).
+**Delivers:** UEI/CAGE lookup populates contractor profile (certifications, NAICS, registration expiry warning); one-click RFP import from GovRFP creates a pre-filled proposal and redirects user
+**Addresses:** Feature 3 (GovRFP Import) and Feature 4 (SAM.gov Prefill) from FEATURES.md
+**Avoids:** SAM.gov key rotation breaks production (Pitfall 6), SAM.gov rate limit exhaustion (Pitfall 7), GovRFP shared secret in client component (Pitfall)
+**Research flag:** SAM.gov `repsAndCerts` field path (`entityData[0].repsAndCerts.certifications`) is MEDIUM confidence — validate against a live registered entity API response before hardcoding the certifications field mapping
 
----
+### Phase 10: Version History + Section Comments
 
-### Phase 2: Document Ingestion — Upload, Parse, Job Queue
+**Rationale:** Both are editor enhancements that benefit from team accounts being live (comments require teammates for review workflows; version history surfaces "saved by" attribution for team collaboration). Can ship as a combined editor enhancement phase after Phase 7.
+**Delivers:** Tiptap JSON snapshot history with diff view and restore; threaded inline section comments with @mention notification; CommentMark Tiptap extension
+**Addresses:** Feature 5 (Version History) and Feature 6 (Section Comments) from FEATURES.md
+**Avoids:** Version history storage blowout (Pitfall 4); using paywalled Tiptap Pro Comments (confirmed out of scope in STACK.md)
+**Research flag:** Tiptap JSON-to-plain-text extraction for `jsondiffpatch` HTML formatter output needs a working proof-of-concept test before committing to the approach — confirm the ProseMirror node walk produces readable diff output with real proposal content
 
-**Rationale:** Everything depends on clean RFP text. Architecture explicitly states: validate document parsing in isolation (test 10 real RFPs, verify text quality) before connecting Claude. The async job queue pattern must be established here — it is an architecture decision, not a feature. Prompt caching must also be designed here, before the first Claude call is written.
+### Phase 11: Win/Loss Tracking + Operator Dashboard
 
-**Delivers:** File upload UI (react-dropzone + Supabase Storage), job queue (Supabase jobs table + pg_cron + Edge Function worker), PDF text extraction (pdf-parse with OCR fallback for scanned docs), DOCX extraction (mammoth), parse quality validation, job status polling via Supabase Realtime.
-
-**Addresses:** "Document Ingestion" features from PROJECT.md.
-
-**Avoids:** PDF parsing reliability pitfall (OCR fallback for scanned PDFs, quality badge, threshold detection); Claude API cost blowout pitfall (prompt caching architecture established here); blocking HTTP on long-running jobs anti-pattern (async job queue is the foundation).
-
-**Research flag:** PDF OCR fallback needs research — Tesseract.js vs. AWS Textract vs. Google Document AI tradeoffs for government PDF quality. Flag for phase research.
-
----
-
-### Phase 3: RFP Analysis — Compliance Matrix and Win Probability Score
-
-**Rationale:** First Claude integration. With clean parsed text available from Phase 2, the structured extraction pipeline can be built and validated independently before proposal drafting. Compliance matrix must be correct before it can be linked to the editor. Win score uses Opus — the most expensive model — and must be validated for output quality and cost before enabling at scale.
-
-**Delivers:** Claude structured output pipeline (Zod schemas for requirements, compliance rows, win score), compliance matrix UI (requirement checklist with mandatory/desired flagging), win probability score (0–100 with factor breakdown using claude-opus-4-6), RFP structure sidebar.
-
-**Addresses:** "Compliance Matrix" and "Win Probability Score" features from PROJECT.md; "RFP structure sidebar" differentiator.
-
-**Avoids:** Compliance matrix hallucination pitfall (grounding prompts with verbatim citations, two-pass extraction, UI citation display); one giant Claude prompt anti-pattern (separate calls per task from day one).
-
-**Research flag:** Standard Claude structured output patterns are well-documented. Skip phase research. However, validate extraction accuracy with 3–5 real government RFPs (not synthetic test data) before advancing to Phase 4.
-
----
-
-### Phase 4: Proposal Drafting — AI Sections and Streaming Editor
-
-**Rationale:** Depends on Phase 2 (clean RFP text), Phase 3 (compliance matrix for context), and Phase 1 (contractor profile for injection). This is the highest-complexity phase — Tiptap integration, streaming AI responses, and compliance matrix live-linking must all work together. Build Tiptap first with static content, then add streaming, then link the compliance matrix.
-
-**Delivers:** AI-drafted proposal sections (Executive Summary, Technical Approach, Management Plan, Past Performance, Price Narrative) via streaming Claude API calls; Tiptap rich text editor with auto-save; section-level regeneration with custom instructions; compliance matrix live-linked to editor (coverage status); RFP sidebar visible during editing.
-
-**Addresses:** "Proposal Drafting" and "In-Browser Rich Text Editor" features from PROJECT.md.
-
-**Avoids:** Rich text editor complexity pitfall (Tiptap JSON storage, typed AI injection, paste sanitization, streaming insertion tested before Claude wiring); storing draft as HTML anti-pattern (Tiptap JSON from day one); streaming timeout pitfall (test 150k-token generation against Vercel timeout before shipping).
-
-**Research flag:** Tiptap + streaming AI content injection is a well-documented pattern but has known edge cases. Flag for phase research specifically on: (1) streaming into Tiptap while preserving cursor position, and (2) compliance matrix live-linking implementation (client-side diff on editor update or server-side on save).
-
----
-
-### Phase 5: Export Pipeline — Word and PDF
-
-**Rationale:** Depends on Phase 4 establishing the Tiptap JSON data model. Export is a one-way serialization step — it reads the final DraftStore JSON and converts it. Building last is correct because the data model must be stable before writing the converter.
-
-**Delivers:** Word export (.docx) via typed Tiptap-JSON-to-docx converter using `docx` library; PDF export via `@react-pdf/renderer` (not Puppeteer); auto-filename convention (`[contractor]-[solicitation]-[date].docx`); visual regression tests for export fidelity.
-
-**Addresses:** "Export" features from PROJECT.md.
-
-**Avoids:** Word/PDF export fidelity pitfall (typed converter, not html-docx-js; @react-pdf/renderer, not Puppeteer; visual regression tests on Windows Word); Vercel serverless binary size limit (no Chromium on Vercel).
-
-**Research flag:** Standard patterns for both `docx` and `@react-pdf/renderer` are well-documented. Skip phase research. Build visual regression tests against Word on Windows — this is the common failure mode.
-
----
-
-### Phase 6: Post-Validation Differentiators — L/M Crosswalk, Past Performance, Gap Highlighting
-
-**Rationale:** These features build on the validated core workflow (Phases 1–5). They require paying users to confirm the base product works before adding complexity. Section L/M crosswalk requires the compliance matrix to be trusted. Past performance auto-narrative requires the contractor profile schema to be in production use. Real-time compliance gap highlighting requires the editor integration from Phase 4 to be stable.
-
-**Delivers:** Section L/M cross-reference crosswalk table (automatic L-to-M mapping); past performance auto-narrative tailored to current RFP scope; real-time compliance gap highlighting in editor (surfacing uncovered requirements while editing); small business set-aside cert matching notifications.
-
-**Addresses:** All v1.x features from FEATURES.md.
-
-**Avoids:** Over-engineering before product-market fit; building collaboration features (correctly deferred to v2+).
-
-**Research flag:** Past performance auto-narrative needs research on the structured past project schema — specifically what fields drive the highest quality tailored narratives.
-
----
+**Rationale:** Both are standalone with no upstream dependencies on team accounts. Win/loss data collection must start as early as possible — the feedback loop model adjustment ships in v3 but the data corpus must accumulate now. Operator dashboard is internal-only and can ship last without blocking any user-facing feature.
+**Delivers:** Bid outcome logging with predicted vs. actual win score snapshot; contractor analytics page (win rate, loss reason breakdown, agency segmentation); HCC admin aggregate metrics dashboard with AI cost tracking and export CSV
+**Addresses:** Feature 7 (Win/Loss Tracking) and Feature 8 (HCC Operator Dashboard) from FEATURES.md
+**Avoids:** Operator dashboard privacy violation (aggregate counts only — no individual contractor proposal titles or RFP content exposed to HCC admins)
+**Research flag:** `proposals_analytics` materialized view refresh strategy (pg_cron hourly vs. on-demand) is a standard PostgreSQL pattern — no deep research needed; decide approach at plan time
 
 ### Phase Ordering Rationale
 
-- **Dependencies drive order:** Profile before AI drafting (profile data required in prompts), parse pipeline before extraction (clean text required for Claude), compliance matrix before editor live-linking, editor before export (Tiptap JSON is the source of truth).
-- **Pitfall prevention drives priority:** Prompt caching and OCR fallback must be in Phase 2 (ingest architecture), not retrofitted. Compliance hallucination prevention must be in Phase 3, not patched post-launch.
-- **Validation gates between phases:** Test parse quality with real government RFPs before Phase 3. Validate compliance matrix accuracy before Phase 4. Validate editor stability before Phase 5. Do not advance phases on synthetic test data.
-- **Billing before first real user:** Stripe subscription enforcement in middleware from Phase 1 — never in a separate billing phase added later.
+- Phase 7 before Phase 8: `team_memberships` table must exist for the Realtime `realtime.messages` RLS policy to reference it; cannot ship presence authorization without team schema
+- Phase 7 before Phase 10: Section comments have no value without teammates to receive @mentions; version "saved by" attribution requires team memberships to display correctly
+- Phase 9 is independent: SAM.gov and GovRFP have no dependency on the team schema; can be moved earlier if business priority demands
+- Phase 11 is independent and parallel: Win/loss data collection starting earlier is desirable; outcome data from earlier phases enriches the v3 feedback loop
+- All phases after Phase 7: The `requireProposalRole()` utility built in Phase 7 is reused in every subsequent phase that adds mutating API routes — write it once, use it everywhere
 
 ### Research Flags
 
-**Needs deeper research before planning:**
-- **Phase 2 (Document Ingestion):** OCR fallback strategy — Tesseract.js vs. AWS Textract vs. Google Document AI for government PDF quality and table structure accuracy. This decision has cost and accuracy tradeoffs not fully resolved in current research.
-- **Phase 4 (Editor + Drafting):** Tiptap streaming AI injection edge cases — cursor behavior during streaming, ProseMirror transaction handling for AI-generated content, and the implementation approach for compliance matrix live-linking (client-side vs. server-side diff).
-- **Phase 6 (Post-Validation):** Past performance auto-narrative schema — which structured fields (contract value, scope, agency, period, outcome, NAICS) produce the highest quality tailored narrative output; requires testing against real HCC member past project data.
+Phases needing deeper research during planning:
+- **Phase 8 (Realtime Authorization):** Supabase Realtime Authorization (`private: true` channel + `realtime.messages` RLS) is Public Beta — verify availability on the project's current Supabase plan before Phase 8 planning begins
+- **Phase 9 (SAM.gov):** SAM.gov `repsAndCerts.certifications` field paths are MEDIUM confidence — validate against a live registered entity API response before writing the field mapping in Phase 9 planning
 
-**Standard patterns (skip phase research):**
-- **Phase 1 (Foundation):** Supabase Auth + Stripe subscription setup is exhaustively documented; standard Next.js 15 + Supabase + Stripe pattern.
-- **Phase 3 (Compliance Matrix):** Claude structured outputs with Zod schemas is a well-documented official pattern; architecture research provides complete code examples.
-- **Phase 5 (Export):** `docx` library and `@react-pdf/renderer` are well-documented; primary risk is integration testing, not research.
-
----
+Phases with well-established patterns (skip deep research):
+- **Phase 7 (Team Accounts):** Supabase multi-tenant RLS + Stripe per-seat billing are heavily documented; pitfalls are known and preventable with the correct phase sequence
+- **Phase 10 (Version History):** Postgres JSONB snapshots + `jsondiffpatch` is a straightforward implementation; no novel architecture
+- **Phase 11 (Win/Loss + Dashboard):** Simple data model; standard aggregate queries; `app_metadata` role guard is an established Supabase Auth pattern
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Core libraries verified against npm registry and official docs; version compatibility table confirmed; Tiptap vs. Lexical comparison is MEDIUM (single Liveblocks blog source) but recommendation is conservative (Tiptap v2, not v3) |
-| Features | MEDIUM-HIGH | Table stakes and differentiators confirmed via 5+ competitor sources; pWin score methodology verified via CLEATUS and Procurement Sciences; some competitor pages inaccessible during research |
-| Architecture | HIGH | Async job queue, streaming, and structured output patterns verified against official Supabase, Vercel AI SDK, and Anthropic docs; data flow confirmed against official Claude legal summarization guide |
-| Pitfalls | HIGH | All major pitfalls verified against official documentation or 3+ independent sources; PDF parsing benchmarks from arXiv and Applied AI; Stripe pitfalls from official Stripe docs + 2 community sources |
+| Stack | HIGH | All packages verified via npm registry 2026-03-25; Tiptap v2/v3 breaking changes confirmed via official upgrade guide; Hocuspocus v3.4.4 current stable confirmed |
+| Features | MEDIUM-HIGH | Table stakes verified via official API docs and multiple B2B SaaS sources; GovCon-specific claims (win/loss value, SAM.gov usage patterns) verified via 3+ sources |
+| Architecture | HIGH | Based on confirmed existing codebase migrations 00001-00004; RLS dual-policy pattern and Realtime authorization verified via Supabase official docs; GovRFP data contract is a proposed interface pending cross-team agreement |
+| Pitfalls | HIGH | All critical pitfalls grounded in existing codebase schema and official Supabase/Stripe/SAM.gov documentation; RLS silent failure behavior and SAM.gov key rotation confirmed via official sources |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **OCR fallback for scanned PDFs:** Research identified the problem and general approaches (Tesseract, Textract, Document AI) but did not benchmark quality vs. cost for government RFP-specific documents with complex table structures. Validate during Phase 2 planning with real government PDFs.
-
-- **Tiptap streaming injection implementation:** Research confirms Tiptap is the right choice and `insertContentAt` is the right API, but the exact ProseMirror transaction pattern for streaming token-by-token insertion without cursor disruption requires a proof-of-concept during Phase 4 planning.
-
-- **Per-user token budget UX:** Research confirms the need for per-user monthly token caps, but the UX design (usage indicator, hard cutoff vs. soft warning, what counts toward limits) needs product decision during Phase 1/billing planning.
-
-- **Anthropic zero-retention settings:** PITFALLS.md flags that contractor proposal content should not be logged by the AI provider. The specific Anthropic API settings and contractual requirements for zero-retention need verification against the current Anthropic API terms before launch.
-
-- **GovRFP integration touchpoint:** PROJECT.md notes ProposalAI and GovRFP are complementary products. The deep-link pattern (GovRFP opportunity → ProposalAI upload flow) is deferred to v2+ but the data handoff format should be designed during Phase 1 to avoid retrofit work.
-
----
+- **SAM.gov `repsAndCerts` field paths:** MEDIUM confidence only. The certifications mapping (`businessTypes` array to ProposalAI cert schema) needs validation against a live SAM.gov API response with a real registered entity before the field mapping in Phase 9 is finalized. Do not hardcode field paths without a live API test.
+- **Supabase Realtime Authorization plan availability:** Realtime Authorization (channel-level `private: true` + `realtime.messages` RLS) is Public Beta. Verify the current Supabase project plan supports it before Phase 8 implementation begins; fallback is custom JWT verification in an Edge Function.
+- **GovRFP `OpportunityExportPayload` data contract:** The interface defined in ARCHITECTURE.md is a proposed contract and must be agreed on with the `contractor-rfp-website` codebase maintainer before either side builds the integration. This is a coordination dependency, not a technical unknown.
+- **Hocuspocus scope decision for v3:** Research recommends deferring full Yjs co-editing to v3. If requirements change and true collaborative editing is scoped into v2.0, the Hocuspocus Railway deployment, JSONB-to-Yjs content migration, and Tiptap extension version pins become Phase 8 blockers — the roadmap needs an explicit branch decision before Phase 8 planning.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Anthropic Platform Docs — PDF Support](https://platform.claude.com/docs/en/docs/build-with-claude/pdf-support) — PDF limits, Files API pattern, prompt caching
-- [Anthropic Platform Docs — Files API](https://platform.claude.com/docs/en/build-with-claude/files) — 500MB file limit, beta header requirement
-- [Anthropic Platform Docs — Structured Outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) — schema patterns, batch extraction
-- [Anthropic Platform Docs — Pricing](https://platform.claude.com/docs/en/about-claude/pricing) — cost calculations for pitfall analysis
-- [Vercel AI SDK — Next.js App Router Getting Started](https://ai-sdk.dev/docs/getting-started/nextjs-app-router) — streaming pattern
-- [Supabase Processing Large Jobs with Edge Functions](https://supabase.com/blog/processing-large-jobs-with-edge-functions) — job queue pattern
-- [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) — RLS on storage
-- [Next.js 15 official release notes](https://nextjs.org/blog/next-15) — version and caching behavior changes
-- [Tiptap Next.js integration docs](https://tiptap.dev/docs/editor/getting-started/install/nextjs) — editor integration patterns
-- [Stripe webhooks with subscriptions](https://docs.stripe.com/billing/subscriptions/webhooks) — subscription lifecycle events
-- [docx npm library](https://github.com/dolanmiu/docx) — v9.6.1 active maintenance confirmed
-- [@supabase/supabase-js npm](https://www.npmjs.com/package/@supabase/supabase-js) — v2.99.3 current
-- [@anthropic-ai/sdk npm](https://www.npmjs.com/package/@anthropic-ai/sdk) — v0.80.0 current
+- npm registry (verified 2026-03-25) — yjs 13.6.30, @hocuspocus/* 3.4.4, @tiptap/* v2-latest 2.27.2, jsondiffpatch 0.7.3, resend 6.9.4, @react-email/components 1.0.10
+- [Tiptap v2 Collaboration docs](https://tiptap.dev/docs/editor/extensions/functionality/collaboration) — package list, StarterKit undo conflict warning
+- [Tiptap v2 to v3 upgrade guide](https://tiptap.dev/docs/guides/upgrade-tiptap-v2) — breaking changes confirmed (cursor renamed to caret, CSS prefix change)
+- [Hocuspocus docs](https://tiptap.dev/docs/hocuspocus/getting-started/overview) — server setup, extension-database hooks pattern
+- [GSA SAM.gov Entity Management API](https://open.gsa.gov/api/entity-api/) — endpoint, auth, rate limits, response fields
+- [Supabase Realtime Authorization](https://supabase.com/docs/guides/realtime/authorization) — private channels, realtime.messages RLS policies
+- [Supabase Realtime Presence](https://supabase.com/docs/guides/realtime/presence) — presence API confirmed stable
+- [Stripe Per-Seat Pricing docs](https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing) — quantity update, proration behavior
+- [Supabase RLS Performance Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — EXISTS subquery performance, index requirements
+- Existing codebase migrations 00001_foundation_schema.sql through 00004_proposal_sections.sql — confirmed schema baseline
+- [Supabase Realtime Authorization blog](https://supabase.com/blog/supabase-realtime-broadcast-and-presence-authorization) — authorization pattern confirmed
 
 ### Secondary (MEDIUM confidence)
-- [PDF Data Extraction Benchmark 2025 — Procycons](https://procycons.com/en/blogs/pdf-data-extraction-benchmark/) — parser accuracy comparison
-- [State of PDF Parsing — Applied AI](https://www.applied-ai.com/briefings/pdf-parsing-benchmark/) — table extraction quality
-- [Benchmarking PDF Parsers on Table Extraction — arXiv 2025](https://arxiv.org/html/2603.18652v1) — Docling 100% text fidelity claim
-- [Four AI Risks in Proposal Writing — Lohfeld Consulting 2025](https://lohfeldconsulting.com/blog/2025/12/how-to-overcome-four-ai-risks-in-proposal-writing-now/) — hallucination and compliance risks
-- [Which rich text editor in 2025 — Liveblocks](https://liveblocks.io/blog/which-rich-text-editor-framework-should-you-choose-in-2025) — Tiptap vs. Lexical comparison
-- [Stripe webhook best practices — Stigg](https://www.stigg.io/blog-posts/best-practices-i-wish-we-knew-when-integrating-stripe-webhooks) — idempotency and event handling
-- [CLEATUS blog: How to Calculate PWin](https://lohfeldconsulting.com) — pWin score methodology
-- [GovEagle: AI Proposal Writing Tools for Government Contractors](https://www.goveagle.com/blog/ai-proposal-writing-tools-government-contractors) — GovDash and competitor features
-- [Arphie.ai: Top 30 RFP Proposal Software in 2026](https://arphie.ai) — feature landscape analysis
-- [HSVAGI: RFP Response Automation: Compliance Matrix Requirements](https://hsvagi.com) — Section L/M parsing, 97% accuracy claim
-- [Stripe + Next.js 15 complete guide](https://www.pedroalonso.net/blog/stripe-nextjs-complete-guide-2025/) — Server Actions billing pattern
+- [Supabase community discussion on y-supabase](https://github.com/orgs/supabase/discussions/27105) — confirmed not production-ready; author warning noted
+- [Community Tiptap comments article](https://dev.to/sereneinserenade/how-i-implemented-google-docs-like-commenting-in-tiptap-k2k) — custom CommentMark production pattern verified
+- [SAM.gov rate limits (govconapi.com, 2026)](https://govconapi.com/sam-gov-rate-limits-reality) — 1,000 req/day rate confirmed
+- [makerkit.dev Supabase RLS guide](https://makerkit.dev/blog/tutorials/supabase-rls-best-practices) — multi-tenant policy patterns
+- [makerkit.dev per-seat Stripe recipe](https://makerkit.dev/recipes/per-seat-stripe-subscriptions) — seat increment timing (acceptance, not invite)
+- [Tiptap pricing page](https://tiptap.dev/pricing) — confirmed Pro Comments requires paid platform subscription
+- [Resend Next.js integration docs](https://resend.com/docs/send-with-nextjs) — React Email integration pattern confirmed
 
-### Tertiary (LOW confidence — vendor claims, needs independent validation)
-- AutogenAI Federal: "30% increase in win rates" — single-source vendor claim; not used in feature recommendations
-- AutogenAI Federal: "5-minute first draft, 70% faster" — vendor benchmark; useful as aspirational target only
+### Tertiary (LOW confidence)
+- [moment.dev "Lies I Was Told About Collaborative Editing"](https://www.moment.dev/blog/lies-i-was-told-pt-2) — directional reasoning for presence-only vs. full CRDT; qualitative, not benchmarked
 
 ---
-*Research completed: 2026-03-23*
+*Research completed: 2026-03-25*
 *Ready for roadmap: yes*

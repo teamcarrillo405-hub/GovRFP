@@ -1,153 +1,307 @@
-# Feature Research
+# Feature Research — v2.0 Milestone
 
-**Domain:** AI-assisted RFP/Government Proposal Writing SaaS
-**Researched:** 2026-03-23
-**Confidence:** MEDIUM-HIGH (multiple sources, some competitor pages inaccessible; GovCon-specific claims verified via 3+ sources)
+**Domain:** B2B SaaS — Team Collaboration, Integrations, Analytics for AI-Assisted Government Proposal Writing
+**Researched:** 2026-03-25
+**Confidence:** MEDIUM-HIGH (official API docs verified; B2B SaaS collaboration patterns verified via multiple sources; GovCon-specific claims verified via 3+ sources)
+
+---
+
+## Scope
+
+This document covers only the **8 new v2.0 features**. Existing v1.x features (RFP upload, AI extraction, compliance matrix, win probability, proposal editor, export, contractor profile, per-seat billing) are already built and are NOT re-researched here.
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
+### Feature 1: Multi-User Team Accounts (Invite, RBAC)
 
-Features users assume exist. Missing these = product feels incomplete or unprofessional.
+#### Table Stakes (Users Expect These)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| PDF + DOCX RFP upload | Every RFP arrives as a PDF or Word file; no upload = no product | LOW | Must handle scanned PDFs gracefully; OCR fallback needed for image-only PDFs |
-| AI requirement extraction | Core premise — "shred" the RFP into discrete shall/must/will statements | MEDIUM | Section L (instructions) and Section M (evaluation criteria) must be distinguished; FAR Part 15 terminology matters |
-| Compliance matrix generation | Every GovCon professional expects this as a deliverable; it's the first thing a proposal manager builds manually today | MEDIUM | Must map each requirement to a proposal section; flag unaddressed items; "shall/must/will" parsing rules matter |
-| Mandatory vs. desired requirement flagging | Evaluators distinguish these; contractors need to triage effort accordingly | LOW | Relatively straightforward classification once extraction is done |
-| AI-drafted proposal sections | The primary time-saver; users expect Executive Summary, Technical Approach, Management Plan, Past Performance at minimum | HIGH | Quality of output depends heavily on contractor profile data injected into context; hallucination prevention is critical |
-| In-browser rich text editor | Contractors must edit AI output; downloading, editing, re-uploading creates friction that kills adoption | MEDIUM | TipTap or Lexical are the standard choices; must support headings, bullets, tables |
-| Compliance matrix live-linked to editor | Users expect to see which requirements are covered as they write; this is the core workflow loop | MEDIUM | Requires real-time mapping logic between editor content and requirement checklist |
-| Auto-save | Losing work in a proposal tool is career-damaging; contractors expect this | LOW | Debounced saves to Supabase every 30-60 seconds |
-| Export to Word (.docx) | Submissions require Word format; many agency portals accept only Word | MEDIUM | Preserving heading styles, page numbering, and tables is the hard part; docx libraries have edge cases |
-| Export to PDF | Required for print review, internal distribution, and some portals | LOW | PDF export is simpler than .docx; html-to-pdf or headless browser approach |
-| Contractor profile (certifications, NAICS, past projects) | AI drafts are generic without this; contractors expect their company data to appear in every draft | MEDIUM | Structured schema needed: certifications (8(a), HUBZone, SDVOSB, WOSB), NAICS codes, capability statement narrative, past project records, key personnel bios |
-| Profile data injected into AI drafts | Proposal sections must reference the actual contractor, not placeholder text | MEDIUM | Context injection at prompt time; profile data must be structured enough to be selectively relevant |
-| Per-account document storage | Contractors work on multiple active proposals; they expect their work to persist | LOW | Supabase storage; RLS policy per user account |
-| Secure account access | Proposals contain sensitive pricing and strategy; login security is assumed | LOW | Supabase Auth; standard email/password + email verification |
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Email invitation flow | Standard B2B onboarding; users expect to invite colleagues by email from within the app without contacting support | LOW | Invite tokens in DB, email via Supabase Auth or Resend; token expiry (7 days is norm) |
+| Role assignment at invite time | Inviter picks a role (Owner / Editor / Viewer) when sending — not after acceptance | LOW | Role stored on team membership row, not on user globally |
+| Pending invite list + revoke | Users expect to see who was invited but hasn't accepted, and be able to cancel | LOW | Simple DB query on invite table; no complexity |
+| Viewer can read but not edit | Read-only enforcement at both UI level (editor disabled) and API level (server-side role check) | MEDIUM | Must gate every editor mutation route — not just the UI |
+| Owner can transfer ownership or remove members | Team management without HCC support involvement | LOW | Self-serve member management is an enterprise checkbox item |
+| Billing seats linked to team | Adding a member increments the Stripe subscription quantity; removing decrements | MEDIUM | Stripe `subscriptions.update` with `quantity` param; must handle mid-cycle proration |
+| Per-proposal access (not just per-team) | Users expect to share one proposal with a guest without giving full team access — even at starter tier | MEDIUM | Proposal-level RBAC is additive to team-level; requires two join tables |
 
----
+#### Differentiators
 
-### Differentiators (Competitive Advantage)
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Granular proposal-level permissions | Share a single proposal with a client or subcontractor without full team access — differentiates from basic "org member" models | HIGH | Two-layer RBAC: team membership + proposal membership; edge cases around who can grant proposal access |
+| Role audit log | Show owners who did what (section edits, exports, invites) — builds trust for compliance-minded contractors | MEDIUM | Append-only audit table; surface in UI as activity feed |
 
-Features that set the product apart. Not required out of the box, but valued by the target market.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Win probability score (pWin) with reasoning | Contractors make go/no-bid decisions before spending 40+ hours on a proposal; a scored explanation (scope alignment, cert match, competition level) is directly actionable | MEDIUM | AI-generated 0-100 score with 4-5 factor breakdown; not just a number — the reasoning is what contractors use. Competitors like CLEATUS and GovDash offer this; it's becoming table stakes for GovCon-specific tools but absent from general RFP tools like Loopio/Responsive |
-| Small business certification matching | 8(a), HUBZone, SDVOSB, WOSB status affects evaluation weighting; surfacing when an RFP has set-aside preferences and matching them to the contractor's profile is a direct win signal | LOW | Parsing set-aside type from solicitation header; cross-referencing contractor certification profile |
-| Section L/M cross-reference mapping | Many GovCon proposal managers manually build L-to-M crosswalk tables; automating this saves 2-4 hours per proposal and reduces evaluation risk | MEDIUM | Extract L instructions and M evaluation criteria separately, then map L requirements to M evaluation factors; present as a crosswalk table |
-| Past performance auto-narrative | Contractors repeatedly rewrite the same project descriptions for every proposal; storing structured past project data and auto-generating narratives tailored to the current RFP's scope is a significant time-saver | MEDIUM | Requires structured past project schema (contract value, scope, agency, period, outcome, NAICS); prompt must tailor the narrative to the current solicitation's evaluation criteria |
-| Compliance gap highlighting in editor | Surfacing exactly which requirements are not addressed while editing — not after — prevents missed requirements at submission | MEDIUM | Real-time or near-real-time analysis; could be done on section save rather than keystroke to manage API cost |
-| Section-level regeneration with custom instructions | When a section misses the mark, contractors want to regenerate it with direction ("focus on cybersecurity experience") without redoing the whole proposal | LOW | Already a stated PROJECT.md requirement; differentiating because most document tools don't offer in-place AI regeneration with instructions |
-| RFP structure sidebar during editing | Keeping the RFP requirements visible while editing reduces tab-switching; reduces missed requirements | LOW | Parsed RFP outline rendered in a collapsible sidebar panel |
-| HCC/small business community framing | HCC members get a tool built for their profile (minority-owned, small business, California-based contractors); community branding and relevant cert language built in | LOW | Marketing differentiator as much as feature differentiator; profile defaults, onboarding copy, help text all tuned to this persona |
-
----
-
-### Anti-Features (Deliberately Excluded)
-
-Features that seem good, commonly requested, or present in competitors — but should not be built in MVP.
+#### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Multi-user team collaboration | Proposal teams involve writers, SMEs, reviewers, and managers | Adds auth/permissions complexity (role-based access, section ownership, conflict resolution), multiplies edge cases, and delays validation of the core solo workflow | Defer to v2 after validating solo workflow; solo users can share exported Word/PDF for external review |
-| Direct portal submission (SAM.gov, PIEE, etc.) | Contractors want one-click submission | Each portal has different auth, form schemas, and file requirements; legal liability if submission fails or is malformed; portals change without notice | Export a submission-ready document; let the contractor submit manually |
-| RFP discovery / opportunity search | Contractors want to find and respond in one tool | Separate product concern (GovRFP already handles this); complicates pricing, scope, and user flow | Deep-link from GovRFP to ProposalAI when user wants to respond to a found opportunity |
-| Custom AI model fine-tuning | Users ask for "training on my past proposals" | Expensive, slow, requires data pipeline, and Claude API with long context handles this via in-context injection already; real fine-tuning offers diminishing returns for this use case | Use contractor profile + past proposal content as context in Claude API calls |
-| Real-time collaborative editing (Google Docs-style) | Teams expect modern collaboration | Requires operational transformation (OT) or CRDT algorithms, significant infrastructure, and creates conflict resolution UI complexity; not needed for solo MVP | Auto-save + version history for solo users; export for async review |
-| Automated pricing/price narrative generation | Contractors want help with price volumes | Pricing is highly context-specific, legally sensitive, and varies by contract type (FFP, T&M, CPFF); AI errors here create legal and financial exposure | Provide price narrative section template in editor; AI assists with narrative framing only, not numbers |
-| Email/CRM integration | Enterprise tools have Salesforce connectors | Adds integration maintenance, auth complexity, and is not needed by small contractors who are the target market | Manual data entry for contractor profile; integration via export/import in future |
-| Version history with full diff view | Power users want tracked changes | Adds UI/database complexity; not essential for solo MVP | Auto-save with timestamps; last-saved state is sufficient for v1 |
-| Freemium / free tier | Broad top-of-funnel acquisition | Attracts non-serious users, increases infrastructure cost per user, and complicates conversion tracking for a B2B niche product; per-seat pricing aligns with GovCon budget norms | Per-seat monthly subscription; 14-day trial period instead |
+| SSO / SAML | Larger contractors ask for it | Complexity far exceeds v2 scope; requires enterprise tier pricing justification | Defer to v3 enterprise tier; note it in roadmap |
+| Unlimited seats on base plan | Users ask for it | Destroys per-seat revenue model; one paying seat will share with the whole company | Hard seat limit; offer team pricing (e.g., 5-seat bundle) at a discount, not unlimited |
+| Custom role definitions | Power users want "approver" or "SME" roles beyond Owner/Editor/Viewer | 3 roles cover 95% of GovCon teams; custom roles are a support nightmare | Ship 3 fixed roles; add "Approver" role in v3 if enterprise customers request it consistently |
+
+---
+
+### Feature 2: Real-Time Co-Editing Presence Indicators
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Avatar/initials shown for active users in the document | Google Docs established this as baseline; users expect to know who is in the document | LOW | Supabase Presence channel; broadcast user name + color on join |
+| "User is editing this section" indicator | Prevents two people from overwriting each other's work; directly analogous to Google Docs section lock | MEDIUM | Presence payload includes which section the user's cursor is in; render a colored border on that section |
+| Live cursor position (within a section) | Expected in any collaborative editor in 2025; Figma and Google Docs have conditioned users to expect this | HIGH | Requires Tiptap Collaboration extension + Yjs + a WebSocket provider (Hocuspocus or Liveblocks); significant architectural addition |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Presence without full Yjs CRDT | Show WHO is in the document (avatar + section indicator) without requiring the full collaborative CRDT stack; lighter, ships faster | LOW | Supabase Presence channel only; no Yjs; avoids Hocuspocus server cost |
+| "Last edited by [user] at [time]" on each section | Accountability in proposal review workflows; proposal managers want this | LOW | Store `last_edited_by` + `last_edited_at` on each section row; surface in editor UI |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Full Yjs CRDT real-time co-editing (simultaneous keystrokes) | Users who use Google Docs expect it | Tiptap Collaboration + Hocuspocus requires a persistent WebSocket server; incompatible with Vercel serverless; adds Hocuspocus hosting cost ($99+/mo on Tiptap Cloud) and full CRDT migration of existing content | Ship presence awareness (who is viewing) + section locking (prevent conflicting edits) in v2; evaluate full CRDT for v3 after validating team usage |
+
+**Key constraint:** The existing Tiptap editor stores content as Tiptap JSON in Supabase. Migrating to Yjs document format is a data migration, not a drop-in addition. Presence-only (no CRDT) is the correct v2 scope.
+
+---
+
+### Feature 3: GovRFP One-Click RFP Import
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Single action triggers import with no re-upload | Users expect cross-product workflows to feel seamless; re-uploading a file they already have in GovRFP is friction they will complain about | MEDIUM | GovRFP sends the RFP file (or a reference URL) directly to ProposalAI; ProposalAI creates the proposal row + kicks off the parse job |
+| Authenticated handoff (no second login) | Users are already logged in to GovRFP; they should not need to authenticate again in ProposalAI | MEDIUM | Shared Supabase project (same auth schema) enables seamless JWT handoff; OR a short-lived import token if separate Supabase instances |
+| Import confirmation screen showing RFP metadata | Users want to confirm what they imported before committing; title, agency, due date | LOW | Display parsed metadata from GovRFP's existing RFP record; user confirms, then triggers analysis |
+| Import error handling (file unavailable, auth failure) | Users expect a clear failure message, not a silent redirect | LOW | Standard error state with retry option |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Import with pre-populated win score context from GovRFP | GovRFP may have scored or tagged the RFP; passing that metadata into the ProposalAI analysis enriches the win score with discovery-side context | MEDIUM | Requires a defined data contract between the two products; coordinate with GovRFP schema |
+| One-click imports that preserve GovRFP opportunity ID | Linking the two records enables closed-loop tracking (did this opportunity become a won contract?) | LOW | Store `govRfpOpportunityId` on the proposals row; enables win/loss correlation later |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| URL-based RFP scraping from SAM.gov on import | Users want to paste a SAM.gov URL and have it auto-import | SAM.gov HTML structure is unstable; scraping violates ToS risk; API access is the correct path | Use SAM.gov Opportunities API (public) to fetch opportunity data by notice ID; do not scrape HTML |
+
+---
+
+### Feature 4: SAM.gov Entity Data Prefill
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| UEI lookup to pull contractor registration data | Any registered contractor has a UEI; they expect to enter it once and have their registration data populate | LOW | SAM.gov Entity Management API; search by UEI; public data (no sensitive fields) |
+| CAGE code, legal name, physical address | Appears on every cover page and form; re-typing it from SAM registration is pure friction | LOW | Available in public API response; straightforward field mapping |
+| NAICS code prefill from SAM registration | Contractors maintain their NAICS list in SAM; expect that list to auto-populate into their ProposalAI profile | LOW | `naicsCode` array in API response |
+| Business type / socioeconomic status prefill | 8(a), HUBZone, WOSB, SDVOSB status drives win probability and set-aside matching; user expects to not re-enter what is already in SAM | LOW | `sbaBusinessTypes` in API response; map to ProposalAI's existing certification schema |
+| Explicit user confirmation before writing | Contractors may have custom data in their profile that differs from SAM registration; prefill must not silently overwrite | LOW | Show diff view or "review changes" modal; user approves field by field or in bulk |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Registration expiration warning | SAM registration expires annually; surfacing "your SAM registration expires in 30 days" is a high-value reminder contractors frequently miss | LOW | `registrationExpirationDate` field in API; compare to today; surface in profile UI |
+| Pull active capability narrative from SAM (if present) | SAM entities can include capabilities narrative text; pre-seeding the contractor profile with it reduces onboarding friction | LOW | `entityInformation.entityURL` + `capabilities` fields if populated; treat as starting point, not final |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Auto-sync SAM data on every login | Keeping contractor profile "always in sync" with SAM | Rate limits: 1,000 requests/day per API key; if 500 users log in daily, each triggering a SAM lookup, you hit the limit at scale | Sync on explicit user action ("Refresh from SAM") only; cache last-fetched timestamp; warn if data is older than 90 days |
+| Fetch representations and certifications (Reps & Certs) | Useful compliance data | Reps & Certs require individual or system account API key with elevated permissions; public endpoint does not return them | Use only public endpoint fields in v2; note Reps & Certs access requires SAM system account for v3 |
+
+**API constraint (HIGH confidence):** Public SAM.gov Entity API rate limit is 10 requests/day for unauthenticated; 1,000 requests/day for registered individual API key. ProposalAI needs one registered API key stored server-side. At 1,000 users each fetching once, the limit holds; beyond that requires a system account application to GSA.
+
+---
+
+### Feature 5: Version History (Compare Drafts, Restore)
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Automatic version creation on significant change | Users expect their work to be recoverable without thinking about it; "save a version" is an extra mental step they will skip | MEDIUM | Create a version snapshot on: AI section generation, manual export, explicit user "save version" action; NOT on every auto-save keystroke |
+| Named versions with timestamps and author | "Version from Monday" is useless; users expect "AI Draft - 2026-03-25 by George" | LOW | `version_name`, `created_at`, `created_by` on version row |
+| Restore to a previous version | Core recovery workflow; user made a mistake and wants to roll back | MEDIUM | Copy version snapshot JSON back to the live proposal; current state auto-versioned before restore (safety net) |
+| Visual diff between two versions | Side-by-side or inline diff showing what changed between drafts; proposal reviewers use this during red team | HIGH | Diff of Tiptap JSON is non-trivial; use diffing at text level (extracted from Tiptap JSON); libraries like `diff` (npm) work on string output |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| "AI regeneration" versions clearly labeled | When a section is regenerated by AI, that creates a labeled version — distinguishing human edits from AI drafts | LOW | Set `version_type: 'ai_regeneration'` flag on the row; display distinctively in history UI |
+| Section-level version history | "Show me only the version history of the Technical Approach section" — not the whole document | HIGH | Requires per-section version snapshots instead of whole-document; significantly more complex storage and diff logic; likely v3 scope |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Unlimited version storage | Users want infinite history | Storage cost grows without bound; for a typical 50-section proposal, each version snapshot is 50–200KB JSON; 100 versions = 20MB per proposal | Cap at 50 versions per proposal; auto-delete oldest when cap exceeded; show "older versions pruned" notice |
+| Real-time granular versioning (every keystroke) | Google Docs-style; some users expect it | Extreme DB write amplification; Tiptap's auto-save already runs every 30s; granular versioning is not meaningful for proposal workflows | Snapshot on meaningful events only (AI generation, export, explicit save, restore); 30s auto-save is not a version |
+
+---
+
+### Feature 6: Section Comments / Annotation
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Inline comment anchored to selected text | Google Docs established this as the standard; users expect to highlight text and add a comment that appears in the margin | MEDIUM | Tiptap supports comment marks via custom extension; anchor stores range (from/to positions); must handle position drift when text is edited |
+| Comment threads (replies) | Single comments create back-and-forth email chains; users expect in-line conversation | MEDIUM | Comment thread table: parent comment + replies; render as nested in sidebar |
+| Resolve / reopen a comment | Proposal managers need to mark comments as addressed; cluttered unresolved threads block review | LOW | `status: 'open' | 'resolved'` on comment row; resolved threads collapsed by default |
+| @mention to notify a team member | Users expect to tag a colleague who needs to address a comment | MEDIUM | Parse @name in comment body; look up team member; send notification (email or in-app); requires team accounts to be live |
+| Comment author + timestamp visible | Comments without attribution are useless; authors expect their name shown | LOW | Store `author_id` + `created_at`; resolve display name from profiles table |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| AI-generated reviewer comments | "Flag this section as non-compliant with Section L requirement 4.2" — AI acting as a red-team reviewer | HIGH | Trigger Claude call on export or explicit "AI Review" action; return structured comment objects; store as system-authored comments |
+| Comment export in Word | Include unresolved comments in the exported .docx as Word comments/tracked changes | HIGH | `docx` npm supports comments via `CommentsExtendedMarkup`; complex implementation but high value for print review |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Video / audio annotation | Some tools offer voice comments | Disproportionate complexity and storage cost for a document tool | Text comments only in v2; emoji reactions are a lightweight engagement signal if needed |
+| Comment permissions (private comments) | Some reviewers want comments only visible to specific people | Complex permission overlay on top of RBAC | All comments visible to all team members with proposal access; redaction is not a v2 need |
+
+**Key dependency:** Comments depend on team accounts being live. Solo-user comments exist but have no audience — the value is entirely in team review workflows. Do NOT ship section comments before team accounts.
+
+---
+
+### Feature 7: Win/Loss Tracking (Bid Outcomes)
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Simple outcome logging (Win / Loss / No Bid / Pending) | Contractors track bid outcomes manually in spreadsheets today; this is table stakes for any proposal management tool | LOW | Add `bid_outcome` enum + `outcome_date` + `award_amount` (optional) to proposals table |
+| Contract value at award | Win rate in dollars matters more than win rate in count; contractors expect to see both | LOW | Store `award_amount` on the proposal row; user enters post-award |
+| Win rate summary dashboard | "I won 4 of 12 proposals this quarter" — basic aggregate; users expect this without exporting to Excel | LOW | Aggregate query over proposals table; surface on dashboard |
+| Filter outcomes by date range, agency, NAICS | Basic slicing; contractors manage pipelines by agency and category | MEDIUM | Standard filter UI; all filter dimensions are already stored on the proposals row |
+| Loss reason (free text + category) | Contractors want to log debrief notes; "price was too high," "incumbent advantage," etc. | LOW | `loss_reason_category` enum + `loss_notes` text field; category options: Price, Technical, Past Performance, Incumbent, No Bid, Other |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Outcome feeds back into win probability model | This is the unique loop: real outcome data improves the AI win score over time; no affordable GovCon tool does this today | HIGH | Requires: storing outcome + win_probability at submission time; building correlation analysis; reweighting Claude's score factors based on observed accuracy; computationally non-trivial, but the data collection starts now even if the model adjustment comes in v3 |
+| "Predicted vs. actual" win score comparison | Show the contractor: "We predicted 72% win probability; you won. Your 70%+ proposals win 68% of the time." — calibration data | MEDIUM | Store `win_probability_at_submission` at export time (snapshot); compare to outcome; surface in analytics |
+| Agency win rate breakdown | Which agencies do you win at vs. lose at — segmented by agency name extracted from RFP | MEDIUM | Agency name already extracted during RFP analysis (ANALYZE phase); group outcomes by agency |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Automated award tracking via SAM.gov FPDS/USASpending | Pull award data automatically without user logging | FPDS matching requires UEI + solicitation number + award date; false positives on similar solicitation numbers are common; user still needs to verify | Manual outcome logging with a one-click "mark as won/lost" UI; FPDS cross-reference is a v3 enhancement |
+| Full CRM pipeline (stages, tasks, contacts) | Some contractors want a full BD CRM | Out of scope; ProposalAI is a proposal writing tool; adding CRM creates a product identity crisis | Keep outcome tracking proposal-focused; recommend HubSpot/Salesforce integration for full CRM needs |
+
+---
+
+### Feature 8: HCC Operator Dashboard (Aggregate Metrics)
+
+#### Table Stakes (Users Expect These)
+
+| Behavior | Why Expected | Complexity | Notes |
+|----------|--------------|------------|-------|
+| Active user count (DAU / MAU) | HCC needs to know if people are actually using the product | LOW | Count distinct `user_id` from a usage events table within time window |
+| Proposals created per period | Primary product usage metric | LOW | Count rows in proposals table grouped by `created_at` week/month |
+| Proposals exported (Word + PDF) | Export = user reached the end of the workflow; highest-signal engagement metric | LOW | Count export events (already log-worthy; add export event row on each export action) |
+| Active subscriptions + trial count | Revenue health; HCC needs this to run the business | LOW | Query Stripe or local `subscriptions` table; count by `status: active | trialing` |
+| Churn rate (subscriptions canceled in period) | Standard SaaS health metric | LOW | Count `subscription.deleted` events from webhook log |
+| Retention: % of users who returned in 30 days | Tells HCC if users come back after first use | MEDIUM | Requires a usage events table with session timestamps; cohort analysis query |
+
+#### Differentiators
+
+| Behavior | Value Proposition | Complexity | Notes |
+|----------|-------------------|------------|-------|
+| Per-user proposal activity (who uses it most) | HCC wants to identify power users for case studies / testimonials | LOW | Table view sorted by proposals created per user |
+| Win rate aggregate across all users | "Our users collectively win X% of proposals they create with ProposalAI" — marketing claim | MEDIUM | Aggregate bid outcomes across all users; requires win/loss tracking (Feature 7) to be live |
+| AI usage and cost tracking | HCC needs to know Claude API cost per proposal to validate unit economics | MEDIUM | Log `input_tokens` + `output_tokens` + model per Claude call; compute cost in dashboard using Anthropic pricing constants |
+| Export to CSV | HCC may want to analyze data in their own tools | LOW | Standard CSV download of any dashboard table |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Real-time dashboard with sub-second refresh | Feels more impressive | Production DB aggregations on every page load will degrade query performance as user count grows; no operational need for real-time on an internal dashboard | Refresh on page load + manual refresh button; add background materialized view if query becomes slow |
+| User-level activity visible to individual users | Users want to see their own stats | This is a SEPARATE user-facing analytics feature — do not conflate with the HCC operator view | Build a separate user stats panel on the user dashboard; keep operator dashboard strictly internal/HCC-only |
+| Complex cohort analysis builder | HCC asks for it | Cohort analysis UIs are data warehouse products, not SaaS dashboard features | Ship 4-5 fixed, meaningful metrics tables; export to CSV for ad-hoc analysis in Sheets or Metabase |
+
+**Access control:** The operator dashboard must be gated to HCC admin accounts only, not exposed to any contractor user. Gate via a `role: 'hcc_admin'` flag on the user profile, checked server-side on every dashboard route.
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Contractor Profile]
-    └──required by──> [AI Proposal Drafting]
-                           └──required by──> [Section Regeneration]
-                           └──required by──> [Past Performance Narrative]
+[Multi-User Team Accounts]
+    └──required by──> [Real-Time Presence Indicators]  (presence has no value for solo users)
+    └──required by──> [Section Comments / Annotation]  (@mention, review workflows require teammates)
+    └──required by──> [Billing Seat Management]         (already exists; team adds multi-seat sync)
 
-[RFP Upload + Parsing]
-    └──required by──> [Compliance Matrix]
-                           └──required by──> [Compliance Gap Highlighting in Editor]
-                           └──required by──> [Section L/M Cross-reference]
+[GovRFP Import]
+    └──requires──> [Shared Auth / Supabase project alignment between ProposalAI and GovRFP]
 
-    └──required by──> [Win Probability Score]
+[SAM.gov Prefill]
+    └──enhances──> [Contractor Profile]                (existing feature; prefill fills it)
+    └──enhances──> [Win Probability Score]             (more accurate NAICS/cert data improves score)
 
-    └──required by──> [RFP Structure Sidebar]
+[Win/Loss Tracking]
+    └──enables──> [Win Score Feedback Loop]            (v3: outcome data reweights win probability model)
+    └──enables──> [HCC Operator Win Rate Aggregate]    (Feature 8 aggregate metric)
 
-[AI Proposal Drafting]
-    └──requires──> [RFP Upload + Parsing]
-    └──requires──> [Contractor Profile]
+[Version History]
+    └──independent──> (no hard dependency on other v2 features; can ship standalone)
 
-[In-Browser Rich Text Editor]
-    └──required by──> [Compliance Gap Highlighting in Editor]
-    └──required by──> [Section Regeneration]
-
-[Export (.docx / PDF)]
-    └──requires──> [In-Browser Rich Text Editor]
-
-[Accounts + Auth]
-    └──required by──> [Document Storage]
-    └──required by──> [Contractor Profile]
-    └──required by──> [Billing]
+[HCC Operator Dashboard]
+    └──enhanced by──> [Win/Loss Tracking]              (win rate aggregate metric requires outcome data)
 ```
 
 ### Dependency Notes
 
-- **AI Proposal Drafting requires Contractor Profile:** Generic AI output (no certifications, no past projects) is rejected by contractors immediately. Profile data must be in place before drafting is useful.
-- **Compliance Gap Highlighting requires both Compliance Matrix and Rich Text Editor:** The matrix provides the requirement set; the editor provides the content to check against. Neither alone enables live gap detection.
-- **Win Probability Score requires RFP Parsing:** The score factors (scope alignment, set-aside match, competition level) are derived from parsed RFP content cross-referenced with the contractor profile.
-- **Export requires Editor:** The editor is the single source of truth for proposal content; export renders the editor state.
-- **Document Storage requires Auth:** Storage must be scoped per user account via row-level security; no auth = no safe isolation of sensitive proposal documents.
+- **Comments require Team Accounts:** A comment with no teammates to receive @mentions is a note to self; the review workflow only exists in multi-user context. Ship team accounts first.
+- **Presence requires Team Accounts:** Showing "George is viewing" requires at least two seats. Ship presence in the same phase or immediately after team accounts.
+- **SAM Prefill is standalone:** No dependency on other v2 features; can be included in the same phase as team accounts or separately without risk.
+- **GovRFP Import dependency:** If ProposalAI and GovRFP share the same Supabase project, auth handoff is trivial. If separate Supabase instances, a short-lived signed import token is required — this is the primary architectural decision to nail before building.
+- **Win/Loss Tracking is standalone but feeds everything:** Collect outcome data now even if the feedback loop model adjustment is v3. The data must exist before the model can learn from it.
 
 ---
 
-## MVP Definition
+## v2.0 MVP Definition
 
-### Launch With (v1)
+### Must Ship Together (Blocking Dependencies)
 
-These are the features that make the product legible and valuable from day one. Without any of these, the product does not fulfill its core promise.
+- [ ] **Multi-User Team Accounts** — the foundation everything else builds on
+- [ ] **Real-Time Presence Indicators** — ships with team accounts (same phase); no value without teammates
+- [ ] **SAM.gov Entity Prefill** — independent; high user value, low risk; include in first wave
 
-- [ ] PDF + DOCX RFP upload — no upload, no product
-- [ ] AI requirement extraction (shall/must/will statements, Section L/M separation) — the foundational parse step
-- [ ] Compliance matrix generation with mandatory/desired flagging — first deliverable contractors expect
-- [ ] Contractor profile (certifications, NAICS, past projects, key personnel, capability statement) — required for non-generic AI output
-- [ ] AI-drafted proposal sections (Executive Summary, Technical Approach, Management Plan, Past Performance, Price Narrative) — core time-saver
-- [ ] Section-level regeneration with custom instructions — essential for iterating on weak sections
-- [ ] In-browser rich text editor with auto-save — editing without downloading is the modern expectation
-- [ ] RFP structure sidebar — keeps requirements visible during editing
-- [ ] Compliance matrix live-linked to editor (requirement coverage status) — closes the compliance loop
-- [ ] Win probability score (0-100) with 4-5 factor reasoning — go/no-bid decision support; differentiates from general RFP tools
-- [ ] Export to Word (.docx) — submission format required by most agencies
-- [ ] Export to PDF — review and internal distribution
-- [ ] Per-seat subscription billing (Stripe) — revenue model
-- [ ] Solo account auth + secure document storage — basic security and persistence
+### Ship After Team Foundation
 
-### Add After Validation (v1.x)
+- [ ] **GovRFP One-Click Import** — high strategic value; requires auth handoff decision resolved first
+- [ ] **Section Comments / Annotation** — requires team accounts live; ship in second phase wave
+- [ ] **Version History** — independent; can ship in second wave with comments
 
-Add once core workflow is validated by paying users.
+### Can Ship Last
 
-- [ ] Section L/M cross-reference crosswalk table — high value for experienced proposal managers; builds on existing parsing
-- [ ] Past performance auto-narrative tailored to current RFP scope — high value, moderate complexity; needs past project schema in place
-- [ ] Compliance gap highlighting in editor (real-time or on-save) — enhances the existing compliance matrix and editor
-- [ ] Small business set-aside cert matching notifications — low complexity, meaningful signal for the HCC target market
-
-### Future Consideration (v2+)
-
-Defer until product-market fit is established.
-
-- [ ] Multi-user team collaboration — adds significant auth/permissions complexity; validate solo workflow first
-- [ ] Version history with diff view — useful but not mission-critical for solo users
-- [ ] GovRFP deep-link integration — requires coordination between two products; deliver after both are stable
-- [ ] Template library (agency-specific formats) — valuable but requires curation effort; defer until usage patterns reveal which agencies users bid on most
+- [ ] **Win/Loss Tracking** — standalone; start data collection as early as possible to build the feedback loop corpus
+- [ ] **HCC Operator Dashboard** — internal-only; not user-facing; ship last without blocking others
 
 ---
 
@@ -155,72 +309,65 @@ Defer until product-market fit is established.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| RFP upload (PDF/DOCX) | HIGH | LOW | P1 |
-| AI requirement extraction | HIGH | MEDIUM | P1 |
-| Compliance matrix generation | HIGH | MEDIUM | P1 |
-| Contractor profile | HIGH | MEDIUM | P1 |
-| AI proposal drafting (all sections) | HIGH | HIGH | P1 |
-| Section regeneration with instructions | HIGH | LOW | P1 |
-| Rich text editor with auto-save | HIGH | MEDIUM | P1 |
-| RFP sidebar | MEDIUM | LOW | P1 |
-| Compliance matrix linked to editor | HIGH | MEDIUM | P1 |
-| Win probability score with reasoning | HIGH | MEDIUM | P1 |
-| Export to Word (.docx) | HIGH | MEDIUM | P1 |
-| Export to PDF | MEDIUM | LOW | P1 |
-| Auth + document storage | HIGH | LOW | P1 |
-| Stripe billing | HIGH | LOW | P1 |
-| Section L/M crosswalk table | HIGH | MEDIUM | P2 |
-| Past performance auto-narrative | HIGH | MEDIUM | P2 |
-| Real-time compliance gap highlighting | MEDIUM | MEDIUM | P2 |
-| Set-aside cert matching | MEDIUM | LOW | P2 |
-| Multi-user collaboration | MEDIUM | HIGH | P3 |
-| Version history | LOW | MEDIUM | P3 |
-| GovRFP integration | MEDIUM | MEDIUM | P3 |
-| Agency-specific template library | MEDIUM | HIGH | P3 |
+| Multi-User Team Accounts | HIGH | HIGH | P1 — blocks everything |
+| Real-Time Presence Indicators (presence-only, no CRDT) | HIGH | LOW | P1 — ships with team accounts |
+| SAM.gov Entity Prefill | HIGH | LOW | P1 — standalone, high ROI |
+| GovRFP One-Click Import | HIGH | MEDIUM | P1 — top strategic value |
+| Version History | MEDIUM | MEDIUM | P2 — expected, not blocking |
+| Section Comments / Annotation | MEDIUM | MEDIUM | P2 — requires team accounts |
+| Win/Loss Tracking | MEDIUM | LOW | P2 — data collection must start now |
+| HCC Operator Dashboard | LOW (user) / HIGH (HCC) | LOW | P2 — internal tool, low risk |
 
-**Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
+---
+
+## Complexity Notes for Requirements Writer
+
+| Feature | Hardest Part | Estimated Relative Complexity |
+|---------|-------------|-------------------------------|
+| Team Accounts | Billing seat sync with Stripe; proposal-level RBAC layered on team-level RBAC | HIGH |
+| Presence Indicators | Avoiding full Yjs CRDT migration; presence-only via Supabase channel is LOW | LOW (presence-only scope) |
+| GovRFP Import | Auth handoff between two products; data contract between products | MEDIUM |
+| SAM.gov Prefill | API key management; rate limit at scale; confirmation UX to avoid overwriting | LOW |
+| Version History | Tiptap JSON diff rendering; deciding what triggers a version snapshot | MEDIUM |
+| Section Comments | Tiptap comment mark extension; position drift on edit; @mention notification | MEDIUM |
+| Win/Loss Tracking | Simple data model; feedback loop reweighting is v3 complexity | LOW |
+| HCC Operator Dashboard | Usage events table design; AI cost tracking; access gate | LOW |
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Loopio / Responsive (RFPIO) | GovDash | AutogenAI Federal | Unanet ProposalAI | HCC ProposalAI (our approach) |
-|---------|----------------------------|---------|-------------------|-------------------|-------------------------------|
-| Target market | Enterprise sales/BD teams | Government contractors (all sizes) | Enterprise GovCon | AEC + GovCon firms | Small/mid-size contractors; HCC community |
-| AI drafting | Yes — content library + AI fill | Yes — compliance-first drafting | Yes — 5-min first draft, 70% faster | Yes — 70% faster, knowledge library | Yes — Claude API; long context handles full RFPs |
-| Compliance matrix | Basic | Yes — Section L/M aware | Yes — multi-document "shredding" | Yes — requirement-to-response mapping | Yes — Section L/M separation, mandatory/desired flagging |
-| Win probability score | No (enterprise-level products don't surface pWin) | Yes — bid/no-bid support | Not prominently featured | Not mentioned | Yes — 4-5 factor reasoning breakdown; key differentiator for solo contractors |
-| Contractor profile with certifications | No (content library, not contractor profile) | Partial — opportunity matching | No — enterprise knowledge base | No — past proposal library | Yes — 8(a), HUBZone, SDVOSB, WOSB, NAICS, past projects, personnel bios |
-| In-browser editor | Yes — portal-based editing | Yes | Yes | Yes | Yes — TipTap/Lexical; compliance matrix live-linked |
-| Export (Word/PDF) | Yes | Yes | Yes | Yes | Yes |
-| RFP upload (any format) | Yes — portal import + file upload | Yes | Yes — multi-document | Yes | Yes — PDF + DOCX |
-| Solo/small business pricing | No — enterprise pricing ($30K+/year) | Not published; enterprise-oriented | Enterprise contracts | Not published | Per-seat/month (Stripe); accessible to solo contractors |
-| Federal compliance focus (FAR, etc.) | Limited — general RFP tools | Yes — GovCon-specific | Yes — FedRAMP, CMMC, CUI | Yes | Yes — FAR Part 15, set-aside parsing |
-| Multi-user collaboration | Yes — core feature | Yes | Yes | Yes | Not in MVP |
-
-**Key insight:** The enterprise tools (Loopio, Responsive) are built for large BD teams with content libraries. The GovCon-specific tools (GovDash, AutogenAI, Unanet) are increasingly feature-rich but priced and positioned for mid-to-large contractors. The gap HCC ProposalAI fills is: GovCon-aware AI drafting at solo/small-business pricing, with a contractor profile schema tuned to small business certifications.
+| Feature | Loopio / Responsive | Proposify | ProposalAI v2 Approach |
+|---------|--------------------|-----------|-----------------------|
+| Team accounts + RBAC | YES — core feature; role-based section ownership | YES — basic owner/collaborator | Owner/Editor/Viewer + proposal-level sharing |
+| Real-time co-editing | Responsive: presence indicators; not full CRDT | No | Presence-only via Supabase channel (no Yjs CRDT) |
+| Version history | YES — content library versioning | Basic draft versions | Snapshot on AI generation + export + explicit save |
+| Comments / annotation | YES — inline commenting | YES — basic comments | Tiptap comment extension + @mention |
+| SAM.gov integration | No | No | UEI lookup → contractor profile prefill (differentiator) |
+| Win/loss tracking | No native | Basic win/loss log | Outcome logging + win score calibration loop (unique) |
+| Operator dashboard | Yes — enterprise reporting | Basic account metrics | HCC-specific aggregate metrics + AI cost tracking |
+| RFP source integration | No | No | GovRFP direct import (HCC ecosystem advantage) |
 
 ---
 
 ## Sources
 
-- Arphie.ai: "Top 30 RFP Proposal Software in 2026" — standard vs. differentiating features analysis
-- AutogenAI Federal announcement — requirement shredding, FedRAMP, 5-minute first draft claims
-- GovEagle blog: "AI Proposal Writing Tools for Government Contractors" — GovDash and Procurement Sciences features
-- Inventive.ai: "Comparison of Government AI RFP Response Software" — 7-tool feature matrix
-- AutoRFP.ai: "Loopio vs Responsive 2026 Review" — feature comparison of legacy platforms
-- CLEATUS blog: "How to Calculate PWin" — pWin score methodology and automation patterns
-- Procurement Sciences: "Pwin: The Complete Guide" — pWin factors (scope alignment, past performance, certifications, competition)
-- HSVAGI: "RFP Response Automation: Compliance Matrix Requirements" — Section L/M separation, 97% accuracy claim for AI parsing
-- Unanet ProposalAI — knowledge library injection, AWS GovCloud deployment model
-- Arphie.ai blog: "Loopio vs Responsive: Comparing Legacy RFP Software Tools"
-- GovCon community data: 25+ hours for manual requirement extraction; 15+ hours for shredding; 8+ hours for first draft
-- AutogenAI: "30% increase in win rates" claim (MEDIUM confidence — single-source vendor claim)
+- SAM.gov Entity Management API official docs: https://open.gsa.gov/api/entity-api/
+- SAM.gov rate limits detail: https://govconapi.com/sam-gov-rate-limits-reality
+- Tiptap Collaboration (Yjs/presence): https://tiptap.dev/docs/collaboration/core-concepts/awareness
+- Tiptap CollaborationCaret: https://tiptap.dev/docs/editor/extensions/functionality/collaboration-caret
+- Supabase Realtime Presence: https://supabase.com/docs/guides/realtime/presence
+- Supabase Realtime Cursor component: https://supabase.com/ui/docs/nextjs/realtime-cursor
+- Liveblocks + Tiptap guide: https://liveblocks.io/docs/guides/how-to-create-a-collaborative-text-editor-with-tiptap-yjs-nextjs-and-liveblocks
+- PropelAuth RBAC guide: https://www.propelauth.com/post/guide-to-rbac-for-b2b-saas
+- WorkOS RBAC providers 2025: https://workos.com/blog/top-rbac-providers-for-multi-tenant-saas-2025
+- Government proposal software comparison 2025: https://www.inventive.ai/blog-posts/comparison-of-government-ai-rfp-response-software
+- Loopio collaboration features: https://loopio.com/blog/best-proposal-software/
+- Win/loss analysis best practices: https://www.ostglobalsolutions.com/improve-your-Government-proposals-pwin-follow-proposal-management-best-practices/
+- B2B SaaS collaboration trends 2025: https://www.iccube.com/blog/b2b-saas-trends-for-2025-what-product-and-r-d-managers-need-to-know
+- Secure collaboration patterns: https://securityboulevard.com/2025/10/what-secure-collaboration-looks-like-in-authenticated-saas-apps/
 
 ---
 
-*Feature research for: AI-assisted RFP/Government Proposal Writing SaaS*
-*Researched: 2026-03-23*
+*Feature research for: HCC ProposalAI v2.0 — Team Collaboration, Integrations, Analytics*
+*Researched: 2026-03-25*
