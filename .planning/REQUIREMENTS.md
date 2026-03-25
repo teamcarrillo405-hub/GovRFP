@@ -127,4 +127,4 @@ Deferred to v3.0 or later.
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after v2.0 milestone start*
+*Last updated: 2026-03-25 — roadmap created, all 31 requirements mapped to phases 7–11*
