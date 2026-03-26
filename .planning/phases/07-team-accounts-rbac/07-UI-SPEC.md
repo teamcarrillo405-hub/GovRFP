@@ -53,14 +53,13 @@ Exceptions:
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px | 400 (normal) | 1.5 | Invite email field labels, member list rows, helper text |
-| Label | 14px | 500 (medium) | 1.4 | Form field labels, panel section headers within modal |
+| Body | 14px | 400 (normal) | 1.5 | Invite email field labels, member list rows, helper text, form field labels, panel section headers within modal |
 | Heading | 16px | 600 (semibold) | 1.3 | Modal/panel title, member list section title, role confirmation heading |
-| Display | 24px | 700 (bold) | 1.2 | Proposal page `h1` only — not introduced in Share panel |
+| Display | 24px | 600 (semibold) | 1.2 | Proposal page `h1` and InviteAcceptPage/InviteDeclinePage headings |
 
 Font sizes are sourced from the established codebase pattern:
 `text-xs` = 12px, `text-sm` = 14px, `text-base` = 16px, `text-2xl` = 24px.
-Two weights in new surfaces: 400 (normal) for body, 600 (semibold) for headings and primary button labels.
+Exactly 2 weights across all Phase 7 surfaces: 400 (normal) for body and labels, 600 (semibold) for headings, display, and primary button labels.
 
 ---
 
@@ -85,6 +84,12 @@ Secondary semantic colors (non-accent, non-destructive):
 - `editor` role badge: `bg-blue-50 text-blue-700` (accent-derived — edit capability)
 - Pending invite badge: `bg-yellow-50 text-yellow-700` (awaiting action state)
 - Declined invite badge: `bg-red-50 text-red-700` (terminal error state)
+
+---
+
+## Visuals
+
+Primary focal point: email input field (auto-focused on panel open); secondary anchor: Send Invite button (blue-700 accent).
 
 ---
 
@@ -130,6 +135,7 @@ Email input:
   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
   text-sm placeholder text-gray-400
   placeholder: "teammate@company.com"
+  auto-focused on panel open
 
 Role select:
   px-3 py-2 border border-gray-300 rounded-md text-sm
@@ -156,7 +162,7 @@ Row layout: flex gap-3 items-end
 ### MemberList (within SharePanel)
 
 ```
-Section heading: text-sm font-medium text-gray-700 mb-3 — "Team members"
+Section heading: text-sm font-semibold text-gray-700 mb-3 — "Team members"
 Row container: divide-y divide-gray-100
 Member row: flex items-center justify-between py-3
   Left: flex items-center gap-3
@@ -164,7 +170,7 @@ Member row: flex items-center justify-between py-3
       Initials: text-xs font-semibold text-gray-600 (first letter of email, uppercase)
     Email: text-sm text-gray-900
   Right: flex items-center gap-2
-    Role badge: text-xs font-medium px-2 py-1 rounded-full (see Color section for per-role values)
+    Role badge: text-xs font-semibold px-2 py-1 rounded-full (see Color section for per-role values)
     Role change button (owner-only): text-xs text-blue-600 hover:text-blue-700 underline
       — renders inline, label: "Change role"
     Remove button (owner-only): p-1 rounded hover:bg-red-50 transition-colors
@@ -191,7 +197,7 @@ Pattern: same inline-replace pattern keeps context clear
   Remove icon is replaced with:
   flex items-center gap-2
     Text: text-xs text-gray-700 — "Remove {first name / email}?"
-    Cancel: text-xs text-gray-500 hover:text-gray-700 underline — "Cancel"
+    Keep member: text-xs text-gray-500 hover:text-gray-700 underline — "Keep member"
     Confirm: px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 — "Remove"
 ```
 
@@ -204,14 +210,14 @@ Card: w-full max-w-md bg-white rounded-lg shadow-md p-8
 States:
   Loading: text-sm text-gray-500 text-center — "Verifying your invitation..."
   Success:
-    Heading: text-2xl font-bold text-gray-900 mb-2 — "You're in."
+    Heading: text-2xl font-semibold text-gray-900 mb-2 — "You're in."
     Body: text-sm text-gray-600 mb-6 — "{ProposalTitle} has been added to your proposals."
     CTA: full-width bg-blue-700 button — "Go to Proposal"
   Expired/invalid:
-    Heading: text-2xl font-bold text-gray-900 mb-2 — "Invitation expired"
+    Heading: text-2xl font-semibold text-gray-900 mb-2 — "Invitation expired"
     Body: text-sm text-gray-600 mb-6 — see Copywriting Contract
   Already-a-member:
-    Heading: text-2xl font-bold text-gray-900 mb-2 — "Already joined"
+    Heading: text-2xl font-semibold text-gray-900 mb-2 — "Already joined"
     Body: text-sm text-gray-600 mb-6 — "You already have access to this proposal."
     CTA: full-width bg-blue-700 button — "Go to Proposal"
 ```
@@ -220,7 +226,7 @@ States:
 
 ```
 Layout: same card shell as InviteAcceptPage
-  Heading: text-2xl font-bold text-gray-900 mb-2 — "Invitation declined"
+  Heading: text-2xl font-semibold text-gray-900 mb-2 — "Invitation declined"
   Body: text-sm text-gray-600 mb-6 — see Copywriting Contract
   CTA: none — single Link text-sm text-blue-600 — "Sign in to your account"
 ```
@@ -250,7 +256,7 @@ Layout: same card shell as InviteAcceptPage
 | Change role link | Change role |
 | Remove member icon aria-label | Remove {email} |
 | Remove confirmation prompt | Remove {email}? |
-| Remove confirmation — cancel | Cancel |
+| Remove confirmation — cancel | Keep member |
 | Remove confirmation — confirm | Remove |
 | Accept page — loading | Verifying your invitation... |
 | Accept page — success heading | You're in. |
@@ -303,8 +309,8 @@ The Share button is added to the existing `flex items-start justify-between mb-6
 ### Remove member flow
 
 1. Owner clicks trash/× icon on a member row
-2. Remove icon replaced inline with "Remove {email}? Cancel | Remove"
-3. "Cancel" restores the row to normal state
+2. Remove icon replaced inline with "Remove {email}? Keep member | Remove"
+3. "Keep member" restores the row to normal state
 4. "Remove" button: triggers DELETE, row is removed from list on success, seat count decrements
 
 ### Viewer restriction enforcement (client side)
@@ -352,7 +358,7 @@ Phase 7 adds no top-level nav or sidebar items. Team management is entirely cont
 Invites that have been sent but not yet accepted appear in the MemberList with:
 - Avatar: initials circle with `bg-yellow-50 text-yellow-700` (pending state color signal)
 - Email: text-sm text-gray-500 italic (pending — not yet a confirmed member)
-- Role badge: `bg-yellow-50 text-yellow-700 text-xs font-medium px-2 py-1 rounded-full` — "Invited"
+- Role badge: `bg-yellow-50 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full` — "Invited"
 - No change-role or remove actions for pending invites (owner cannot change role until accepted)
 - Exception: owner can cancel a pending invite — trash icon shows, inline confirmation reads "Cancel invite to {email}?"
 
