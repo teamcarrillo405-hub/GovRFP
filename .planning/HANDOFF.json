@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-26T01:15:45.904Z",
+  "phase": "7",
+  "phase_name": "team-accounts-rbac",
+  "phase_dir": ".planning/phases/07-team-accounts-rbac",
+  "plan": 3,
+  "task": 1,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": "07-01", "name": "DB migration + test stubs (Wave 0)", "status": "done", "commit": "d21114c"},
+    {"id": "07-02", "name": "requireProposalRole() + all API routes (Wave 1)", "status": "done", "commit": "14b6fff"}
+  ],
+  "remaining_tasks": [
+    {"id": "07-03", "name": "Share UI components + fix hardcoded user_id filters (Wave 2)", "status": "in_progress_background", "progress": "Background agent exec-07-03 was spawned — may or may not have committed before shutdown"},
+    {"id": "07-04", "name": "Invite accept/decline pages + dashboard updates (Wave 2)", "status": "in_progress_background", "progress": "Background agent exec-07-04 was spawned — may or may not have committed before shutdown"},
+    {"id": "07-05", "name": "Manual verification checkpoint (Wave 3)", "status": "not_started", "note": "autonomous: false — requires user approval checklist"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {"action": "Check if Wave 2 worktree branches have commits after last session shutdown", "context": "Two background agents were running when computer was shut down. Need to check git branch -a and see if worktree-agent branches have new commits to merge.", "blocking": true}
+  ],
+  "decisions": [
+    {"decision": "team_id nullable FK on proposals (D-01)", "rationale": "Solo proposals unaffected; team access via dual RLS", "phase": "7"},
+    {"decision": "Supabase inviteUserByEmail for invite delivery (D-08)", "rationale": "Zero-config, no new email service", "phase": "7"},
+    {"decision": "DB-only seat count — no Stripe sync in v2 (D-12)", "rationale": "Per-seat Stripe billing deferred to v3", "phase": "7"},
+    {"decision": "requireProposalRole mirrors subscription-check.ts pattern (D-14)", "rationale": "Consistent async typed result pattern", "phase": "7"},
+    {"decision": "Components in src/components/team/ (not teams/)", "rationale": "Singular per project convention", "phase": "7"}
+  ],
+  "uncommitted_files": [
+    "src/app/(dashboard)/proposals/[id]/page.tsx",
+    "src/app/api/proposals/[id]/sections/route.ts"
+  ],
+  "next_action": "Run: git branch -a | grep worktree — check if exec-07-03 and exec-07-04 worktrees have commits. If yes, merge them. If no, re-run /gsd:execute-phase 7 --wave 2",
+  "context_notes": "Wave 2 had two parallel agents running when session ended. Plans 07-03 (UI components) and 07-04 (invite pages + dashboard) may be done, partially done, or not done. Check worktree branches first before re-executing."
+}
