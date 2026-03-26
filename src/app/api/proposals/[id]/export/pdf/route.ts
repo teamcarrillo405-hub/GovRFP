@@ -42,7 +42,7 @@ export async function POST(
   const title = proposal?.title ?? 'proposal'
   const safeFilename = title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase() || 'proposal'
 
-  return new Response(buffer, {
+  return new Response(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${safeFilename}.pdf"`,

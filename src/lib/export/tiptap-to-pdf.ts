@@ -15,7 +15,8 @@ const styles = StyleSheet.create({
   tableHeaderCell: { flex: 1, padding: 4, borderRight: '1px solid #cccccc', fontWeight: 'bold' as const },
 })
 
-function textStyle(marks: Array<{ type: string }> | undefined): Record<string, unknown> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function textStyle(marks: Array<{ type: string }> | undefined): any {
   if (!marks || marks.length === 0) return {}
   const style: Record<string, unknown> = {}
   for (const mark of marks) {
