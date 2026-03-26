@@ -37,7 +37,8 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/account') ||
     request.nextUrl.pathname.startsWith('/api/proposals') ||
     request.nextUrl.pathname.startsWith('/api/generate') ||
-    request.nextUrl.pathname.startsWith('/api/billing')
+    request.nextUrl.pathname.startsWith('/api/billing') ||
+    request.nextUrl.pathname.startsWith('/api/teams')
 
   // Redirect unauthenticated users to login
   if (!user && isProtected) {
