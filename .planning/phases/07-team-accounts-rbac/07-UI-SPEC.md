@@ -71,6 +71,7 @@ Exactly 2 weights across all Phase 7 surfaces: 400 (normal) for body and labels,
 | Secondary (30%) | `bg-gray-100` / `border-gray-200` | #F3F4F6 / #E5E7EB | Member list row hover, input borders, dividers, role select |
 | Accent (10%) | `bg-blue-700` / `text-blue-700` | #1D4ED8 | Primary CTA only: "Send Invite" button, "Share" button in proposal header, focus ring (`ring-blue-500`) |
 | Destructive | `bg-red-600` / `text-red-700` | #DC2626 / #B91C1C | Remove member action and its confirmation only |
+| Status — shared | `bg-purple-50` / `text-purple-700` | #FAF5FF / #6D28D9 | Dashboard proposal status badge — team-owned proposals |
 
 Accent reserved for:
 1. "Share" button in proposal page header/toolbar
@@ -84,6 +85,7 @@ Secondary semantic colors (non-accent, non-destructive):
 - `editor` role badge: `bg-blue-50 text-blue-700` (accent-derived — edit capability)
 - Pending invite badge: `bg-yellow-50 text-yellow-700` (awaiting action state)
 - Declined invite badge: `bg-red-50 text-red-700` (terminal error state)
+- Dashboard "Shared" badge: `bg-purple-50 text-purple-700` (team-owned proposal, distinct from solo status badges)
 
 ---
 
@@ -118,7 +120,7 @@ Shell: fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-16
 Panel: bg-white rounded-lg w-full max-w-lg mx-4 shadow-xl
 Header: px-6 pt-6 pb-4 border-b border-gray-200
   - Title: text-base font-semibold text-gray-900 — "Share Proposal"
-  - Close button: top-right, p-1.5 rounded hover:bg-gray-100, aria-label="Close panel"
+  - Close button: top-right, p-2 rounded hover:bg-gray-100, aria-label="Close panel"
     SVG: 16×16 ×-mark, stroke currentColor strokeWidth 2
 Body: px-6 py-4 space-y-6
   - Section 1: "Invite teammate" — invite form (email + role select + send button)
@@ -198,7 +200,7 @@ Pattern: same inline-replace pattern keeps context clear
   flex items-center gap-2
     Text: text-xs text-gray-700 — "Remove {first name / email}?"
     Keep member: text-xs text-gray-500 hover:text-gray-700 underline — "Keep member"
-    Confirm: px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 — "Remove"
+    Confirm: px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 — "Remove member"
 ```
 
 ### InviteAcceptPage (new route — /invite/accept)
@@ -257,7 +259,7 @@ Layout: same card shell as InviteAcceptPage
 | Remove member icon aria-label | Remove {email} |
 | Remove confirmation prompt | Remove {email}? |
 | Remove confirmation — cancel | Keep member |
-| Remove confirmation — confirm | Remove |
+| Remove confirmation — confirm | Remove member |
 | Accept page — loading | Verifying your invitation... |
 | Accept page — success heading | You're in. |
 | Accept page — success body | {ProposalTitle} has been added to your proposals. |
@@ -309,9 +311,9 @@ The Share button is added to the existing `flex items-start justify-between mb-6
 ### Remove member flow
 
 1. Owner clicks trash/× icon on a member row
-2. Remove icon replaced inline with "Remove {email}? Keep member | Remove"
+2. Remove icon replaced inline with "Remove {email}? Keep member | Remove member"
 3. "Keep member" restores the row to normal state
-4. "Remove" button: triggers DELETE, row is removed from list on success, seat count decrements
+4. "Remove member" button: triggers DELETE, row is removed from list on success, seat count decrements
 
 ### Viewer restriction enforcement (client side)
 
