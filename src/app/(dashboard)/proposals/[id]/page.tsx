@@ -1,6 +1,8 @@
 import { redirect, notFound } from 'next/navigation'
 import { getUser, createClient } from '@/lib/supabase/server'
+import { requireProposalRole } from '@/lib/auth/proposal-role'
 import ProcessingStatus from '@/components/documents/ProcessingStatus'
+import ShareButton from '@/components/team/ShareButton'
 import Link from 'next/link'
 
 interface Props {
@@ -12,14 +14,17 @@ export default async function ProposalDetailPage({ params }: Props) {
   const user = await getUser()
   if (!user) redirect('/login')
 
+  // requireProposalRole handles access control — returns null if no access
+  const roleResult = await requireProposalRole(id, 'viewer')
+  if (!roleResult) notFound()
+
   const supabase = await createClient()
 
-  // Load proposal — RLS enforces user_id, but explicit eq for clarity
+  // Load proposal — RLS dual-policy handles access (solo or team member)
   const { data: proposal, error } = await supabase
     .from('proposals')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !proposal) {
@@ -55,6 +60,11 @@ export default async function ProposalDetailPage({ params }: Props) {
             <p className="text-sm text-gray-500 mt-1">{proposal.file_name}</p>
           )}
         </div>
+        <ShareButton
+          proposalId={id}
+          teamId={proposal.team_id ?? null}
+          userRole={roleResult.role === 'none' ? 'viewer' : roleResult.role}
+        />
       </div>
 
       {/* Processing status — shown when document is being processed */}

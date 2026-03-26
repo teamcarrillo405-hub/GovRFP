@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireProposalRole } from '@/lib/auth/proposal-role'
 
 export async function GET(
   _request: Request,
@@ -10,11 +11,14 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // requireProposalRole enforces viewer-minimum access — covers solo owner and team members
+  const roleResult = await requireProposalRole(proposalId, 'viewer')
+  if (!roleResult) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { data, error } = await supabase
     .from('proposal_sections')
     .select('*')
     .eq('proposal_id', proposalId)
-    .eq('user_id', user.id)
     .order('section_name', { ascending: true })
 
   if (error) {
@@ -33,6 +37,10 @@ export async function PATCH(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // requireProposalRole enforces editor-minimum access — viewers cannot write
+  const roleResult = await requireProposalRole(proposalId, 'editor')
+  if (!roleResult) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const body = await request.json()
   const { section_name, content, draft_status } = body
 
@@ -40,7 +48,7 @@ export async function PATCH(
     .from('proposal_sections')
     .upsert({
       proposal_id: proposalId,
-      user_id: user.id,
+      user_id: user.id, // tracks last editor — required NOT NULL column
       section_name,
       content,
       draft_status,
