@@ -32,6 +32,6 @@
     "src/app/(dashboard)/proposals/[id]/page.tsx",
     "src/app/api/proposals/[id]/sections/route.ts"
   ],
-  "next_action": "Run: git branch -a | grep worktree — check if exec-07-03 and exec-07-04 worktrees have commits. If yes, merge them. If no, re-run /gsd:execute-phase 7 --wave 2",
-  "context_notes": "Wave 2 had two parallel agents running when session ended. Plans 07-03 (UI components) and 07-04 (invite pages + dashboard) may be done, partially done, or not done. Check worktree branches first before re-executing."
+  "next_action": "Resume with /gsd:resume-work, then re-run /gsd:execute-phase 7 --wave 2 to finish remaining Wave 2 files (ShareButton, SharePanel, InviteForm, dashboard updates, sections route fix)",
+  "context_notes": "Wave 2 partially completed before shutdown. invite/accept, invite/decline, MemberList, RemoveMemberConfirmation, RoleChangeDropdown exist but are uncommitted. Still missing: ShareButton, SharePanel, InviteForm, and 3 file updates (proposals page, sections route, dashboard). Re-running wave 2 agents will complete the missing pieces without overwriting what already exists."
 }
