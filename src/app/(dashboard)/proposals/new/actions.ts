@@ -1,10 +1,12 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { z } from 'zod'
 import { getUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
+import { govRfpHandoffSchema, type GovRfpHandoffInput } from '@/lib/bridge/govrfp-handoff'
+
+export type { GovRfpHandoffInput }
 
 /**
  * GovRFP → ProposalAI bridge.
@@ -16,23 +18,10 @@ import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscript
  *
  * The user must still upload the full RFP PDF later for OCR-based scope
  * extraction — GovRFP only ships a summary description, not the full SoW.
+ *
+ * Schema lives in @/lib/bridge/govrfp-handoff so the URL parser in
+ * page.tsx and this server action share the exact same validation rules.
  */
-
-const govRfpSchema = z.object({
-  govrfp_id: z.string().uuid().optional(),
-  solicitation: z.string().max(200).optional(),
-  title: z.string().min(1).max(200),
-  agency: z.string().max(200).optional(),
-  naics: z.string().regex(/^\d{6}$/).optional(),
-  set_aside: z.string().max(50).optional(),
-  deadline: z.string().optional(),
-  pop_state: z.string().length(2).optional(),
-  source_url: z.string().url().optional(),
-  scope: z.string().max(2000).optional(),
-})
-
-export type GovRfpHandoffInput = z.infer<typeof govRfpSchema>
-
 export async function createProposalFromGovRfp(input: GovRfpHandoffInput) {
   const user = await getUser()
   if (!user) redirect('/login')
@@ -42,7 +31,7 @@ export async function createProposalFromGovRfp(input: GovRfpHandoffInput) {
     redirect('/account?reason=subscription-required')
   }
 
-  const parsed = govRfpSchema.safeParse(input)
+  const parsed = govRfpHandoffSchema.safeParse(input)
   if (!parsed.success) {
     throw new Error(`Invalid GovRFP handoff payload: ${parsed.error.issues[0]?.message}`)
   }

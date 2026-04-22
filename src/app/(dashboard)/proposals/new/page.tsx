@@ -4,43 +4,12 @@ import { getUser } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import FileUpload from '@/components/documents/FileUpload'
 import { GovRfpHandoffPanel } from '@/components/proposals/GovRfpHandoffPanel'
-import type { GovRfpHandoffInput } from '@/app/(dashboard)/proposals/new/actions'
-
-interface SearchParams {
-  source?: string
-  govrfp_id?: string
-  solicitation?: string
-  title?: string
-  agency?: string
-  naics?: string
-  set_aside?: string
-  deadline?: string
-  pop_state?: string
-  source_url?: string
-  scope?: string
-}
-
-function parseGovRfpHandoff(params: SearchParams): GovRfpHandoffInput | null {
-  if (params.source !== 'govrfp' || !params.title) return null
-  return {
-    govrfp_id: params.govrfp_id,
-    solicitation: params.solicitation,
-    title: params.title,
-    agency: params.agency,
-    naics: params.naics?.match(/^\d{6}$/) ? params.naics : undefined,
-    set_aside: params.set_aside,
-    deadline: params.deadline,
-    pop_state: params.pop_state?.length === 2 ? params.pop_state : undefined,
-    source_url:
-      params.source_url && /^https?:\/\//.test(params.source_url) ? params.source_url : undefined,
-    scope: params.scope,
-  }
-}
+import { parseGovRfpHandoff, type RawGovRfpSearchParams } from '@/lib/bridge/govrfp-handoff'
 
 export default async function NewProposalPage({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams>
+  searchParams: Promise<RawGovRfpSearchParams>
 }) {
   const user = await getUser()
   if (!user) redirect('/login')
