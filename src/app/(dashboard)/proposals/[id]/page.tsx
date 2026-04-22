@@ -4,6 +4,10 @@ import { requireProposalRole } from '@/lib/auth/proposal-role'
 import ProcessingStatus from '@/components/documents/ProcessingStatus'
 import ShareButton from '@/components/team/ShareButton'
 import Link from 'next/link'
+import {
+  buildGovRfpOpportunityUrl,
+  extractGovRfpSource,
+} from '@/lib/bridge/govrfp-source'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -40,6 +44,15 @@ export default async function ProposalDetailPage({ params }: Props) {
     .limit(1)
     .single()
 
+  // GovRFP return-trip: if this proposal was created via the Send-to-ProposalAI
+  // handoff, surface a back-link to the source opportunity on GovRFP.
+  const { data: analysis } = await supabase
+    .from('rfp_analysis')
+    .select('win_factors')
+    .eq('proposal_id', id)
+    .maybeSingle()
+  const govRfpSource = extractGovRfpSource(analysis?.win_factors)
+
   const isProcessing = proposal.status === 'processing'
   const isReady = proposal.status === 'ready'
   const isAnalyzed = proposal.status === 'analyzed'
@@ -66,6 +79,38 @@ export default async function ProposalDetailPage({ params }: Props) {
           userRole={roleResult.role === 'none' ? 'viewer' : roleResult.role}
         />
       </div>
+
+      {/* GovRFP return-trip: back-link to source opportunity */}
+      {govRfpSource && (
+        <div
+          className="mb-6 flex flex-wrap items-center justify-between gap-2 rounded-md border px-4 py-3"
+          style={{ borderColor: '#F5C518', backgroundColor: '#FFFBEB' }}
+        >
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <span
+              className="inline-flex w-5 h-5 items-center justify-center rounded-full text-xs font-bold"
+              style={{ backgroundColor: '#F5C518', color: '#111111' }}
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+            <span>
+              Opened from <strong>GovRFP</strong>
+            </span>
+          </div>
+          <a
+            href={buildGovRfpOpportunityUrl(
+              govRfpSource.opportunityId,
+              process.env.NEXT_PUBLIC_GOVRFP_URL,
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-semibold text-yellow-800 hover:text-yellow-900 underline"
+          >
+            View source opportunity →
+          </a>
+        </div>
+      )}
 
       {/* Processing status — shown when document is being processed */}
       {isProcessing && job && (
