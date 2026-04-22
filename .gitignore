@@ -40,3 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright — auth state files contain session JWTs, never commit
+/playwright-report
+/test-results
+/tests/.auth
+/playwright/.cache
+
+# supabase local CLI state
+/supabase/.temp
+/supabase/.branches
+
+# claude code agent worktrees (each is its own embedded git repo)
+/.claude/worktrees
