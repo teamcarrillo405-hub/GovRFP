@@ -13,6 +13,8 @@ import EditorToolbar from './EditorToolbar'
 import CompliancePanel from './CompliancePanel'
 import RegenerateDialog from './RegenerateDialog'
 import RfpStructureSidebar from './RfpStructureSidebar'
+import { PastPerformancePanel } from './PastPerformancePanel'
+import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
 
 interface SectionState {
   content: JSONContent | null
@@ -168,6 +170,18 @@ export default function ProposalEditor({
       }
       return next
     })
+  }, [])
+
+  // Insert a tailored Past Performance narrative (Markdown) at the end of
+  // the current section's editor content. The PastPerformancePanel hits
+  // /api/past-performance/tailor (Claude streamed) and calls back with the
+  // full Markdown when the stream completes.
+  const handleInsertPpNarrative = useCallback((markdown: string) => {
+    const editor = editorRef.current?.editor
+    if (!editor) return
+    const html = markdownToBasicHtml(markdown)
+    editor.chain().focus('end').insertContent(html).run()
+    isDirtyRef.current = true
   }, [])
 
   // Click-to-scroll: find matching heading in editor and scroll to it
@@ -458,6 +472,19 @@ export default function ProposalEditor({
         coverage={currentCoverage}
         sectionName={activeSection}
       />
+
+      {/* Past Performance panel — ranks PP records vs current RFP, drafts tailored narratives */}
+      <aside className="w-80 shrink-0 flex flex-col border-l border-gray-200 bg-gray-50">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <span className="text-sm font-semibold text-gray-700">Past Performance</span>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <PastPerformancePanel
+            proposalId={proposalId}
+            onInsertNarrative={handleInsertPpNarrative}
+          />
+        </div>
+      </aside>
 
       {/* Regenerate dialog */}
       <RegenerateDialog
