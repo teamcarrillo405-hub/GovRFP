@@ -151,6 +151,10 @@ export async function buildPdfBuffer(
     }
   }
 
+  if (allElements.length === 0) {
+    allElements.push(React.createElement(Text, null, 'No content available'))
+  }
+
   const doc = React.createElement(
     Document,
     null,

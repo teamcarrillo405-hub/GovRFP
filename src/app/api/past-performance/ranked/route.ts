@@ -24,17 +24,28 @@ export async function GET(request: Request) {
   const limit = Math.min(20, Math.max(1, Number(searchParams.get('limit') ?? '5')))
 
   // Load analysis for ranking signals
-  const { data: analysis } = await supabase
+  const analysisRes = await supabase
     .from('rfp_analysis')
     .select('win_factors, set_asides_detected')
     .eq('proposal_id', proposalId)
     .single()
 
-  const { data: proposal } = await supabase
+  if (analysisRes.error || !analysisRes.data) {
+    return Response.json({ error: 'Analysis not found' }, { status: 404 })
+  }
+
+  const proposalRes = await supabase
     .from('proposals')
     .select('title, rfp_text')
     .eq('id', proposalId)
     .single()
+
+  if (proposalRes.error || !proposalRes.data) {
+    return Response.json({ error: 'Proposal not found' }, { status: 404 })
+  }
+
+  const analysis = analysisRes.data
+  const proposal = proposalRes.data
 
   // Load all PP records the user can see (RLS filters: solo + team)
   const { data: records, error: ppError } = await supabase
@@ -46,7 +57,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: ppError.message }, { status: 500 })
   }
 
-  const winFactors = (analysis?.win_factors ?? {}) as Record<string, unknown>
+  const winFactors = (analysis.win_factors ?? {}) as Record<string, unknown>
   const rfpNaics =
     typeof winFactors.naics === 'string'
       ? winFactors.naics
@@ -58,10 +69,10 @@ export async function GET(request: Request) {
 
   const rfpScopeText =
     [
-      proposal?.title ?? '',
+      proposal.title ?? '',
       typeof winFactors.scope_summary === 'string' ? winFactors.scope_summary : '',
       // Cap rfp_text contribution — keyword extraction works fine on the first ~5K chars
-      (proposal?.rfp_text ?? '').slice(0, 5000),
+      (proposal.rfp_text ?? '').slice(0, 5000),
     ]
       .filter(Boolean)
       .join(' ')
@@ -70,7 +81,7 @@ export async function GET(request: Request) {
     records ?? [],
     {
       rfpNaics,
-      rfpSetAsides: (analysis?.set_asides_detected ?? []) as string[],
+      rfpSetAsides: (analysis.set_asides_detected ?? []) as string[],
       rfpValueUsd,
       rfpScopeText,
     },

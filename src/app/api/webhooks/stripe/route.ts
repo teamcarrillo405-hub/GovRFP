@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       break
     }
 
-    case 'invoice.paid': {
+    case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice
       const customerStripeId = invoice.customer as string
       const periodEnd = invoice.period_end

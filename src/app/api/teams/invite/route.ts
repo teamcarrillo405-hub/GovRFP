@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   let existingUser = false
   try {
     const { error: authError } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: process.env.NEXT_PUBLIC_SITE_URL + '/invite/accept',
+      redirectTo: process.env.NEXT_PUBLIC_URL + '/invite/accept',
       data: { team_id, role, invite_id: invite.id },
     })
 

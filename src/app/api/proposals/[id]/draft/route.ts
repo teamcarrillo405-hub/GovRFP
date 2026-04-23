@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
+import { requireProposalRole } from '@/lib/auth/proposal-role'
 import { SECTION_NAMES, type SectionName } from '@/lib/editor/types'
 import { buildScoringMatrix } from '@/lib/scoring/types'
 import { autoRedraft } from '@/lib/scoring/auto-redraft'
@@ -13,6 +14,9 @@ export async function POST(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
+
+  const roleResult = await requireProposalRole(proposalId, 'editor')
+  if (!roleResult) return new Response('Forbidden', { status: 403 })
 
   const subscription = await checkSubscription(user.id)
   if (!isSubscriptionActive(subscription.status)) {
@@ -31,14 +35,16 @@ export async function POST(
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('past_projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
     supabase.from('key_personnel').select('*').eq('user_id', user.id),
-    supabase.from('proposals').select('rfp_text').eq('id', proposalId).eq('user_id', user.id).single(),
+    supabase.from('proposals').select('rfp_text').eq('id', proposalId).single(),
     supabase.from('rfp_analysis').select('requirements, section_lm_crosswalk').eq('proposal_id', proposalId).single(),
   ])
 
   const profile = profileRes.data
   const pastProjects = pastProjectsRes.data ?? []
   const keyPersonnel = keyPersonnelRes.data ?? []
-  const rfpText = proposalRes.data?.rfp_text ?? ''
+  const proposal = proposalRes.data
+  if (!proposal) return new Response('Not found', { status: 404 })
+  const rfpText = proposal.rfp_text ?? ''
   const requirements = analysisRes.data?.requirements ?? []
   const crosswalk = analysisRes.data?.section_lm_crosswalk ?? []
 

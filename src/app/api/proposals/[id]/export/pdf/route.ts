@@ -1,4 +1,5 @@
 import { getUser, createClient } from '@/lib/supabase/server'
+import { requireProposalRole } from '@/lib/auth/proposal-role'
 import { buildPdfBuffer } from '@/lib/export/tiptap-to-pdf'
 import { stripComplianceMarks } from '@/lib/editor/compliance-gap-mark'
 
@@ -12,6 +13,10 @@ export async function POST(
   const user = await getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
 
+  // requireProposalRole covers solo owner and all team members at viewer+
+  const roleResult = await requireProposalRole(id, 'viewer')
+  if (!roleResult) return new Response('Forbidden', { status: 403 })
+
   const supabase = await createClient()
 
   // Load proposal title for filename
@@ -19,7 +24,6 @@ export async function POST(
     .from('proposals')
     .select('title')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   const { data: sections } = await supabase
@@ -36,7 +40,16 @@ export async function POST(
     content: s.content ? stripComplianceMarks(s.content) : null,
   }))
 
-  const buffer = await buildPdfBuffer(cleanSections)
+  let buffer: Buffer
+  try {
+    buffer = await buildPdfBuffer(cleanSections)
+  } catch (err) {
+    console.error('[pdf-export] buildPdfBuffer failed:', err)
+    return Response.json(
+      { error: 'Failed to generate PDF', detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    )
+  }
 
   // Sanitize title for filename
   const title = proposal?.title ?? 'proposal'

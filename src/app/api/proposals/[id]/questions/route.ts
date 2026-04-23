@@ -162,7 +162,7 @@ export async function PATCH(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await params
+  const { id: proposalId } = await params
   const supabase = await createClient()
   const {
     data: { user },
@@ -173,6 +173,25 @@ export async function PATCH(
   const itemId = body?.itemId as string | undefined
   const answer = body?.answer as string | undefined
   if (!itemId) return new Response('itemId required', { status: 400 })
+
+  // IDOR check: verify the item belongs to a session for this proposal
+  const { data: item } = await supabase
+    .from('question_session_items')
+    .select('session_id')
+    .eq('id', itemId)
+    .single()
+
+  if (!item) return new Response('Item not found', { status: 404 })
+
+  const { data: session } = await supabase
+    .from('question_sessions')
+    .select('proposal_id')
+    .eq('id', item.session_id)
+    .single()
+
+  if (!session || session.proposal_id !== proposalId) {
+    return new Response('Forbidden', { status: 403 })
+  }
 
   const update: Record<string, unknown> = { answer: answer ?? null }
   if (answer && answer.trim().length > 0) {
