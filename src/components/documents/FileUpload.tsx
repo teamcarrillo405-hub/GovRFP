@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 const ACCEPTED_TYPES = {
   'application/pdf': 'pdf',
@@ -101,11 +102,9 @@ export default function FileUpload() {
       // Step 3: Navigate to proposal detail page (shows processing status)
       router.push(`/proposals/${proposalId}`)
     } catch (err) {
-      setState({
-        status: 'error',
-        progress: 0,
-        error: err instanceof Error ? err.message : 'Upload failed',
-      })
+      const message = err instanceof Error ? err.message : 'Upload failed'
+      setState({ status: 'error', progress: 0, error: message })
+      toast.error('Upload failed', { description: message + ' — check the file and try again.' })
     }
   }, [router])
 

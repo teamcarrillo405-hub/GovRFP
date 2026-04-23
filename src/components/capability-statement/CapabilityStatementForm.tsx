@@ -12,6 +12,7 @@ import {
 } from '@/lib/capability-statement/types'
 import { SET_ASIDE_CODES } from '@/lib/past-performance/types'
 import { isRedirectError } from '@/lib/supabase/is-redirect-error'
+import { toast } from 'sonner'
 
 /**
  * Capability Statement editor — single record per team or solo user.
@@ -57,9 +58,12 @@ export function CapabilityStatementForm({ initial = {}, saved = false, onSubmit 
     startTransition(async () => {
       try {
         await onSubmit(data)
+        toast.success('Capability statement saved', { description: 'Your firm identity will be used in all proposal drafts.' })
       } catch (e) {
         if (isRedirectError(e)) throw e
-        setError(e instanceof Error ? e.message : 'Save failed')
+        const msg = e instanceof Error ? e.message : 'Save failed'
+        setError(msg)
+        toast.error('Failed to save', { description: msg })
       }
     })
   }

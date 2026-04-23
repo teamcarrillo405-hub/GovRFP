@@ -15,6 +15,7 @@ import RegenerateDialog from './RegenerateDialog'
 import RfpStructureSidebar from './RfpStructureSidebar'
 import { PastPerformancePanel } from './PastPerformancePanel'
 import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
+import { toast } from 'sonner'
 
 interface SectionState {
   content: JSONContent | null
@@ -327,10 +328,18 @@ export default function ProposalEditor({
 
       // The route already saved to DB; do a client-side refresh of section state
       await saveCurrentSection(section, 'draft')
+      if (finalContent) {
+        const score = watchdogScore
+        toast.success(
+          score?.passed ? `${section} approved (${score.score}/100)` : `${section} draft ready`,
+          { description: score?.passed ? 'Quality watchdog approved this draft.' : 'Best-effort draft after 3 attempts — review and edit as needed.' }
+        )
+      }
     } catch (err) {
       console.error('Generation error:', err)
       setSaveStatus('error')
       setWatchdogStatus('Generation failed — please retry')
+      toast.error('Draft generation failed', { description: 'Check your connection and try again.' })
     } finally {
       setIsStreaming(false)
       isStreamingRef.current = false
