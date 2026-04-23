@@ -1,8 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
-import { buildSectionPrompt } from '@/lib/editor/draft-prompts'
 import { SECTION_NAMES, type SectionName } from '@/lib/editor/types'
+import { buildScoringMatrix } from '@/lib/scoring/types'
+import { autoRedraft } from '@/lib/scoring/auto-redraft'
+import type { WatchdogEvent } from '@/lib/scoring/types'
 
 export async function POST(
   request: Request,
@@ -25,13 +26,13 @@ export async function POST(
   }
   const instruction = body.instruction as string | undefined
 
-  // Load profile, past projects, key personnel, proposal (rfp_text), analysis (requirements)
+  // Load all context in parallel
   const [profileRes, pastProjectsRes, keyPersonnelRes, proposalRes, analysisRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('past_projects').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
     supabase.from('key_personnel').select('*').eq('user_id', user.id),
     supabase.from('proposals').select('rfp_text').eq('id', proposalId).eq('user_id', user.id).single(),
-    supabase.from('rfp_analysis').select('requirements').eq('proposal_id', proposalId).single(),
+    supabase.from('rfp_analysis').select('requirements, section_lm_crosswalk').eq('proposal_id', proposalId).single(),
   ])
 
   const profile = profileRes.data
@@ -39,39 +40,77 @@ export async function POST(
   const keyPersonnel = keyPersonnelRes.data ?? []
   const rfpText = proposalRes.data?.rfp_text ?? ''
   const requirements = analysisRes.data?.requirements ?? []
+  const crosswalk = analysisRes.data?.section_lm_crosswalk ?? []
 
-  const systemPrompt = buildSectionPrompt(
-    section as SectionName, profile, pastProjects, keyPersonnel, rfpText, requirements, instruction
-  )
+  // Build scoring matrix from L/M crosswalk (or default criteria if not available)
+  const matrix = buildScoringMatrix(proposalId, crosswalk, requirements)
 
-  // Update draft_status to 'generating'
+  // Mark section as 'generating' while the watchdog loop runs
   await supabase.from('proposal_sections').upsert({
     proposal_id: proposalId,
     user_id: user.id,
     section_name: section,
     draft_status: 'generating',
+    scoring_status: 'pending',
   }, { onConflict: 'proposal_id,section_name' })
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-  const stream = await anthropic.messages.stream({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: `Draft the ${section} section now.` }],
-  })
-
   const encoder = new TextEncoder()
+
   const readable = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        if (
-          chunk.type === 'content_block_delta' &&
-          chunk.delta.type === 'text_delta'
-        ) {
-          const data = `data: ${JSON.stringify(chunk)}\n\n`
-          controller.enqueue(encoder.encode(data))
-        }
+      const emit = (event: WatchdogEvent | { type: string; [k: string]: unknown }) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
       }
+
+      try {
+        // Emit matrix source so client knows what scoring basis was used
+        emit({ type: 'watchdog_matrix', source: matrix.source, criteria_count: matrix.criteria.length })
+
+        for await (const event of autoRedraft({
+          section: section as SectionName,
+          proposalId,
+          profile,
+          pastProjects,
+          keyPersonnel,
+          rfpText,
+          requirements,
+          matrix,
+          instruction,
+          supabase,
+        })) {
+          emit(event)
+
+          // When scoring starts, update DB status
+          if (event.type === 'watchdog_status' && event.message.startsWith('Scoring')) {
+            await supabase.from('proposal_sections').upsert({
+              proposal_id: proposalId,
+              user_id: user.id,
+              section_name: section,
+              draft_status: 'scoring',
+              scoring_status: 'scoring',
+            }, { onConflict: 'proposal_id,section_name' })
+          }
+
+          // On approval or failure, save the final content
+          if (event.type === 'watchdog_approved' || event.type === 'watchdog_failed') {
+            const approved = event.type === 'watchdog_approved'
+            await supabase.from('proposal_sections').upsert({
+              proposal_id: proposalId,
+              user_id: user.id,
+              section_name: section,
+              content: event.content,
+              draft_status: 'draft',
+              scoring_status: approved ? 'approved' : 'failed',
+              score_value: approved ? event.score : (event as { last_score: number }).last_score,
+              score_pass: approved,
+              last_saved_at: new Date().toISOString(),
+            }, { onConflict: 'proposal_id,section_name' })
+          }
+        }
+      } catch (err) {
+        emit({ type: 'watchdog_error', message: err instanceof Error ? err.message : 'Unknown error' })
+      }
+
       controller.enqueue(encoder.encode('data: [DONE]\n\n'))
       controller.close()
     },

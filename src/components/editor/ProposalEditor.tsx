@@ -59,6 +59,8 @@ export default function ProposalEditor({
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamBuffer, setStreamBuffer] = useState('')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [watchdogStatus, setWatchdogStatus] = useState<string | null>(null)
+  const [watchdogScore, setWatchdogScore] = useState<{ score: number; passed: boolean; attempt: number } | null>(null)
   const [complianceCoverage, setComplianceCoverage] = useState<Map<SectionName, ComplianceCoverage>>(
     new Map()
   )
@@ -249,13 +251,15 @@ export default function ProposalEditor({
     return () => clearTimeout(timer)
   }, [detectActiveRfpSection, activeSection])
 
-  // Handle generate/stream
+  // Handle generate — runs Quality Watchdog loop (draft → score → redraft)
   const handleGenerate = async (section: SectionName, instruction?: string) => {
     if (isStreaming) return
 
     setIsStreaming(true)
     isStreamingRef.current = true
     setStreamBuffer('')
+    setWatchdogStatus('Starting quality watchdog...')
+    setWatchdogScore(null)
 
     try {
       const res = await fetch(`/api/proposals/${proposalId}/draft`, {
@@ -264,61 +268,56 @@ export default function ProposalEditor({
         body: JSON.stringify({ section, instruction }),
       })
 
-      if (!res.ok || !res.body) {
-        throw new Error('Generation failed')
-      }
+      if (!res.ok || !res.body) throw new Error('Generation failed')
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
-      let fullText = ''
       let done = false
+      let finalContent = ''
 
       while (!done) {
         const { value, done: readerDone } = await reader.read()
         done = readerDone
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true })
-          // Parse SSE lines
-          const lines = chunk.split('\n')
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
-            const data = line.slice(6).trim()
-            if (data === '[DONE]') continue
-            try {
-              const parsed = JSON.parse(data)
-              // Handle Anthropic SSE event types
-              if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-                fullText += parsed.delta.text
-                setStreamBuffer(fullText)
-              }
-            } catch {
-              // Ignore parse errors for non-JSON lines
+        if (!value) continue
+
+        const chunk = decoder.decode(value, { stream: true })
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') continue
+
+          try {
+            const evt = JSON.parse(data)
+            if (evt.type === 'watchdog_status') {
+              setWatchdogStatus(evt.message)
+            } else if (evt.type === 'watchdog_score') {
+              setWatchdogScore({ score: evt.score, passed: evt.passed, attempt: evt.attempt })
+              setWatchdogStatus(
+                evt.passed
+                  ? `Score ${evt.score}/100 — approved`
+                  : `Score ${evt.score}/100 — below threshold, redrafting...`
+              )
+            } else if (evt.type === 'watchdog_approved' || evt.type === 'watchdog_failed') {
+              finalContent = evt.content ?? ''
+              setWatchdogStatus(
+                evt.type === 'watchdog_approved'
+                  ? `Approved ${evt.score}/100 — writing to editor`
+                  : `Released best-effort draft (${evt.last_score}/100 after ${evt.attempts} attempts)`
+              )
             }
+          } catch {
+            // non-JSON line — skip
           }
         }
       }
 
-      // Buffer pattern: write to editor ONCE on completion (not per chunk)
+      // Write the approved (or best-effort) content to editor
       const editor = editorRef.current?.editor
-      if (editor && fullText) {
-        // Strip markdown code fences if Claude wrapped the output
-        let html = fullText.trim()
-        const fenceMatch = html.match(/^```(?:html)?\s*([\s\S]*?)```\s*$/)
-        if (fenceMatch) {
-          html = fenceMatch[1].trim()
-        }
-        // If it doesn't look like HTML, convert plain text to paragraphs
-        if (!html.startsWith('<')) {
-          html = html
-            .split(/\n\n+/)
-            .map((para) => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-            .join('')
-        }
-        editor.commands.setContent(html)
+      if (editor && finalContent) {
+        editor.commands.setContent(finalContent)
         isDirtyRef.current = true
       }
 
-      // Mark section as draft and save
       setSections((prev) => {
         const next = new Map(prev)
         const existing = next.get(section) ?? { content: null, draftStatus: 'empty', lastSavedAt: null }
@@ -326,11 +325,12 @@ export default function ProposalEditor({
         return next
       })
 
-      // Auto-save immediately after generation
+      // The route already saved to DB; do a client-side refresh of section state
       await saveCurrentSection(section, 'draft')
     } catch (err) {
       console.error('Generation error:', err)
       setSaveStatus('error')
+      setWatchdogStatus('Generation failed — please retry')
     } finally {
       setIsStreaming(false)
       isStreamingRef.current = false
@@ -407,6 +407,29 @@ export default function ProposalEditor({
           </div>
         )}
 
+        {/* Quality Watchdog status bar */}
+        {isStreaming && watchdogStatus && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
+            <svg className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
+            <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
+            {watchdogScore && (
+              <span
+                className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${
+                  watchdogScore.passed
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {watchdogScore.score}/100
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Generate bar */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md">
           {/* Auto-save indicator */}
@@ -438,7 +461,7 @@ export default function ProposalEditor({
             {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
               <span className="text-xs text-gray-400">Saved at {currentSectionState.lastSavedAt}</span>
             )}
-            {isStreaming && (
+            {isStreaming && !watchdogStatus && (
               <span className="text-xs text-blue-600">Generating...</span>
             )}
           </div>

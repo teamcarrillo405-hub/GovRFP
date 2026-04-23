@@ -10,7 +10,7 @@ export const SECTION_NAMES = [
 
 export type SectionName = typeof SECTION_NAMES[number]
 
-export type DraftStatus = 'empty' | 'generating' | 'draft' | 'edited'
+export type DraftStatus = 'empty' | 'generating' | 'scoring' | 'draft' | 'edited'
 
 export interface ProposalSection {
   id: string
