@@ -5,7 +5,9 @@ import ComplianceMatrix from '@/components/analysis/ComplianceMatrix'
 import WinScoreCard from '@/components/analysis/WinScoreCard'
 import SetAsideFlags from '@/components/analysis/SetAsideFlags'
 import SectionLMCrosswalk from '@/components/analysis/SectionLMCrosswalk'
+import SizeEligibilityCard from '@/components/sba/SizeEligibilityCard'
 import type { RfpAnalysis } from '@/lib/analysis/types'
+import type { CapabilityStatementRow } from '@/lib/capability-statement/types'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -21,7 +23,7 @@ export default async function AnalysisPage({ params }: Props) {
   // Load proposal — RLS enforces user_id
   const { data: proposal } = await supabase
     .from('proposals')
-    .select('title, status')
+    .select('title, status, team_id')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -42,6 +44,22 @@ export default async function AnalysisPage({ params }: Props) {
   }
 
   const rfpAnalysis = analysis as unknown as RfpAnalysis
+
+  // Load capability statement — team-scoped when available, else solo user row.
+  // RLS on capability_statements handles access control; we just pick the right filter.
+  const capQuery = supabase
+    .from('capability_statements')
+    .select('*')
+
+  const teamId = (proposal as { team_id?: string | null }).team_id
+  if (teamId) {
+    capQuery.eq('team_id', teamId)
+  } else {
+    capQuery.eq('user_id', user.id).is('team_id', null)
+  }
+
+  const { data: capRow } = await capQuery.maybeSingle()
+  const capabilityStatement = capRow as CapabilityStatementRow | null
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -65,13 +83,23 @@ export default async function AnalysisPage({ params }: Props) {
       </p>
 
       <div className="space-y-8">
-        {/* Win Score */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Win Probability</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <WinScoreCard winScore={rfpAnalysis.win_score} winFactors={rfpAnalysis.win_factors} />
-          </div>
-        </section>
+        {/* Win Score + SBA Size Eligibility — side by side on large screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Win Probability</h2>
+            <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <WinScoreCard winScore={rfpAnalysis.win_score} winFactors={rfpAnalysis.win_factors} />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Size Eligibility</h2>
+            <SizeEligibilityCard
+              analysis={rfpAnalysis}
+              capabilityStatement={capabilityStatement}
+            />
+          </section>
+        </div>
 
         {/* Set-Aside Flags */}
         <section>
