@@ -357,7 +357,7 @@ export default function ProposalEditor({
   const editor = editorRef.current?.editor
 
   return (
-    <div className="flex gap-0">
+    <div className="flex flex-col lg:flex-row gap-0 overflow-x-hidden">
       <RfpStructureSidebar
         rfpStructure={rfpStructure}
         activeRfpSection={activeRfpSection}

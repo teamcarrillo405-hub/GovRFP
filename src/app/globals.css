@@ -1,30 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+/* ─── HCC Brand Token System ─── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --hcc-yellow: #FDFF66;
+  --hcc-orange: #ff7b20;
+  --hcc-stone:  #EDF1F4;
+  --hcc-dark:   #000000;
+  --hcc-card:   #FFFFFF;
+  --hcc-border: #E5E7EB;
+  --hcc-white:  #FFFFFF;
+  --hcc-black:  #000000;
+
+  /* Page base */
+  --background: #FFFFFF;
+  --foreground: #111111;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:  var(--background);
+  --color-foreground:  var(--foreground);
+
+  /* HCC palette exposed to Tailwind v4 @theme */
+  --color-hcc-yellow: #FDFF66;
+  --color-hcc-orange: #ff7b20;
+  --color-hcc-stone:  #EDF1F4;
+  --color-hcc-dark:   #000000;
+  --color-hcc-card:   #FFFFFF;
+  --color-hcc-border: #E5E7EB;
+  --color-hcc-white:  #FFFFFF;
+  --color-hcc-black:  #000000;
+
+  /* Font: Inter only */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Inter', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base: white body, black header chrome ─── */
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #FFFFFF;
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #FFFFFF;
+  color: #111111;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
 }
 
+/* ─── Utility helpers ─── */
 .scrollbar-none {
   scrollbar-width: none;
 }
