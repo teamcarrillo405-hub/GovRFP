@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import type { JSONContent } from '@tiptap/react'
 import type { ProposalSection, SectionName, ComplianceCoverage } from '@/lib/editor/types'
 import { SECTION_NAMES } from '@/lib/editor/types'
@@ -15,12 +15,28 @@ import RegenerateDialog from './RegenerateDialog'
 import RfpStructureSidebar from './RfpStructureSidebar'
 import { PastPerformancePanel } from './PastPerformancePanel'
 import ScoringRubricPanel from './ScoringRubricPanel'
+import GrammarPanel from './GrammarPanel'
+import WinThemesPanel from './WinThemesPanel'
+import PageLimitsPanel from './PageLimitsPanel'
+import ColorTeamPanel from './ColorTeamPanel'
+import ColorTeamBadge, { type ColorTeamStatus } from './ColorTeamBadge'
+import { CustomTemplateUpload } from './CustomTemplateUpload'
 import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
 import { toast } from 'sonner'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type ToolView = 'rfp-structure' | 'compliance' | 'past-performance' | 'scoring'
+type ToolView =
+  | 'rfp-structure'
+  | 'compliance'
+  | 'past-performance'
+  | 'scoring'
+  | 'grammar'
+  | 'win-themes'
+  | 'page-limits'
+  | 'color-team'
+  | 'custom-template'
+
 type ActiveView = SectionName | ToolView
 
 interface SectionState {
@@ -106,6 +122,9 @@ export default function ProposalEditor({
   )
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false)
   const [activeRfpSection, setActiveRfpSection] = useState<string | null>(null)
+  const [colorTeamStatus, setColorTeamStatus] = useState<Record<string, ColorTeamStatus>>(
+    () => Object.fromEntries(SECTION_NAMES.map((n) => [n, 'white' as ColorTeamStatus]))
+  )
 
   // Refs for interval logic (avoid stale closures)
   const editorRef = useRef<SectionEditorHandle>(null)
@@ -128,10 +147,42 @@ export default function ProposalEditor({
     isStreamingRef.current = isStreaming
   }, [isStreaming])
 
+  // Fetch color team status on mount
+  useEffect(() => {
+    fetch(`/api/proposals/${proposalId}/sections/color-team`)
+      .then((r) => r.json())
+      .then((body: { sections?: Array<{ sectionName: string; status: ColorTeamStatus }> }) => {
+        const map: Record<string, ColorTeamStatus> = {}
+        for (const s of body.sections ?? []) {
+          map[s.sectionName] = s.status
+        }
+        setColorTeamStatus((prev) => ({ ...prev, ...map }))
+      })
+      .catch(() => {
+        // Non-fatal — badges will show 'white' as default
+      })
+  }, [proposalId])
+
   // The currently active SectionName (falls back to last known)
   const activeSection: SectionName = isSectionName(activeView)
     ? activeView
     : lastActiveSectionRef.current
+
+  // ── allSectionsText ───────────────────────────────────────────────────────
+
+  const allSectionsText = useMemo(() => {
+    const result: Record<string, string> = {}
+    for (const [name, state] of sections.entries()) {
+      result[name] = state.content ? extractPlainText(state.content) : ''
+    }
+    return result
+  }, [sections])
+
+  // ── Color team status handler ─────────────────────────────────────────────
+
+  const handleColorTeamChange = useCallback((sectionName: string, status: string) => {
+    setColorTeamStatus((prev) => ({ ...prev, [sectionName]: status as ColorTeamStatus }))
+  }, [])
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
@@ -433,6 +484,7 @@ export default function ProposalEditor({
           {SECTION_NAMES.map((section) => {
             const state = sections.get(section)
             const isActive = activeView === section
+            const ctStatus = colorTeamStatus[section] ?? 'white'
             return (
               <button
                 key={section}
@@ -446,7 +498,9 @@ export default function ProposalEditor({
                   className={`w-2 h-2 rounded-full shrink-0 ${sectionDotClass(state?.draftStatus ?? 'empty')}`}
                   aria-hidden="true"
                 />
-                <span className="truncate">{section}</span>
+                <span className="truncate flex-1">{section}</span>
+                {/* Color team badge */}
+                <ColorTeamBadge status={ctStatus} size="sm" />
               </button>
             )
           })}
@@ -458,10 +512,15 @@ export default function ProposalEditor({
 
           {(
             [
-              { id: 'rfp-structure', label: 'RFP Structure' },
-              { id: 'compliance', label: 'Compliance' },
+              { id: 'rfp-structure',   label: 'RFP Structure' },
+              { id: 'compliance',      label: 'Compliance' },
+              { id: 'scoring',         label: 'Scoring Rubric' },
+              { id: 'grammar',         label: 'Grammar & Style' },
+              { id: 'win-themes',      label: 'Win Themes' },
+              { id: 'page-limits',     label: 'Page Limits' },
+              { id: 'color-team',      label: 'Color Team' },
               { id: 'past-performance', label: 'Past Performance' },
-              { id: 'scoring', label: 'Scoring Rubric' },
+              { id: 'custom-template', label: 'Custom Template' },
             ] as { id: ToolView; label: string }[]
           ).map(({ id, label }) => {
             const isActive = activeView === id
@@ -629,46 +688,107 @@ export default function ProposalEditor({
 
         {/* TOOL VIEWS */}
         {isToolView && (
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-4xl mx-auto w-full px-8 py-8">
-
-              {activeView === 'rfp-structure' && (
-                <RfpStructureSidebar
-                  rfpStructure={rfpStructure}
-                  activeRfpSection={activeRfpSection}
-                  onSectionClick={handleRfpSectionClick}
-                />
-              )}
-
-              {activeView === 'compliance' && (
-                <CompliancePanel
-                  requirements={requirements}
-                  coverage={currentCoverage}
-                  sectionName={activeSection}
-                />
-              )}
-
-              {activeView === 'past-performance' && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                  <PastPerformancePanel
-                    proposalId={proposalId}
-                    onInsertNarrative={handleInsertPpNarrative}
+          <>
+            {activeView === 'rfp-structure' && (
+              <div className="flex-1 overflow-y-auto">
+                <div className="max-w-4xl mx-auto w-full px-8 py-8">
+                  <RfpStructureSidebar
+                    rfpStructure={rfpStructure}
+                    activeRfpSection={activeRfpSection}
+                    onSectionClick={handleRfpSectionClick}
                   />
                 </div>
-              )}
+              </div>
+            )}
 
-              {activeView === 'scoring' && (
+            {activeView === 'compliance' && (
+              <div className="flex-1 overflow-y-auto">
+                <div className="max-w-4xl mx-auto w-full px-8 py-8">
+                  <CompliancePanel
+                    requirements={requirements}
+                    coverage={currentCoverage}
+                    sectionName={activeSection}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeView === 'past-performance' && (
+              <div className="flex-1 overflow-y-auto">
+                <div className="max-w-4xl mx-auto w-full px-8 py-8">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <PastPerformancePanel
+                      proposalId={proposalId}
+                      onInsertNarrative={handleInsertPpNarrative}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeView === 'scoring' && (
+              <div className="flex-1 overflow-y-auto">
                 <ScoringRubricPanel
                   proposalId={proposalId}
                   sectionName={activeSection}
-                  plainText={extractPlainText(sections.get(activeSection)?.content ?? null)}
+                  plainText={allSectionsText[activeSection] ?? ''}
                   requirements={requirements}
                   complianceMatrix={complianceMatrix}
                 />
-              )}
+              </div>
+            )}
 
-            </div>
-          </div>
+            {activeView === 'grammar' && (
+              <div className="flex-1 overflow-y-auto">
+                <GrammarPanel
+                  plainText={allSectionsText[activeSection] ?? ''}
+                  sectionName={activeSection}
+                />
+              </div>
+            )}
+
+            {activeView === 'win-themes' && (
+              <div className="flex-1 overflow-y-auto">
+                <WinThemesPanel
+                  proposalId={proposalId}
+                  allSectionsText={allSectionsText}
+                />
+              </div>
+            )}
+
+            {activeView === 'page-limits' && (
+              <div className="flex-1 overflow-y-auto">
+                <PageLimitsPanel
+                  proposalId={proposalId}
+                  allSectionsText={allSectionsText}
+                />
+              </div>
+            )}
+
+            {activeView === 'color-team' && (
+              <div className="flex-1 overflow-y-auto">
+                <ColorTeamPanel
+                  proposalId={proposalId}
+                  onStatusChange={handleColorTeamChange}
+                />
+              </div>
+            )}
+
+            {activeView === 'custom-template' && (
+              <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Custom Template</h2>
+                <p className="text-sm text-gray-500 mb-6">
+                  Upload your agency&apos;s solicitation template to follow their exact section structure instead of the standard sections.
+                </p>
+                <CustomTemplateUpload
+                  proposalId={proposalId}
+                  onSectionsExtracted={(extractedSections) => {
+                    toast.success(`${extractedSections.length} sections extracted from template`)
+                  }}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
