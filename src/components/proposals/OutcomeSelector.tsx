@@ -54,7 +54,15 @@ export default function OutcomeSelector({
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  // ppRecordId tracks the linked Past Performance record for the *saved* outcome.
+  // It is only shown (and only meaningful) when the saved outcome is Won.
   const [ppRecordId, setPpRecordId] = useState<string | null>(initialPpRecordId)
+  // savedOutcome mirrors the last successfully persisted outcome so we can
+  // correctly gate PP callout visibility even if the user has changed the
+  // local selection without saving yet.
+  const [savedOutcome, setSavedOutcome] = useState<Outcome | null>(
+    (currentOutcome as Outcome) ?? null
+  )
 
   async function handleSave() {
     if (!selected) return
@@ -81,7 +89,20 @@ export default function OutcomeSelector({
       }
 
       const data = await res.json().catch(() => ({})) as { pp_record_id?: string | null }
-      if (data.pp_record_id) setPpRecordId(data.pp_record_id)
+
+      // Update saved outcome so callout visibility is based on what is
+      // actually persisted, not the local selection.
+      setSavedOutcome(selected)
+
+      if (selected === 'won') {
+        // Capture the returned PP record id (auto-created or existing).
+        setPpRecordId(data.pp_record_id ?? null)
+      } else {
+        // Changing away from Won: clear the local PP record ref so the
+        // callout disappears. The DB record still exists — this only
+        // hides the UI prompt for the new non-Won outcome.
+        setPpRecordId(null)
+      }
 
       setToast({ type: 'success', message: 'Outcome saved!' })
       setTimeout(() => setToast(null), 3000)
@@ -91,6 +112,9 @@ export default function OutcomeSelector({
       setSaving(false)
     }
   }
+
+  // The PP callout is relevant only when the saved outcome is Won.
+  const showPpCallout = savedOutcome === 'won'
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-4">
@@ -168,19 +192,37 @@ export default function OutcomeSelector({
         )}
       </div>
 
-      {ppRecordId && (
-        <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold text-green-800">Past Performance record created</p>
-            <p className="text-xs text-green-700 mt-0.5">Pre-filled from this proposal. Add your performance narrative.</p>
+      {/* PP callout — only when the *saved* outcome is Won */}
+      {showPpCallout && (
+        ppRecordId ? (
+          /* PP record already exists: show link to it */
+          <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-green-800">Past Performance record linked</p>
+              <p className="text-xs text-green-700 mt-0.5">Pre-filled from this proposal. Add your performance narrative.</p>
+            </div>
+            <Link
+              href={`/past-performance/${ppRecordId}`}
+              className="shrink-0 text-xs font-bold text-green-900 underline hover:no-underline"
+            >
+              View record →
+            </Link>
           </div>
-          <Link
-            href={`/past-performance/${ppRecordId}`}
-            className="shrink-0 text-xs font-bold text-green-900 underline hover:no-underline"
-          >
-            View record →
-          </Link>
-        </div>
+        ) : (
+          /* Won but no PP record yet — prompt to create one manually */
+          <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-green-800">Add this win to your Past Performance library</p>
+              <p className="text-xs text-green-700 mt-0.5">Document this contract for future RFP proposals.</p>
+            </div>
+            <Link
+              href={`/past-performance/new?from=proposal&proposalId=${proposalId}`}
+              className="shrink-0 text-xs font-bold text-green-900 underline hover:no-underline"
+            >
+              Create record →
+            </Link>
+          </div>
+        )
       )}
     </div>
   )
