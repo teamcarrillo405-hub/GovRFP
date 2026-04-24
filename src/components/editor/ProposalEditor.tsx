@@ -14,6 +14,7 @@ import CompliancePanel from './CompliancePanel'
 import RegenerateDialog from './RegenerateDialog'
 import RfpStructureSidebar from './RfpStructureSidebar'
 import { PastPerformancePanel } from './PastPerformancePanel'
+import ScoringRubricPanel from './ScoringRubricPanel'
 import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
 import { toast } from 'sonner'
 
@@ -56,6 +57,21 @@ function initSectionsMap(initialSections: ProposalSection[]): Map<SectionName, S
 
 function isSectionName(view: ActiveView): view is SectionName {
   return (SECTION_NAMES as readonly string[]).includes(view)
+}
+
+// Recursively extract plain text from TipTap JSONContent
+function extractPlainText(content: import('@tiptap/react').JSONContent | null): string {
+  if (!content) return ''
+  const parts: string[] = []
+  if (typeof content.text === 'string') {
+    parts.push(content.text)
+  }
+  if (Array.isArray(content.content)) {
+    for (const child of content.content) {
+      parts.push(extractPlainText(child))
+    }
+  }
+  return parts.join(' ')
 }
 
 // Status dot color per draft status
@@ -642,10 +658,13 @@ export default function ProposalEditor({
               )}
 
               {activeView === 'scoring' && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Scoring Rubric</h2>
-                  <p className="text-sm text-gray-500">Scoring rubric analysis coming soon.</p>
-                </div>
+                <ScoringRubricPanel
+                  proposalId={proposalId}
+                  sectionName={activeSection}
+                  plainText={extractPlainText(sections.get(activeSection)?.content ?? null)}
+                  requirements={requirements}
+                  complianceMatrix={complianceMatrix}
+                />
               )}
 
             </div>
