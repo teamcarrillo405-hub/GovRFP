@@ -6,11 +6,11 @@ import type { SectionName, ComplianceCoverage } from '@/lib/editor/types'
 // Mirror the TOPIC_TO_SECTIONS mapping from compliance-scanner.ts
 const TOPIC_TO_SECTIONS: Record<string, SectionName[]> = {
   'Technical': ['Executive Summary', 'Technical Approach'],
-  'Certifications': ['Executive Summary'],
-  'Management': ['Management Plan'],
-  'Past Performance': ['Past Performance'],
-  'Price': ['Price Narrative'],
-  'Deliverables': ['Technical Approach'],
+  'Certifications': ['Cover Letter', 'Executive Summary'],
+  'Management': ['Management Plan', 'Staffing Plan'],
+  'Past Performance': ['Executive Summary'],
+  'Price': ['Project Schedule'],
+  'Deliverables': ['Technical Approach', 'Project Schedule'],
   'Other': ['Executive Summary', 'Technical Approach'],
 }
 

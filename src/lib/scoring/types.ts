@@ -156,19 +156,22 @@ function groupRequirementsBySection(
   const SECTION_TOPIC_MAP: Record<string, SectionName> = {
     Technical: 'Technical Approach',
     Management: 'Management Plan',
-    'Past Performance': 'Past Performance',
-    Price: 'Price Narrative',
-    Certifications: 'Executive Summary',
+    'Past Performance': 'Executive Summary',
+    Price: 'Project Schedule',
+    Certifications: 'Cover Letter',
     Deliverables: 'Technical Approach',
     Other: 'Executive Summary',
   }
 
   const groups: Record<SectionName, AnalysisRequirement[]> = {
+    'Cover Letter': [],
     'Executive Summary': [],
     'Technical Approach': [],
     'Management Plan': [],
-    'Past Performance': [],
-    'Price Narrative': [],
+    'Staffing Plan': [],
+    'Quality Control Plan': [],
+    'Safety Plan': [],
+    'Project Schedule': [],
   }
 
   for (const req of requirements) {

@@ -130,35 +130,62 @@ Describe the organizational structure, lines of authority, and management approa
       break
     }
 
-    case 'Past Performance': {
-      const projectDetails = pastProjects
-        .slice(0, 5)
+    case 'Staffing Plan': {
+      const allPersonnel = keyPersonnel
         .map(
           (p) =>
-            `Agency: ${p.agency ?? 'N/A'}\nScope: ${(p.scope_narrative ?? '').slice(0, 300)}\nContract Value: ${p.contract_value != null ? `$${(p.contract_value / 100).toLocaleString()}` : 'N/A'}\nPeriod: ${p.period_start ?? 'N/A'} to ${p.period_end ?? 'N/A'}\nOutcome: ${p.outcome ?? 'N/A'}`
+            `Name: ${p.name ?? 'TBD'}\nTitle: ${p.title ?? 'Staff'}\nExperience: ${(p.experience ?? '').slice(0, 200)}`
         )
-        .join('\n\n---\n\n')
+        .join('\n\n')
 
-      sectionText = `Draft the Past Performance section for a government proposal.
+      sectionText = `Draft the Staffing Plan section for a government proposal.
 
 Company: ${companyName}
 
-Relevant Past Projects (limit 5):
-${projectDetails || 'No past projects provided.'}
+Key Personnel:
+${allPersonnel || 'No key personnel provided.'}
 
-Match these past projects to the RFP scope below to demonstrate relevance and experience.`
+Detail how the team will be staffed, including roles, qualifications, and availability to support the contract.`
       break
     }
 
-    case 'Price Narrative': {
-      sectionText = `Draft the Price Narrative section for a government proposal.
+    case 'Quality Control Plan': {
+      sectionText = `Draft the Quality Control Plan section for a government proposal.
 
 Company: ${companyName}
 Certifications: ${certifications.length > 0 ? certifications.join(', ') : 'None'}
 
-Discuss the approach to pricing, value proposition, and cost consciousness. Explain the basis for cost estimates, the team's ability to deliver on time and within budget, and the value delivered relative to cost.
+Describe the quality assurance and quality control processes, inspection procedures, corrective action processes, and how the company will ensure all deliverables meet contract requirements.`
+      break
+    }
 
-IMPORTANT: Do NOT include any specific dollar amounts, prices, or cost figures in this narrative. The actual pricing will be submitted in a separate price volume. Focus on pricing methodology, cost control approach, and value.`
+    case 'Safety Plan': {
+      sectionText = `Draft the Safety Plan section for a government proposal.
+
+Company: ${companyName}
+Certifications: ${certifications.length > 0 ? certifications.join(', ') : 'None'}
+
+Describe the health and safety program, hazard identification and mitigation procedures, incident reporting, and the company's commitment to maintaining a safe work environment.`
+      break
+    }
+
+    case 'Project Schedule': {
+      sectionText = `Draft the Project Schedule section for a government proposal.
+
+Company: ${companyName}
+
+Describe the proposed project schedule including major milestones, phased delivery approach, and how the team will ensure on-time delivery. Reference any key deliverables and schedule constraints from the RFP.`
+      break
+    }
+
+    case 'Cover Letter': {
+      sectionText = `Draft a professional Cover Letter for a government proposal.
+
+Company: ${companyName}
+Certifications: ${certifications.length > 0 ? certifications.join(', ') : 'None'}
+Capability Statement: ${capabilityStatement}
+
+Write a concise cover letter introducing the company, expressing interest in the opportunity, and summarizing the key value proposition. The tone should be professional and confident.`
       break
     }
 

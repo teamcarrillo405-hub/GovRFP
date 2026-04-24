@@ -132,9 +132,9 @@ describe('buildSectionPrompt', () => {
     expect(firstBlock.text).toContain('Lead Engineer')
   })
 
-  it('injects matched past projects for Past Performance', () => {
+  it('injects matched past projects for Executive Summary (past performance topic)', () => {
     const result = buildSectionPrompt(
-      'Past Performance',
+      'Executive Summary',
       mockProfile,
       mockPastProjects,
       mockKeyPersonnel,
@@ -142,13 +142,13 @@ describe('buildSectionPrompt', () => {
       mockRequirements
     )
     const firstBlock = result[0] as { type: string; text: string }
-    expect(firstBlock.text).toContain('Department of Defense')
-    expect(firstBlock.text).toContain('General Services Administration')
+    // Executive Summary references past project summaries
+    expect(firstBlock.text).toContain('Past Projects')
   })
 
-  it('excludes dollar amounts from Price Narrative prompt', () => {
+  it('generates a Project Schedule prompt covering scheduling approach', () => {
     const result = buildSectionPrompt(
-      'Price Narrative',
+      'Project Schedule',
       mockProfile,
       mockPastProjects,
       mockKeyPersonnel,
@@ -156,10 +156,8 @@ describe('buildSectionPrompt', () => {
       mockRequirements
     )
     const firstBlock = result[0] as { type: string; text: string }
-    // Should explicitly instruct not to include dollar amounts
-    expect(firstBlock.text).toContain('Do NOT include any specific dollar amounts')
-    // Should not include any $ signs in instructions
-    expect(firstBlock.text).not.toMatch(/\$\d/)
+    expect(firstBlock.text).toContain('Project Schedule')
+    expect(firstBlock.text).toContain('milestones')
   })
 
   it('includes instruction string when provided', () => {

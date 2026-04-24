@@ -71,7 +71,8 @@ describe('buildScoringMatrix', () => {
   it('groups requirements by section correctly', () => {
     const matrix = buildScoringMatrix('prop-1', crosswalk, requirements)
     expect(matrix.requirements_by_section['Technical Approach']).toHaveLength(1)
-    expect(matrix.requirements_by_section['Past Performance']).toHaveLength(1)
+    // Past Performance topic is now remapped to Executive Summary
+    expect(matrix.requirements_by_section['Executive Summary']).toHaveLength(1)
   })
 })
 

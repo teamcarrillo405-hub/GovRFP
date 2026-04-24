@@ -1,14 +1,24 @@
 import type { JSONContent } from '@tiptap/react'
 
 export const SECTION_NAMES = [
+  'Cover Letter',
   'Executive Summary',
   'Technical Approach',
   'Management Plan',
-  'Past Performance',
-  'Price Narrative',
+  'Staffing Plan',
+  'Quality Control Plan',
+  'Safety Plan',
+  'Project Schedule',
 ] as const
 
 export type SectionName = typeof SECTION_NAMES[number]
+
+export interface CustomTemplateSection {
+  id: string        // slug, e.g. "c1-scope-of-work"
+  title: string     // e.g. "C.1 Scope of Work"
+  pageHint?: string // e.g. "Page 12" from original doc
+  required: boolean
+}
 
 export type DraftStatus = 'empty' | 'generating' | 'scoring' | 'draft' | 'edited'
 
