@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import RoleChangeDropdown from './RoleChangeDropdown'
 import RemoveMemberConfirmation from './RemoveMemberConfirmation'
@@ -45,7 +45,9 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
 
-  const supabase = createClient()
+  // Stable client ref — createClient() must not be called on every render
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
 
   const loadMembers = async () => {
     setLoading(true)
@@ -263,6 +265,7 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
                           setOpenDropdownId(null)
                           loadMembers()
                         }}
+                        onClose={() => setOpenDropdownId(null)}
                       />
                     )}
                   </div>

@@ -44,11 +44,14 @@ export default function InviteForm({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: proposalTitle, proposal_id: proposalId }),
         })
+        // Read body exactly once — stream can only be consumed once
+        const createData = await createRes.json() as { team?: { id: string }; error?: string }
         if (!createRes.ok) {
-          const data = await createRes.json() as { error?: string }
-          throw new Error(data.error ?? 'Something went wrong. Try again or contact support.')
+          throw new Error(createData.error ?? 'Something went wrong. Try again or contact support.')
         }
-        const createData = await createRes.json() as { team: { id: string } }
+        if (!createData.team?.id) {
+          throw new Error('Failed to create team. Try again or contact support.')
+        }
         resolvedTeamId = createData.team.id
         onTeamCreated(resolvedTeamId)
       }

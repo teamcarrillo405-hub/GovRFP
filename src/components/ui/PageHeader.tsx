@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/proposals',        label: 'Proposals' },
   { href: '/past-performance', label: 'Past Performance' },
   { href: '/analytics',        label: 'Analytics' },
+  { href: '/team',             label: 'Team' },
   { href: '/profile',          label: 'Profile' },
   { href: '/help',             label: 'Help' },
 ]

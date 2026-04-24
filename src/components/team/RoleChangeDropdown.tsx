@@ -6,21 +6,26 @@ interface Props {
   memberId: string
   currentRole: string
   onRoleChanged: () => void
+  onClose?: () => void
 }
 
-export default function RoleChangeDropdown({ memberId, currentRole, onRoleChanged }: Props) {
+export default function RoleChangeDropdown({ memberId, currentRole, onRoleChanged, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown on click outside
+  // Close dropdown on click outside — use onClose if provided to avoid spurious data refresh
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        onRoleChanged()
+        if (onClose) {
+          onClose()
+        } else {
+          onRoleChanged()
+        }
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onRoleChanged])
+  }, [onRoleChanged, onClose])
 
   const handleRoleSelect = async (role: 'editor' | 'viewer') => {
     if (role === currentRole) {

@@ -72,34 +72,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create invite' }, { status: 500 })
   }
 
-  // Try to send email invite via Supabase Auth
+  // Check if this email is already a registered Supabase Auth user.
+  // listUsers with a filter is the reliable way — no error-message parsing.
   let existingUser = false
   try {
-    const { error: authError } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: process.env.NEXT_PUBLIC_URL + '/invite/accept',
-      data: { team_id, role, invite_id: invite.id },
-    })
-
-    if (authError) {
-      // If already registered, that's fine — invite DB record exists
-      if (
-        authError.message?.includes('already registered') ||
-        authError.message?.includes('already been registered')
-      ) {
-        existingUser = true
-      } else {
-        console.error('inviteUserByEmail error:', authError)
-        // Non-fatal — DB record was inserted, user can still accept via link
-      }
+    const { data: listData } = await adminSupabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+    if (listData?.users?.some((u) => u.email?.toLowerCase() === email.toLowerCase())) {
+      existingUser = true
     }
   } catch (err) {
-    console.error('inviteUserByEmail threw:', err)
-    // Non-fatal
+    console.error('listUsers check threw:', err)
+    // Non-fatal — fall through to inviteUserByEmail branch
   }
 
-  // For existing users, inviteUserByEmail does nothing. Generate a magic link
-  // which Supabase Auth's mailer sends automatically, redirecting to the accept page.
   if (existingUser) {
+    // Existing user: send a magic link that lands on the accept page.
+    // generateLink with type='magiclink' triggers Supabase's mailer automatically.
     const acceptUrl =
       process.env.NEXT_PUBLIC_URL +
       '/invite/accept?invite_id=' +
@@ -120,6 +108,23 @@ export async function POST(request: NextRequest) {
       }
     } catch (err: unknown) {
       console.error('generateLink (existing user invite) threw:', err)
+      // Non-fatal
+    }
+  } else {
+    // New user: send a Supabase invite email that prompts them to set a password,
+    // then redirects to the accept page after account creation.
+    try {
+      const { error: authError } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
+        redirectTo: process.env.NEXT_PUBLIC_URL + '/invite/accept?invite_id=' + invite.id + '&team_id=' + team_id,
+        data: { team_id, role, invite_id: invite.id },
+      })
+
+      if (authError) {
+        console.error('inviteUserByEmail error:', authError)
+        // Non-fatal — DB record was inserted, user can still accept via link
+      }
+    } catch (err) {
+      console.error('inviteUserByEmail threw:', err)
       // Non-fatal
     }
   }

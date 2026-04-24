@@ -81,49 +81,82 @@ export async function DELETE(
   const { id } = await params
   const adminSupabase = createAdminClient()
 
-  // Load the member to get team_id
+  // Try to load as an accepted team member first
   const { data: member } = await adminSupabase
     .from('team_members')
     .select('id, team_id')
     .eq('id', id)
     .single()
 
-  if (!member) {
-    return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+  if (member) {
+    // Verify caller is team owner
+    const { data: team } = await adminSupabase
+      .from('teams')
+      .select('id')
+      .eq('id', member.team_id)
+      .eq('owner_id', user.id)
+      .single()
+
+    if (!team) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { error: deleteError } = await adminSupabase
+      .from('team_members')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error('Failed to delete team member:', deleteError)
+      return NextResponse.json({ error: 'Failed to remove member' }, { status: 500 })
+    }
+
+    // Recalculate seat_count from actual member count (race-safe)
+    const { count } = await adminSupabase
+      .from('team_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('team_id', member.team_id)
+
+    await adminSupabase
+      .from('teams')
+      .update({ seat_count: count ?? 1 })
+      .eq('id', member.team_id)
+
+    return NextResponse.json({ ok: true })
+  }
+
+  // Not a team_member — try as a pending invite (cancel invite)
+  const { data: invite } = await adminSupabase
+    .from('team_invites')
+    .select('id, team_id')
+    .eq('id', id)
+    .single()
+
+  if (!invite) {
+    return NextResponse.json({ error: 'Member or invite not found' }, { status: 404 })
   }
 
   // Verify caller is team owner
-  const { data: team } = await adminSupabase
+  const { data: inviteTeam } = await adminSupabase
     .from('teams')
     .select('id')
-    .eq('id', member.team_id)
+    .eq('id', invite.team_id)
     .eq('owner_id', user.id)
     .single()
 
-  if (!team) {
+  if (!inviteTeam) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { error: deleteError } = await adminSupabase
-    .from('team_members')
+  const { error: deleteInviteError } = await adminSupabase
+    .from('team_invites')
     .delete()
     .eq('id', id)
 
-  if (deleteError) {
-    console.error('Failed to delete team member:', deleteError)
-    return NextResponse.json({ error: 'Failed to remove member' }, { status: 500 })
+  if (deleteInviteError) {
+    console.error('Failed to cancel team invite:', deleteInviteError)
+    return NextResponse.json({ error: 'Failed to cancel invite' }, { status: 500 })
   }
-
-  // Recalculate seat_count from actual member count (race-safe)
-  const { count } = await adminSupabase
-    .from('team_members')
-    .select('*', { count: 'exact', head: true })
-    .eq('team_id', member.team_id)
-
-  await adminSupabase
-    .from('teams')
-    .update({ seat_count: count ?? 1 })
-    .eq('id', member.team_id)
 
   return NextResponse.json({ ok: true })
 }
