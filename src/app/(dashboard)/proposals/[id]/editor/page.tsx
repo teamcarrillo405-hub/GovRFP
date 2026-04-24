@@ -74,7 +74,15 @@ export default async function EditorPage({ params }: Props) {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">{proposal.title}</h1>
-        <ExportButtons proposalId={id} />
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/proposals/${id}/review`}
+            className="text-sm font-medium text-purple-700 hover:text-purple-900"
+          >
+            Review & Comment
+          </Link>
+          <ExportButtons proposalId={id} />
+        </div>
       </div>
 
       <ProposalEditor

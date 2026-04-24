@@ -185,7 +185,10 @@ export default function ProposalEditor({
     const html = markdownToBasicHtml(markdown)
     editor.chain().focus('end').insertContent(html).run()
     isDirtyRef.current = true
-  }, [])
+    toast.success('Past Performance narrative inserted', {
+      description: `Added to ${activeSection}`,
+    })
+  }, [activeSection])
 
   // Click-to-scroll: find matching heading in editor and scroll to it
   const handleRfpSectionClick = useCallback((sectionTitle: string) => {

@@ -52,9 +52,9 @@ Full archive: `.planning/milestones/v1.1-ROADMAP.md`
   3. Owner can change a member's role or remove them from the team after they join
   4. Stripe seat count increments when an invite is accepted and decrements when a member is removed
   5. A viewer-role user cannot mutate proposal data by calling API routes directly (server-side role enforcement)
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 Plans:
-- [ ] 07-01-PLAN.md — Wave 0: Migration + test stubs (teams, team_members, team_invites, dual RLS)
+- [x] 07-01-PLAN.md — Wave 0: Migration + test stubs (teams, team_members, team_invites, dual RLS)
 - [ ] 07-02-PLAN.md — Wave 1: API routes + requireProposalRole() utility
 - [ ] 07-03-PLAN.md — Wave 2: SharePanel UI + hardcoded user_id fix
 - [ ] 07-04-PLAN.md — Wave 2: Invite accept/decline pages + dashboard updates
@@ -121,7 +121,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11
 | 4. Proposal Drafting + Editor | v1.0 | 5/5 | Complete | 2026-03-24 |
 | 5. Export Pipeline | v1.0 | 5/5 | Complete | 2026-03-24 |
 | 6. RFP Structure Sidebar | v1.1 | 2/2 | Complete | 2026-03-25 |
-| 7. Team Accounts + RBAC | v2.0 | 0/5 | Planned | - |
+| 7. Team Accounts + RBAC | v2.0 | 1/5 | In Progress|  |
 | 8. Real-Time Presence | v2.0 | 0/TBD | Not started | - |
 | 9. GovRFP Import + SAM.gov Prefill | v2.0 | 0/TBD | Not started | - |
 | 10. Version History + Section Comments | v2.0 | 0/TBD | Not started | - |

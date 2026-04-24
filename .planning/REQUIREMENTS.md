@@ -9,13 +9,13 @@ Requirements for the v2.0 Collaboration + Integrations milestone.
 
 ### Team Accounts + RBAC
 
-- [ ] **TEAM-01**: User can create a team and become the team owner
-- [ ] **TEAM-02**: Owner can invite teammates by email with an assigned role (editor / viewer)
-- [ ] **TEAM-03**: Invited user receives an email and can accept or decline the invite
-- [ ] **TEAM-04**: Owner can change a team member's role after joining
-- [ ] **TEAM-05**: Owner can remove a team member from the team
-- [ ] **TEAM-06**: Team members can view and edit proposals shared with their team (scoped by role)
-- [ ] **TEAM-07**: Stripe seat count increments on invite acceptance and decrements on member removal
+- [x] **TEAM-01**: User can create a team and become the team owner
+- [x] **TEAM-02**: Owner can invite teammates by email with an assigned role (editor / viewer)
+- [x] **TEAM-03**: Invited user receives an email and can accept or decline the invite
+- [x] **TEAM-04**: Owner can change a team member's role after joining
+- [x] **TEAM-05**: Owner can remove a team member from the team
+- [x] **TEAM-06**: Team members can view and edit proposals shared with their team (scoped by role)
+- [x] **TEAM-07**: Stripe seat count increments on invite acceptance and decrements on member removal
 
 ### Real-Time Presence
 
@@ -88,13 +88,13 @@ Deferred to v3.0 or later.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEAM-01 | Phase 7 | Pending |
-| TEAM-02 | Phase 7 | Pending |
-| TEAM-03 | Phase 7 | Pending |
-| TEAM-04 | Phase 7 | Pending |
-| TEAM-05 | Phase 7 | Pending |
-| TEAM-06 | Phase 7 | Pending |
-| TEAM-07 | Phase 7 | Pending |
+| TEAM-01 | Phase 7 | Complete |
+| TEAM-02 | Phase 7 | Complete |
+| TEAM-03 | Phase 7 | Complete |
+| TEAM-04 | Phase 7 | Complete |
+| TEAM-05 | Phase 7 | Complete |
+| TEAM-06 | Phase 7 | Complete |
+| TEAM-07 | Phase 7 | Complete |
 | PRES-01 | Phase 8 | Pending |
 | PRES-02 | Phase 8 | Pending |
 | PRES-03 | Phase 8 | Pending |

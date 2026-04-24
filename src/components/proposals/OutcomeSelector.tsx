@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 type Outcome = 'won' | 'lost' | 'no_bid' | 'pending'
 
@@ -8,6 +9,7 @@ interface OutcomeSelectorProps {
   proposalId: string
   currentOutcome: string | null
   contractValue: number | null
+  ppRecordId?: string | null
 }
 
 const OUTCOMES: { value: Outcome; label: string; activeClasses: string; hoverClasses: string }[] = [
@@ -41,6 +43,7 @@ export default function OutcomeSelector({
   proposalId,
   currentOutcome,
   contractValue: initialContractValue,
+  ppRecordId: initialPpRecordId = null,
 }: OutcomeSelectorProps) {
   const [selected, setSelected] = useState<Outcome | null>(
     (currentOutcome as Outcome) ?? null
@@ -51,6 +54,7 @@ export default function OutcomeSelector({
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [ppRecordId, setPpRecordId] = useState<string | null>(initialPpRecordId)
 
   async function handleSave() {
     if (!selected) return
@@ -75,6 +79,9 @@ export default function OutcomeSelector({
         const data = await res.json().catch(() => ({}))
         throw new Error((data as { error?: string }).error ?? 'Save failed')
       }
+
+      const data = await res.json().catch(() => ({})) as { pp_record_id?: string | null }
+      if (data.pp_record_id) setPpRecordId(data.pp_record_id)
 
       setToast({ type: 'success', message: 'Outcome saved!' })
       setTimeout(() => setToast(null), 3000)
@@ -160,6 +167,21 @@ export default function OutcomeSelector({
           </span>
         )}
       </div>
+
+      {ppRecordId && (
+        <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-green-800">Past Performance record created</p>
+            <p className="text-xs text-green-700 mt-0.5">Pre-filled from this proposal. Add your performance narrative.</p>
+          </div>
+          <Link
+            href={`/past-performance/${ppRecordId}`}
+            className="shrink-0 text-xs font-bold text-green-900 underline hover:no-underline"
+          >
+            View record →
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

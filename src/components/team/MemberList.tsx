@@ -50,30 +50,30 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
   const loadMembers = async () => {
     setLoading(true)
 
-    // Load confirmed team members — join via profiles for email
-    const { data: members } = await supabase
-      .from('team_members')
-      .select('id, user_id, role, profiles(email)')
-      .eq('team_id', teamId)
+    // Load confirmed team members via API route (resolves emails from auth.users)
+    const membersRes = await fetch(`/api/teams/${teamId}/members`)
+    const membersJson = membersRes.ok
+      ? (await membersRes.json() as { members: Array<{ id: string; user_id: string; role: string; email: string }> })
+      : { members: [] }
 
-    // Load pending + declined invites
+    // Load pending + declined invites — column is invitee_email, not email
     const { data: invites } = await supabase
       .from('team_invites')
-      .select('id, email, role, status')
+      .select('id, invitee_email, role, status')
       .eq('team_id', teamId)
       .in('status', ['pending', 'declined'])
 
-    const memberRows: TeamMember[] = (members ?? []).map((m) => ({
+    const memberRows: TeamMember[] = membersJson.members.map((m) => ({
       id: m.id,
       user_id: m.user_id,
       role: m.role,
-      email: (m.profiles as unknown as { email: string } | null)?.email ?? m.user_id,
+      email: m.email,
       isPending: false as const,
     }))
 
     const inviteRows: PendingInvite[] = (invites ?? []).map((inv) => ({
       id: inv.id,
-      email: inv.email,
+      email: inv.invitee_email,
       role: inv.role,
       status: inv.status,
       isPending: true as const,

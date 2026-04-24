@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Collaboration + Integrations
-status: ready to plan
-stopped_at: Roadmap created — Phase 7 ready for planning
-last_updated: "2026-03-25T00:00:00.000Z"
+status: Ready to execute
+stopped_at: Completed 07-02-PLAN.md — team API routes + requireProposalRole()
+last_updated: "2026-03-26T01:08:37.860Z"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Reduce the time from RFP receipt to first compliant proposal draft from days to under 30 minutes
-**Current focus:** Phase 7 — Team Accounts + RBAC
+**Current focus:** Phase 07 — team-accounts-rbac
 
 ## Current Position
 
-Phase: 7 of 11 (Team Accounts + RBAC)
-Plan: — (not started)
-Status: Ready to plan
-Last activity: 2026-03-25 — v2.0 roadmap created; 31 requirements mapped across 5 phases
-
-Progress: [░░░░░░░░░░░░░░░] 0% (v2.0)
+Phase: 07 (team-accounts-rbac) — EXECUTING
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -50,6 +46,8 @@ Progress: [░░░░░░░░░░░░░░░] 0% (v2.0)
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 07-team-accounts-rbac P01 | 3 | 2 tasks | 7 files |
+| Phase 07 P02 | 30 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -64,6 +62,12 @@ Recent decisions affecting current work:
 - [v2.0 Roadmap]: Stripe seat sync on invite acceptance (not invite send) — prevents quantity divergence
 - [v2.0 Roadmap]: requireProposalRole() utility built in Phase 7 and reused in all subsequent mutating routes
 - [v2.0 Roadmap]: Version snapshots on explicit save + AI regeneration only (not every auto-save) — cap at 50/section
+- [Phase 07-team-accounts-rbac]: D-03: SECURITY DEFINER function get_team_ids_for_user() must come after team_members table but before any RLS policies — migration ordering enforces this
+- [Phase 07-team-accounts-rbac]: D-04: proposals.team_id is nullable with on delete set null — proposals are never orphaned when a team is deleted
+- [Phase 07-team-accounts-rbac]: Dual RLS pattern: solo (auth.uid() = user_id) and team (team_id in get_team_ids_for_user()) policies coexist on same table with OR semantics
+- [Phase 07]: Admin client used for all team writes to bypass RLS race condition on team + member row creation
+- [Phase 07]: seat_count derived from COUNT(*) not incremented in-place (race-safe for concurrent accepts)
+- [Phase 07]: decline endpoint has no auth guard — invited user may lack an account when arriving from email link
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-25T00:00:00.000Z
-Stopped at: v2.0 roadmap created — Phase 7 ready for /gsd:plan-phase 7
+Last session: 2026-03-26T01:08:37.856Z
+Stopped at: Completed 07-02-PLAN.md — team API routes + requireProposalRole()
 Resume file: None

@@ -139,22 +139,57 @@ function formatPeriod(start: string | null, end: string | null): string {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-12 text-center">
-      <h3 className="text-base font-semibold text-gray-900 mb-1">
-        No past-performance records yet
-      </h3>
-      <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
-        Add your prior contracts to the library. When you draft a proposal, we&rsquo;ll
-        rank them by relevance to the RFP and draft tailored PP narratives for
-        you.
-      </p>
-      <Link
-        href="/past-performance/new"
-        className="inline-block px-5 py-2.5 text-sm font-semibold rounded-md text-gray-900"
-        style={{ backgroundColor: '#F5C518' }}
-      >
-        Add your first record
-      </Link>
+    <div>
+      <div className="mb-6">
+        <h3 className="text-base font-semibold text-gray-900 mb-1">
+          No past-performance records yet
+        </h3>
+        <p className="text-sm text-gray-600">
+          Add your prior contracts. When you write proposals, we&rsquo;ll rank and tailor
+          them to each RFP automatically.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Path A — paste and extract (primary) */}
+        <div className="rounded-xl border-2 border-yellow-300 bg-yellow-50 p-6 flex flex-col">
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="text-sm font-semibold text-gray-900">
+              Import from a prior proposal
+            </h4>
+            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-300 text-gray-900">
+              Fastest
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mb-5 flex-1">
+            Paste your Past Performance section from a prior proposal — we&rsquo;ll extract
+            your contracts automatically.
+          </p>
+          <Link
+            href="/past-performance/new"
+            className="inline-block self-start px-4 py-2 text-sm font-semibold rounded-md text-gray-900"
+            style={{ backgroundColor: '#F5C518' }}
+          >
+            Paste and extract
+          </Link>
+        </div>
+
+        {/* Path B — manual entry (secondary) */}
+        <div className="rounded-xl border border-gray-200 bg-white p-6 flex flex-col">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+            Add a record manually
+          </h4>
+          <p className="text-sm text-gray-600 mb-5 flex-1">
+            Fill in a contract one at a time.
+          </p>
+          <Link
+            href="/past-performance/new?skip-wizard=1"
+            className="inline-block self-start px-4 py-2 text-sm font-semibold rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Add manually
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

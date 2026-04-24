@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   CPARS_LABELS,
@@ -10,6 +11,7 @@ import {
   type CparsRating,
 } from '@/lib/past-performance/types'
 import { isRedirectError } from '@/lib/supabase/is-redirect-error'
+import { bulkCreatePastPerformance } from '@/app/(dashboard)/past-performance/actions'
 
 interface Props {
   onSubmit: (data: PastPerformanceInput) => Promise<void>
@@ -28,6 +30,7 @@ const EMPTY: PastPerformanceInput = {
 }
 
 export function WizardShell({ onSubmit }: Props) {
+  const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [data, setData] = useState<PastPerformanceInput>(EMPTY)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +41,11 @@ export function WizardShell({ onSubmit }: Props) {
   const [pasteText, setPasteText] = useState('')
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
+
+  // Multi-record bulk-save state
+  const [extractedRecords, setExtractedRecords] = useState<PastPerformanceInput[]>([])
+  const [bulkSaving, setBulkSaving] = useState(false)
+  const [bulkError, setBulkError] = useState<string | null>(null)
 
   // USASpending lookup state
   const [lookupPending, setLookupPending] = useState(false)
@@ -64,6 +72,25 @@ export function WizardShell({ onSubmit }: Props) {
     })
   }
 
+  const prefillForm = (rec: PastPerformanceInput) => {
+    setData((d) => ({
+      ...d,
+      contract_title: rec.contract_title || d.contract_title,
+      contract_number: rec.contract_number ?? d.contract_number,
+      customer_name: rec.customer_name || d.customer_name,
+      customer_agency_code: rec.customer_agency_code ?? d.customer_agency_code,
+      period_start: rec.period_start ?? d.period_start,
+      period_end: rec.period_end ?? d.period_end,
+      contract_value_usd: rec.contract_value_usd ?? d.contract_value_usd,
+      naics_codes: rec.naics_codes?.length ? rec.naics_codes : d.naics_codes,
+      set_asides_claimed: rec.set_asides_claimed?.length ? rec.set_asides_claimed : d.set_asides_claimed,
+      scope_narrative: rec.scope_narrative || d.scope_narrative,
+      outcomes: rec.outcomes ?? d.outcomes,
+      cpars_rating: rec.cpars_rating ?? d.cpars_rating,
+      tags: rec.tags?.length ? rec.tags : d.tags,
+    }))
+  }
+
   const handleExtract = async () => {
     if (!pasteText.trim() || extracting) return
     setExtracting(true)
@@ -79,31 +106,42 @@ export function WizardShell({ onSubmit }: Props) {
         setExtractError(json.error ?? 'No records extracted')
         return
       }
-      // Merge first extracted record into form data
-      const rec = json.records[0]
-      setData((d) => ({
-        ...d,
-        contract_title: rec.contract_title || d.contract_title,
-        contract_number: rec.contract_number ?? d.contract_number,
-        customer_name: rec.customer_name || d.customer_name,
-        customer_agency_code: rec.customer_agency_code ?? d.customer_agency_code,
-        period_start: rec.period_start ?? d.period_start,
-        period_end: rec.period_end ?? d.period_end,
-        contract_value_usd: rec.contract_value_usd ?? d.contract_value_usd,
-        naics_codes: rec.naics_codes?.length ? rec.naics_codes : d.naics_codes,
-        set_asides_claimed: rec.set_asides_claimed?.length ? rec.set_asides_claimed : d.set_asides_claimed,
-        scope_narrative: rec.scope_narrative || d.scope_narrative,
-        outcomes: rec.outcomes ?? d.outcomes,
-        cpars_rating: rec.cpars_rating ?? d.cpars_rating,
-        tags: rec.tags?.length ? rec.tags : d.tags,
-      }))
+
       setShowPaste(false)
       setPasteText('')
+
+      if (json.records.length === 1) {
+        // Original single-record behavior — pre-fill wizard and continue.
+        prefillForm(json.records[0])
+      } else {
+        // Multiple records — show bulk-confirm panel instead of continuing wizard.
+        setExtractedRecords(json.records)
+        setBulkError(null)
+      }
     } catch {
       setExtractError('Extraction failed — try again')
     } finally {
       setExtracting(false)
     }
+  }
+
+  const handleBulkSave = async () => {
+    setBulkSaving(true)
+    setBulkError(null)
+    try {
+      await bulkCreatePastPerformance(extractedRecords)
+      router.push('/past-performance')
+    } catch (e) {
+      setBulkError(e instanceof Error ? e.message : 'Failed to save records')
+      setBulkSaving(false)
+    }
+  }
+
+  const handleReviewFirst = () => {
+    if (extractedRecords.length === 0) return
+    prefillForm(extractedRecords[0])
+    setExtractedRecords([])
+    setBulkError(null)
   }
 
   const handleLookup = async () => {
@@ -143,6 +181,59 @@ export function WizardShell({ onSubmit }: Props) {
       setLookupPending(false)
     }
   }
+
+  // ---------- bulk-confirm panel ----------
+  if (extractedRecords.length > 1) {
+    return (
+      <div>
+        <div className="rounded-md border border-green-200 bg-green-50 p-5 text-sm">
+          <p className="font-semibold text-green-900 mb-3">
+            Found {extractedRecords.length} records. Ready to save all at once?
+          </p>
+          <ol className="mb-4 space-y-1 text-green-800 text-xs list-decimal list-inside">
+            {extractedRecords.map((rec, i) => {
+              const period =
+                rec.period_start || rec.period_end
+                  ? ` (${rec.period_start?.slice(0, 4) ?? '?'}–${rec.period_end?.slice(0, 4) ?? '?'})`
+                  : ''
+              return (
+                <li key={i}>
+                  <strong>{rec.contract_title || '(untitled)'}</strong>
+                  {rec.customer_name ? ` — ${rec.customer_name}` : ''}
+                  {period}
+                </li>
+              )
+            })}
+          </ol>
+          {bulkError && (
+            <p className="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+              {bulkError}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleBulkSave}
+              disabled={bulkSaving}
+              className="px-4 py-2 text-xs font-semibold rounded-md text-gray-900 disabled:opacity-50"
+              style={{ backgroundColor: '#F5C518' }}
+            >
+              {bulkSaving ? 'Saving…' : `Save all ${extractedRecords.length} records`}
+            </button>
+            <button
+              type="button"
+              onClick={handleReviewFirst}
+              disabled={bulkSaving}
+              className="px-4 py-2 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-50"
+            >
+              Review first record →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  // ----------------------------------------
 
   return (
     <div>

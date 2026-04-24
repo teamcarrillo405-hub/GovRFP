@@ -82,6 +82,7 @@ export function PastPerformancePanel({ proposalId, onInsertNarrative }: Props) {
         full += decoder.decode(value, { stream: true })
       }
       if (full.trim()) onInsertNarrative(full)
+      else setError('Narrative was empty — try again')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Tailor stream failed')
     } finally {

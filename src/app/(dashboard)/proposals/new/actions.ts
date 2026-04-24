@@ -6,8 +6,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import { govRfpHandoffSchema, type GovRfpHandoffInput } from '@/lib/bridge/govrfp-handoff'
 
-export type { GovRfpHandoffInput }
-
 /**
  * GovRFP → ProposalAI bridge.
  *
@@ -94,6 +92,21 @@ export async function createProposalFromGovRfp(input: GovRfpHandoffInput) {
   // analysisError is non-fatal — the proposal still exists. Log and continue.
   if (analysisError) {
     console.error('[govrfp-handoff] rfp_analysis seed failed:', analysisError.message)
+  }
+
+  // Bidirectional bridge: update the GovRFP pipeline card (if one exists) with this proposal ID.
+  // Both apps share Supabase, so we can write directly to pipeline_cards.
+  if (govrfp_id) {
+    const { error: bridgeError } = await admin
+      .from('pipeline_cards')
+      .update({ proposal_ai_proposal_id: proposal.id })
+      .eq('opportunity_id', govrfp_id)
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+
+    if (bridgeError) {
+      console.error('[govrfp-handoff] pipeline bridge update failed:', bridgeError.message)
+    }
   }
 
   redirect(`/proposals/${proposal.id}?from=govrfp`)

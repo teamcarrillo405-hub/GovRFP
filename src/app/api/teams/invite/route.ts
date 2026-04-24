@@ -97,5 +97,32 @@ export async function POST(request: NextRequest) {
     // Non-fatal
   }
 
+  // For existing users, inviteUserByEmail does nothing. Generate a magic link
+  // which Supabase Auth's mailer sends automatically, redirecting to the accept page.
+  if (existingUser) {
+    const acceptUrl =
+      process.env.NEXT_PUBLIC_URL +
+      '/invite/accept?invite_id=' +
+      invite.id +
+      '&team_id=' +
+      team_id
+
+    try {
+      const { error: linkError } = await adminSupabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+        options: { redirectTo: acceptUrl },
+      })
+
+      if (linkError) {
+        console.error('generateLink (existing user invite) error:', linkError)
+        // Non-fatal — DB record exists, user can accept via a shared link
+      }
+    } catch (err: unknown) {
+      console.error('generateLink (existing user invite) threw:', err)
+      // Non-fatal
+    }
+  }
+
   return NextResponse.json({ invited: true, existing_user: existingUser })
 }

@@ -66,6 +66,15 @@ export default async function ProposalDetailPage({ params }: Props) {
   const govRfpSource = extractGovRfpSource(analysis?.win_factors)
   const winScore: number | null = analysis?.win_score ?? null
 
+  // Look up any existing past-performance record sourced from this proposal
+  // so OutcomeSelector can show the "View record" callout on first load when
+  // the proposal was previously marked Won.
+  const { data: existingPp } = await supabase
+    .from('past_performance')
+    .select('id')
+    .eq('source_proposal_id', id)
+    .maybeSingle()
+
   const isProcessing = proposal.status === 'processing'
   const isReady      = proposal.status === 'ready'
   const isAnalyzed   = proposal.status === 'analyzed'
@@ -328,6 +337,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             proposalId={id}
             currentOutcome={proposal.outcome ?? null}
             contractValue={proposal.contract_value ?? null}
+            ppRecordId={existingPp?.id ?? null}
           />
 
           {/* Document metadata */}

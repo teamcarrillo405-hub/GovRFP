@@ -1,5 +1,6 @@
 import { Packer } from 'docx'
 import { getUser, createClient } from '@/lib/supabase/server'
+import { requireProposalRole } from '@/lib/auth/proposal-role'
 import { buildDocxDocument } from '@/lib/export/tiptap-to-docx'
 import { stripComplianceMarks } from '@/lib/editor/compliance-gap-mark'
 import type { JSONContent } from '@tiptap/react'
@@ -14,6 +15,10 @@ export async function POST(
   const user = await getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
 
+  // requireProposalRole covers solo owner and all team members at viewer+
+  const roleResult = await requireProposalRole(id, 'viewer')
+  if (!roleResult) return new Response('Forbidden', { status: 403 })
+
   const supabase = await createClient()
 
   // Load proposal title for filename
@@ -21,7 +26,6 @@ export async function POST(
     .from('proposals')
     .select('title')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   const { data: sections } = await supabase

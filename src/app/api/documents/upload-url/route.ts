@@ -17,6 +17,7 @@ const uploadSchema = z.object({
   fileSize: z.number().positive().max(MAX_FILE_SIZE, 'File size exceeds 50MB limit'),
   mimeType: z.string().optional(),
   title: z.string().min(1).max(200).optional(),
+  proposalId: z.string().uuid().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { fileName, fileType, fileSize, mimeType, title } = parsed.data
+  const { fileName, fileType, fileSize, mimeType, title, proposalId: existingProposalId } = parsed.data
 
   // Validate MIME type if provided (extra safety — file extension is primary check)
   if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType)) {
@@ -72,22 +73,56 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
 
-  // 4. Create proposal row
-  const { data: proposal, error: proposalError } = await admin
-    .from('proposals')
-    .insert({
-      user_id: user.id,
-      title: title || fileName.replace(/\.(pdf|docx)$/i, ''),
-      status: 'processing',
-      file_name: fileName,
-      file_type: fileType,
-    })
-    .select('id')
-    .single()
+  let proposal: { id: string }
 
-  if (proposalError || !proposal) {
-    console.error('Failed to create proposal:', proposalError)
-    return NextResponse.json({ error: 'Failed to create proposal' }, { status: 500 })
+  if (existingProposalId) {
+    // 4a. Update existing draft proposal (e.g., from GovRFP handoff with no file yet)
+    const { data: existing, error: fetchError } = await admin
+      .from('proposals')
+      .select('id, status, user_id')
+      .eq('id', existingProposalId)
+      .eq('user_id', user.id)
+      .eq('status', 'draft')
+      .single()
+
+    if (fetchError || !existing) {
+      return NextResponse.json(
+        { error: 'Proposal not found or not eligible for upload' },
+        { status: 404 }
+      )
+    }
+
+    const { error: updateError } = await admin
+      .from('proposals')
+      .update({ status: 'processing', file_name: fileName, file_type: fileType })
+      .eq('id', existingProposalId)
+
+    if (updateError) {
+      console.error('Failed to update proposal:', updateError)
+      return NextResponse.json({ error: 'Failed to update proposal' }, { status: 500 })
+    }
+
+    proposal = { id: existingProposalId }
+  } else {
+    // 4b. Create new proposal row
+    const { data: newProposal, error: proposalError } = await admin
+      .from('proposals')
+      .insert({
+        user_id: user.id,
+        title: title || fileName.replace(/\.(pdf|docx)$/i, ''),
+        status: 'processing',
+        file_name: fileName,
+        file_type: fileType,
+      })
+      .select('id')
+      .single()
+
+    if (proposalError || !newProposal) {
+      console.error('Failed to create proposal:', proposalError)
+      return NextResponse.json({ error: 'Failed to create proposal' }, { status: 500 })
+    }
+
+    proposal = newProposal
   }
 
   // 5. Build storage path: {userId}/{proposalId}/original.{ext}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { ChatWidget } from "@hcc/ui";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +29,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-gray-900">
         {children}
         <Toaster position="bottom-right" richColors closeButton />
+        <ChatWidget
+          accentColor="#FDFF66"
+          title="ProposalAI Assistant"
+          subtitle="Ask about features, the workflow, or getting started"
+          emptyText="Hi! Ask me anything about ProposalAI — how it works, the free trial, or writing proposals."
+        />
       </body>
     </html>
   );

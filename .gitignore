@@ -53,3 +53,5 @@ next-env.d.ts
 
 # claude code agent worktrees (each is its own embedded git repo)
 /.claude/worktrees
+
+.vercel

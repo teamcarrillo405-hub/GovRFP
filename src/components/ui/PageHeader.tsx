@@ -9,11 +9,12 @@ interface PageHeaderProps {
 }
 
 const NAV_LINKS = [
-  { href: '/dashboard',  label: 'Dashboard' },
-  { href: '/proposals',  label: 'Proposals' },
-  { href: '/analytics',  label: 'Analytics' },
-  { href: '/profile',    label: 'Profile' },
-  { href: '/help',       label: 'Help' },
+  { href: '/dashboard',        label: 'Dashboard' },
+  { href: '/proposals',        label: 'Proposals' },
+  { href: '/past-performance', label: 'Past Performance' },
+  { href: '/analytics',        label: 'Analytics' },
+  { href: '/profile',          label: 'Profile' },
+  { href: '/help',             label: 'Help' },
 ]
 
 function initials(email: string | null | undefined): string {

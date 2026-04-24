@@ -2,9 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
-import { StatCard } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { StatCard, Badge, Button } from '@hcc/ui'
 
 interface ProfileCompletionData {
   company_name: string | null
