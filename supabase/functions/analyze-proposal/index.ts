@@ -144,7 +144,7 @@ function computeWinScore(winFactors: {
 
 const extractRequirementsTool = {
   name: 'extract_requirements' as const,
-  description: 'Extract all mandatory and desired requirements from a federal RFP',
+  description: 'Extract all mandatory and desired requirements from a federal RFP, and identify NAICS codes',
   input_schema: {
     type: 'object' as const,
     properties: {
@@ -170,9 +170,13 @@ const extractRequirementsTool = {
       },
       set_asides_detected: { type: 'array', items: { type: 'string' } },
       contract_type: { type: 'string' },
-      naics_code: { type: 'string' },
+      naics_codes: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Up to 5 NAICS codes ordered by relevance. First, scan the document for any explicitly stated 6-digit NAICS codes (e.g. "238210", "NAICS: 238210"). Then infer probable NAICS from the work description (e.g. electrical work → 238210, road/highway construction → 237310, building construction → 236220, plumbing/HVAC → 238220, site prep → 238910, painting → 238320). Always return at least one code. Return codes as strings without dashes or spaces.',
+      },
     },
-    required: ['requirements', 'set_asides_detected', 'contract_type', 'naics_code'],
+    required: ['requirements', 'set_asides_detected', 'contract_type', 'naics_codes'],
     additionalProperties: false,
   },
 }
@@ -370,7 +374,30 @@ Deno.serve(async (req: Request) => {
       messages: [
         {
           role: 'user',
-          content: 'Extract all mandatory and desired requirements from this RFP. For each requirement, provide the verbatim text, classify as mandatory (shall/must/will) or desired (should/may), identify the section reference and page hint, and categorize the proposal topic area.',
+          content: [
+            'Extract all mandatory and desired requirements from this RFP. For each requirement, provide the verbatim text, classify as mandatory (shall/must/will) or desired (should/may), identify the section reference and page hint, and categorize the proposal topic area.',
+            '',
+            'Also extract NAICS codes for the naics_codes field:',
+            '1. Scan the document for any explicitly stated 6-digit NAICS code (look near "NAICS", "Product Service Code", "PSC", solicitation cover page, Section B, or SF-1449/SF-33 blocks).',
+            '2. If no explicit code is found, infer up to 4 probable NAICS codes from the work description and scope of work.',
+            '   Common construction NAICS mappings:',
+            '   - Electrical work / wiring / power systems → 238210',
+            '   - Plumbing / HVAC / mechanical → 238220',
+            '   - Roofing → 238160',
+            '   - Painting / wall covering → 238320',
+            '   - Site prep / earthwork / demolition → 238910',
+            '   - Road / highway / bridge / civil → 237310',
+            '   - Utility line / pipeline → 237120',
+            '   - Commercial building construction → 236220',
+            '   - Residential construction → 236115',
+            '   - Drywall / insulation / framing → 238110',
+            '   - Concrete / masonry → 238140',
+            '   - Landscaping → 561730',
+            '   - Facilities maintenance / janitorial → 561720',
+            '   - Architecture / engineering → 541310 / 541330',
+            '3. Return up to 5 codes total, ordered by relevance (most likely first).',
+            '4. Always return at least one code — use 236220 (Commercial Building Construction) as last-resort fallback if scope is truly unclear.',
+          ].join('\n'),
         },
       ],
     })
@@ -399,7 +426,7 @@ Deno.serve(async (req: Request) => {
       }>
       set_asides_detected: string[]
       contract_type: string
-      naics_code: string
+      naics_codes: string[]
     }
 
     totalInputTokens += call1Response.usage.input_tokens
@@ -544,6 +571,17 @@ Deno.serve(async (req: Request) => {
       ? 'This solicitation does not use UCF format. Section L/M crosswalk not applicable.'
       : null
 
+    // Normalize and validate naics_codes from extraction (ensure 6-digit strings only)
+    const rawNaicsCodes: string[] = Array.isArray(extractionResult.naics_codes)
+      ? extractionResult.naics_codes
+      : []
+    const naicsCodes = rawNaicsCodes
+      .map((c: string) => String(c).replace(/\D/g, ''))
+      .filter((c: string) => /^\d{6}$/.test(c))
+      .slice(0, 5)
+
+    console.log(`NAICS codes extracted: [${naicsCodes.join(', ')}]`)
+
     // 8. Write rfp_analysis row (upsert — re-analysis overwrites cleanly)
     const { error: insertError } = await supabase.from('rfp_analysis').upsert({
       proposal_id: job.proposal_id,
@@ -558,6 +596,7 @@ Deno.serve(async (req: Request) => {
       has_section_l: hasL,
       has_section_m: hasM,
       crosswalk_note: crosswalkNote,
+      naics_codes: naicsCodes,
       analyzed_at: new Date().toISOString(),
       model_used: 'claude-sonnet-4-6',
       tokens_input: totalInputTokens,

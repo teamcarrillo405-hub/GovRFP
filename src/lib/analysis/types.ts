@@ -66,6 +66,10 @@ export interface RfpAnalysis {
   has_section_l: boolean
   has_section_m: boolean
   crosswalk_note?: string
+  /** NAICS codes extracted from the RFP document. Up to 5, ordered by relevance.
+   *  Populated by the analyze-proposal edge function for raw PDF uploads.
+   *  Empty array for GovRFP-handoff-only rows — use win_factors.naics as fallback. */
+  naics_codes: string[]
   analyzed_at: string
   model_used: string
   tokens_input?: number

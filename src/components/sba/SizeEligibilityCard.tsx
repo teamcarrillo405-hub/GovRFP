@@ -19,22 +19,28 @@ interface Props {
  * Extract up to 3 NAICS codes from the analysis.
  *
  * Strategy (in priority order):
- *  1. win_factors.naics — single NAICS from GovRFP handoff
- *  2. capability_statement naics_codes (not here, but sourced externally)
+ *  1. rfp_analysis.naics_codes — extracted from the raw PDF by Claude (new, primary)
+ *  2. win_factors.naics — single NAICS from GovRFP handoff (legacy fallback)
  *
- * The rfp_analysis table has no dedicated naics_codes column; NAICS arrives
- * via the GovRFP bridge stored in win_factors JSONB as `naics`.
+ * The primary path covers raw PDF uploads; the fallback covers proposals that
+ * arrived via the GovRFP bridge before the analysis edge function ran.
  */
-function extractNaicsCodes(analysis: RfpAnalysis): string[] {
-  const codes: string[] = []
-
-  // win_factors may contain a govrfp-sourced naics field
-  const wf = analysis.win_factors as unknown as Record<string, unknown> | null
-  if (wf && typeof wf.naics === 'string' && /^\d{6}$/.test(wf.naics)) {
-    codes.push(wf.naics)
+function extractNaicsCodes(analysis: RfpAnalysis): { codes: string[]; fromAnalysis: boolean } {
+  // 1. Primary: dedicated naics_codes column populated by analyze-proposal edge function
+  if (Array.isArray(analysis.naics_codes) && analysis.naics_codes.length > 0) {
+    const valid = analysis.naics_codes
+      .filter((c) => typeof c === 'string' && /^\d{6}$/.test(c))
+      .slice(0, 3)
+    if (valid.length > 0) return { codes: valid, fromAnalysis: true }
   }
 
-  return codes.slice(0, 3)
+  // 2. Fallback: win_factors.naics from GovRFP handoff (single code stored in JSONB)
+  const wf = analysis.win_factors as unknown as Record<string, unknown> | null
+  if (wf && typeof wf.naics === 'string' && /^\d{6}$/.test(wf.naics)) {
+    return { codes: [wf.naics], fromAnalysis: false }
+  }
+
+  return { codes: [], fromAnalysis: false }
 }
 
 /**
@@ -138,7 +144,7 @@ function NaicsRow({ eligibility }: { eligibility: SizeEligibility }) {
 // ---------------------------------------------------------------------------
 
 export default function SizeEligibilityCard({ analysis, capabilityStatement }: Props) {
-  const naicsCodes = extractNaicsCodes(analysis)
+  const { codes: naicsCodes, fromAnalysis } = extractNaicsCodes(analysis)
   const setAside = setAsideLabel(analysis.set_asides_detected)
   const hasCapStatement = capabilityStatement !== null
 
@@ -197,11 +203,18 @@ export default function SizeEligibilityCard({ analysis, capabilityStatement }: P
           )}
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
-          {eligibilityResults.map((elig) => (
-            <NaicsRow key={elig.naics} eligibility={elig} />
-          ))}
-        </div>
+        <>
+          {fromAnalysis && naicsCodes.length > 1 && (
+            <p className="mb-3 text-xs text-gray-500">
+              Based on detected NAICS codes from RFP analysis. Showing top {naicsCodes.length} by relevance.
+            </p>
+          )}
+          <div className="divide-y divide-gray-100">
+            {eligibilityResults.map((elig) => (
+              <NaicsRow key={elig.naics} eligibility={elig} />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Unknown-data prompt */}
