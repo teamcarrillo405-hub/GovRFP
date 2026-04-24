@@ -11,6 +11,7 @@ interface PageHeaderProps {
 const NAV_LINKS = [
   { href: '/dashboard',  label: 'Dashboard' },
   { href: '/proposals',  label: 'Proposals' },
+  { href: '/analytics',  label: 'Analytics' },
   { href: '/profile',    label: 'Profile' },
   { href: '/help',       label: 'Help' },
 ]

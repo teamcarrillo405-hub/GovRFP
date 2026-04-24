@@ -5,6 +5,7 @@ import ProcessingStatus from '@/components/documents/ProcessingStatus'
 import FileUpload from '@/components/documents/FileUpload'
 import ShareButton from '@/components/team/ShareButton'
 import ExportButtons from '@/components/export/ExportButtons'
+import OutcomeSelector from '@/components/proposals/OutcomeSelector'
 import Link from 'next/link'
 import {
   buildGovRfpOpportunityUrl,
@@ -29,7 +30,7 @@ export default async function ProposalDetailPage({ params }: Props) {
   // Load proposal — RLS dual-policy handles access (solo or team member)
   const { data: proposal, error } = await supabase
     .from('proposals')
-    .select('*')
+    .select('*, outcome, contract_value, submitted_at, outcome_notes')
     .eq('id', id)
     .single()
 
@@ -321,6 +322,13 @@ export default async function ProposalDetailPage({ params }: Props) {
             </div>
 
           </div>
+
+          {/* ── Outcome Tracking ── */}
+          <OutcomeSelector
+            proposalId={id}
+            currentOutcome={proposal.outcome ?? null}
+            contractValue={proposal.contract_value ?? null}
+          />
 
           {/* Document metadata */}
           <div className="rounded-xl border border-gray-200 bg-white p-5">
