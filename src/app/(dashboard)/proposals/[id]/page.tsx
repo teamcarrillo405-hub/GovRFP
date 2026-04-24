@@ -285,6 +285,28 @@ export default async function ProposalDetailPage({ params }: Props) {
               </div>
             )}
 
+            {/* Red Team Evaluation */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  {/* Target/crosshair icon */}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7b20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                  </svg>
+                  <h3 className="text-sm font-bold text-gray-900">Red Team Evaluation</h3>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Score your proposal as federal evaluators would — Section M criteria, SSEB verdicts.
+                </p>
+              </div>
+              <Link
+                href={`/proposals/${id}/red-team`}
+                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#ff7b20] transition-all w-fit"
+              >
+                Run Red Team
+              </Link>
+            </div>
+
             {/* Export */}
             <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
               <div>
