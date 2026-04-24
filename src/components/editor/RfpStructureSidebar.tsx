@@ -119,7 +119,7 @@ export default function RfpStructureSidebar({
       {!hasStructure ? (
         <div className="px-4 py-6 text-center">
           <p className="text-xs font-semibold text-gray-500">No structure found</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             This RFP was not parsed into sections. Review the Analysis tab to check the document parse result.
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function RfpStructureSidebar({
                   }}
                 >
                   {/* Chevron */}
-                  <span className="text-gray-400 shrink-0">
+                  <span className="text-gray-500 shrink-0">
                     {isSectionExpanded ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +188,7 @@ export default function RfpStructureSidebar({
                   </span>
 
                   {/* Requirement count badge */}
-                  <span className="text-xs text-gray-400 tabular-nums">{count}</span>
+                  <span className="text-xs text-gray-500 tabular-nums">{count}</span>
                 </button>
 
                 {/* Expanded requirements list */}
@@ -196,7 +196,7 @@ export default function RfpStructureSidebar({
                   <div className="pl-8 pr-4">
                     {sectionRequirements.length === 0 ? (
                       <div className="py-1.5">
-                        <span className="text-xs text-gray-400">No requirements</span>
+                        <span className="text-xs text-gray-500">No requirements</span>
                       </div>
                     ) : (
                       sectionRequirements.map((req, i) => (

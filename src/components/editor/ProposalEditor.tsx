@@ -409,7 +409,7 @@ export default function ProposalEditor({
         {!hasContent && !isStreaming && (
           <div className="border border-t-0 border-gray-200 bg-gray-50 px-6 py-4">
             <p className="text-sm text-gray-500 font-medium">No draft yet</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Click Generate {activeSection} to create an AI draft based on your contractor profile and RFP
               requirements.
             </p>
@@ -459,16 +459,16 @@ export default function ProposalEditor({
               </span>
             )}
             {saveStatus === 'saved' && currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-400">Saved at {currentSectionState.lastSavedAt}</span>
+              <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
             )}
             {saveStatus === 'error' && (
               <span className="text-xs text-red-600">Save failed — check connection</span>
             )}
             {saveStatus === 'idle' && !currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-400">Not yet saved</span>
+              <span className="text-xs text-gray-500">Not yet saved</span>
             )}
             {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-400">Saved at {currentSectionState.lastSavedAt}</span>
+              <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
             )}
             {isStreaming && !watchdogStatus && (
               <span className="text-xs text-blue-600">Generating...</span>

@@ -52,7 +52,7 @@ export default function ComplianceMatrix({ requirements, complianceMatrix }: Pro
 
             return (
               <tr key={row.requirement_id} className="text-gray-700">
-                <td className="px-3 py-2 font-mono text-xs text-gray-400 whitespace-nowrap">
+                <td className="px-3 py-2 font-mono text-xs text-gray-500 whitespace-nowrap">
                   {row.requirement_id}
                 </td>
                 <td className="px-3 py-2 max-w-xs">

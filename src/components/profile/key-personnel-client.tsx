@@ -79,7 +79,7 @@ export function KeyPersonnelClient({ personnel: initialPersonnel, deleteKeyPerso
       {personnel.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
           <p className="text-sm text-gray-500">No key personnel added yet.</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Add team member bios to include in proposal sections.
           </p>
         </div>

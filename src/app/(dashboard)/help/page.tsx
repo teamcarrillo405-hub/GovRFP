@@ -112,7 +112,7 @@ export default async function HelpPage() {
             <details key={q} className="group border border-gray-200 rounded-lg">
               <summary className="flex items-center justify-between px-4 py-3 cursor-pointer text-sm font-medium text-gray-900 list-none">
                 {q}
-                <svg className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
@@ -192,7 +192,7 @@ function ContactForm() {
           Open in email client
         </button>
       </form>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         Or email us directly at{' '}
         <a href="mailto:support@hispanicconstructioncouncil.com" className="underline">
           support@hispanicconstructioncouncil.com

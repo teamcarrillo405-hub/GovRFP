@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createProposalFromGovRfp, type GovRfpHandoffInput } from '@/app/(dashboard)/proposals/new/actions'
+import { createProposalFromGovRfp } from '@/app/(dashboard)/proposals/new/actions'
+import type { GovRfpHandoffInput } from '@/lib/bridge/govrfp-handoff'
 
 interface Props {
   metadata: GovRfpHandoffInput
@@ -83,7 +84,7 @@ export function GovRfpHandoffPanel({ metadata }: Props) {
             <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border-l-2 border-gray-200 pl-3">
               {metadata.scope}
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               This is a summary. Upload the full RFP PDF on the next page to extract
               the complete scope, requirements, Sections L/M, and compliance matrix.
             </p>

@@ -53,7 +53,7 @@ export default function RegenerateDialog({ isOpen, sectionName, onConfirm, onCan
 
         <label htmlFor="regenerate-instructions" className="block text-sm text-gray-700 mb-2">
           Instructions{' '}
-          <span className="text-gray-400 font-normal">(optional)</span>
+          <span className="text-gray-500 font-normal">(optional)</span>
         </label>
         <textarea
           id="regenerate-instructions"

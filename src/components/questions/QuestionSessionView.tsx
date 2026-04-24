@@ -238,7 +238,7 @@ function QuestionCard({
       />
 
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-[10px] text-gray-400 uppercase tracking-wide">
+        <span className="text-[10px] text-gray-500 uppercase tracking-wide">
           {item.category.replace(/_/g, ' ')}
         </span>
         <span
@@ -249,7 +249,7 @@ function QuestionCard({
                 ? 'text-green-600'
                 : savingState === 'error'
                   ? 'text-red-600'
-                  : 'text-gray-400'
+                  : 'text-gray-500'
           }`}
         >
           {savingState === 'saving' && '· Saving…'}

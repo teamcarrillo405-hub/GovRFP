@@ -67,7 +67,7 @@ export default function WinScoreCard({ winScore, winFactors }: Props) {
                 </span>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-semibold text-gray-900">{score}/100</span>
-                  <span className="text-xs text-gray-400">{weight}%</span>
+                  <span className="text-xs text-gray-500">{weight}%</span>
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">

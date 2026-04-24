@@ -118,7 +118,7 @@ function NaicsRow({ eligibility }: { eligibility: SizeEligibility }) {
     <div className="flex items-start justify-between gap-4 py-3 border-b border-gray-100 last:border-0">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-sm font-semibold text-gray-900">{naics}</span>
+          <span className="font-mono text-sm font-semibold text-gray-900 tabular-nums">{naics}</span>
           <span className="text-xs text-gray-500 truncate">{standard.description}</span>
         </div>
         <p className="text-xs text-gray-500 mt-0.5">
@@ -128,7 +128,7 @@ function NaicsRow({ eligibility }: { eligibility: SizeEligibility }) {
           </span>
           {standard.threshold_type === 'employees' ? ' employees' : ' annual revenue'}
           {margin && (
-            <span className="ml-2 text-gray-400">({margin})</span>
+            <span className="ml-2 text-gray-500">({margin})</span>
           )}
         </p>
       </div>
@@ -234,7 +234,7 @@ export default function SizeEligibilityCard({ analysis, capabilityStatement }: P
 
       {/* Partial data warning */}
       {hasCapStatement && naicsCodes.length > 0 && eligibilityResults.some((e) => e.status === 'unknown') && (
-        <p className="mt-3 text-xs text-gray-400">
+        <p className="mt-3 text-xs text-gray-500">
           Some checks show Unknown because employee count or annual revenue is missing.{' '}
           <Link
             href="/capability-statement"

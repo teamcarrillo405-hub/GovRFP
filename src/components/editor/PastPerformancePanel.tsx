@@ -169,7 +169,7 @@ export function PastPerformancePanel({ proposalId, onInsertNarrative }: Props) {
 
             <div className="mt-2 flex items-center justify-between gap-2">
               <div
-                className="text-[10px] text-gray-400 font-mono"
+                className="text-[10px] text-gray-500 font-mono"
                 title={`naics ${r.breakdown.naics} · set-aside ${r.breakdown.setAside} · value ${r.breakdown.value} · keyword ${r.breakdown.keyword}`}
               >
                 N {r.breakdown.naics} · SA {r.breakdown.setAside} · V {r.breakdown.value} · K{' '}

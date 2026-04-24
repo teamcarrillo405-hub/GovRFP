@@ -190,7 +190,7 @@ export default async function DashboardPage() {
                     'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black',
                     step.done
                       ? 'bg-[#FDFF66] text-black'
-                      : 'border-2 border-gray-300 text-gray-400 bg-white',
+                      : 'border-2 border-gray-300 text-gray-500 bg-white',
                   ].join(' ')}
                 >
                   {step.done ? '✓' : i + 1}
@@ -204,7 +204,7 @@ export default async function DashboardPage() {
                       {step.label}
                     </Link>
                   ) : (
-                    <p className="text-sm font-semibold text-gray-400">{step.label}</p>
+                    <p className="text-sm font-semibold text-gray-500">{step.label}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-0.5">{step.detail}</p>
                 </div>
@@ -286,7 +286,7 @@ export default async function DashboardPage() {
       {/* ── Recent Proposals ── */}
       {proposals.length > 0 && (
         <div>
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
             Recent Proposals
           </h2>
           <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
@@ -305,7 +305,7 @@ export default async function DashboardPage() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{p.title}</p>
                     {p.file_name && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">{p.file_name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{p.file_name}</p>
                     )}
                   </div>
                   {isShared ? (

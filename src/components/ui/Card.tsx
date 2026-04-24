@@ -37,9 +37,9 @@ export function Card({ variant = 'default', children, className = '', ...rest }:
 export function StatCard({ label, value, sub, className = '' }: StatCardProps) {
   return (
     <div className={['bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-1', className].join(' ')}>
-      <span className="text-gray-400 text-xs font-medium uppercase tracking-wider font-sans">{label}</span>
+      <span className="text-gray-500 text-xs font-medium uppercase tracking-wider font-sans">{label}</span>
       <span className="text-[#ff7b20] text-3xl font-black leading-none font-sans">{value}</span>
-      {sub && <span className="text-gray-400 text-xs font-sans">{sub}</span>}
+      {sub && <span className="text-gray-500 text-xs font-sans">{sub}</span>}
     </div>
   )
 }

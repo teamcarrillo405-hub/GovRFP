@@ -367,7 +367,7 @@ export default function RedTeamPage() {
 
           {/* Last run banner */}
           {lastRunAt && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               Last evaluated {new Date(lastRunAt).toLocaleString()}
             </p>
           )}
@@ -385,7 +385,7 @@ export default function RedTeamPage() {
               {result.overall_score}
             </span>
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Overall Score</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Overall Score</span>
               <span className={[
                 'text-lg font-black uppercase tracking-tight',
                 overallVerdict === 'outstanding' || overallVerdict === 'good' ? 'text-green-700' : '',
@@ -405,7 +405,7 @@ export default function RedTeamPage() {
 
           {/* Criteria cards */}
           <div>
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
               Criterion Breakdown ({result.criteria_scores.length} criteria)
             </h2>
             <div className="space-y-4">

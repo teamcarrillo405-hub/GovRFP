@@ -92,7 +92,7 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
     return (
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-3">Team members</p>
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-500">Loading...</p>
       </div>
     )
   }
@@ -196,7 +196,7 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
                               {/* Trash icon */}
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4 text-gray-400 hover:text-red-600"
+                                className="w-4 h-4 text-gray-500 hover:text-red-600"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -237,7 +237,7 @@ export default function MemberList({ teamId, isOwner, refreshKey }: Props) {
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 h-4 text-gray-400 hover:text-red-600"
+                              className="w-4 h-4 text-gray-500 hover:text-red-600"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"

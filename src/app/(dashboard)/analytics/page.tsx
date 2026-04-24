@@ -159,7 +159,7 @@ export default async function AnalyticsPage() {
             Go to Proposals →
           </Link>
           {outcomesSet > 0 && (
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-500 mt-4">
               {outcomesSet} of 3 outcomes recorded — keep going!
             </p>
           )}
@@ -178,10 +178,10 @@ export default async function AnalyticsPage() {
                 key={label}
                 className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-1"
               >
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                   {label}
                 </span>
-                <span className={`text-3xl font-black ${color}`}>{value}</span>
+                <span className={`text-3xl font-black tabular-nums ${color}`}>{value}</span>
               </div>
             ))}
           </div>
@@ -189,15 +189,19 @@ export default async function AnalyticsPage() {
           {/* ── Score vs Outcome bar chart ── */}
           {(avgWonScore !== null || avgLostScore !== null) && (
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-5">
                 Avg Win Score by Outcome
               </h2>
-              <div className="space-y-4">
+              <div
+                role="img"
+                aria-label={`Average win score: Won ${avgWonScore ?? 'N/A'}, Lost ${avgLostScore ?? 'N/A'}`}
+                className="space-y-4"
+              >
                 {avgWonScore !== null && (
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-semibold text-green-700">Won</span>
-                      <span className="text-sm font-black text-green-700">{avgWonScore}</span>
+                      <span className="text-sm font-black text-green-700 tabular-nums">{avgWonScore}</span>
                     </div>
                     <div className="h-7 rounded-md bg-gray-100 overflow-hidden">
                       <div
@@ -211,7 +215,7 @@ export default async function AnalyticsPage() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-semibold text-red-600">Lost</span>
-                      <span className="text-sm font-black text-red-600">{avgLostScore}</span>
+                      <span className="text-sm font-black text-red-600 tabular-nums">{avgLostScore}</span>
                     </div>
                     <div className="h-7 rounded-md bg-gray-100 overflow-hidden">
                       <div
@@ -222,15 +226,22 @@ export default async function AnalyticsPage() {
                   </div>
                 )}
               </div>
+              <p className="sr-only">
+                Bar chart comparing average win scores. Won proposals averaged {avgWonScore ?? 'N/A'} out of 100. Lost proposals averaged {avgLostScore ?? 'N/A'} out of 100.
+              </p>
             </div>
           )}
 
           {/* ── Outcome distribution stacked bar ── */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
               Outcome Distribution
             </h2>
-            <div className="h-8 rounded-lg overflow-hidden flex w-full mb-3">
+            <div
+              role="img"
+              aria-label={`Outcome distribution: ${won} won, ${lost} lost, ${pending} pending`}
+              className="h-8 rounded-lg overflow-hidden flex w-full mb-3"
+            >
               {wonPct > 0 && (
                 <div
                   className="bg-green-500 h-full flex items-center justify-center text-white text-xs font-bold transition-all duration-500"
@@ -268,6 +279,9 @@ export default async function AnalyticsPage() {
                 </div>
               )}
             </div>
+            <p className="sr-only">
+              Stacked bar showing proposal outcomes. {won} won ({winRate}%), {lost} lost, {pending} pending.
+            </p>
             {/* Legend */}
             <div className="flex flex-wrap gap-4 text-xs text-gray-600">
               <span className="flex items-center gap-1.5">
@@ -292,7 +306,7 @@ export default async function AnalyticsPage() {
           {/* ── Proposals table ── */}
           <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                 All Proposals
               </h2>
             </div>
@@ -335,7 +349,7 @@ export default async function AnalyticsPage() {
                         </td>
                         <td className="px-4 py-3.5">
                           {p.win_score !== null ? (
-                            <span className="font-black text-[#ff7b20]">
+                            <span className="font-black text-[#ff7b20] tabular-nums">
                               {p.win_score}
                             </span>
                           ) : (
@@ -356,7 +370,7 @@ export default async function AnalyticsPage() {
                         <td className="px-4 py-3.5 text-gray-500">
                           {formatDate(p.submitted_at)}
                         </td>
-                        <td className="px-4 py-3.5 font-medium text-gray-700">
+                        <td className="px-4 py-3.5 font-medium text-gray-700 tabular-nums">
                           {formatCurrency(p.contract_value)}
                         </td>
                       </tr>

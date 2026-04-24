@@ -109,7 +109,7 @@ export default async function ProposalDetailPage({ params }: Props) {
       {/* ── Back link ── */}
       <Link
         href="/dashboard"
-        className="text-sm text-gray-400 hover:text-gray-700 mb-6 inline-flex items-center gap-1 transition-colors"
+        className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-flex items-center gap-1 transition-colors"
       >
         ← Dashboard
       </Link>
@@ -121,7 +121,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             {proposal.title}
           </h1>
           {proposal.file_name && (
-            <p className="text-sm text-gray-400 mt-1">{proposal.file_name}</p>
+            <p className="text-sm text-gray-500 mt-1">{proposal.file_name}</p>
           )}
         </div>
         <div className="shrink-0">
@@ -149,7 +149,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             {winScore}
           </span>
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Win Score</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Win Score</span>
             <span
               className={[
                 'text-base font-bold',
@@ -332,23 +332,23 @@ export default async function ProposalDetailPage({ params }: Props) {
 
           {/* Document metadata */}
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Document Info</h2>
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Document Info</h2>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-gray-400 text-xs">Type</dt>
+                <dt className="text-gray-500 text-xs">Type</dt>
                 <dd className="font-semibold text-gray-900 mt-0.5">
                   {proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-400 text-xs">Pages</dt>
+                <dt className="text-gray-500 text-xs">Pages</dt>
                 <dd className="font-semibold text-gray-900 mt-0.5">
                   {proposal.page_count ?? 'N/A'}
                 </dd>
               </div>
               {proposal.is_scanned && (
                 <div>
-                  <dt className="text-gray-400 text-xs">OCR</dt>
+                  <dt className="text-gray-500 text-xs">OCR</dt>
                   <dd className="font-semibold text-gray-900 mt-0.5">
                     Scanned — text extracted via OCR
                   </dd>
@@ -364,23 +364,23 @@ export default async function ProposalDetailPage({ params }: Props) {
         <div className="space-y-4">
           {/* Document metadata */}
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Document Info</h2>
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Document Info</h2>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-gray-400 text-xs">Type</dt>
+                <dt className="text-gray-500 text-xs">Type</dt>
                 <dd className="font-semibold text-gray-900 mt-0.5">
                   {proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-400 text-xs">Pages</dt>
+                <dt className="text-gray-500 text-xs">Pages</dt>
                 <dd className="font-semibold text-gray-900 mt-0.5">
                   {proposal.page_count ?? 'N/A'}
                 </dd>
               </div>
               {proposal.is_scanned && (
                 <div>
-                  <dt className="text-gray-400 text-xs">OCR</dt>
+                  <dt className="text-gray-500 text-xs">OCR</dt>
                   <dd className="font-semibold text-gray-900 mt-0.5">
                     Scanned — text extracted via OCR
                   </dd>
@@ -392,7 +392,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* RFP Structure preview */}
           {proposal.rfp_structure && (
             <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">RFP Structure</h2>
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">RFP Structure</h2>
               {((proposal.rfp_structure as { sections?: Array<{ number: string; title: string }> }).sections?.length ?? 0) > 0 && (
                 <div className="mb-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">Sections</h3>
@@ -400,7 +400,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                     {(proposal.rfp_structure as { sections: Array<{ number: string; title: string }> }).sections.map(
                       (section, i: number) => (
                         <li key={i} className="text-sm text-gray-600">
-                          <span className="font-mono text-gray-400 mr-2">{section.number}</span>
+                          <span className="font-mono text-gray-500 mr-2">{section.number}</span>
                           {section.title}
                         </li>
                       )
@@ -429,12 +429,12 @@ export default async function ProposalDetailPage({ params }: Props) {
           {/* Extracted text preview */}
           {proposal.rfp_text && (
             <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Extracted Text</h2>
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Extracted Text</h2>
               <div className="max-h-96 overflow-y-auto">
                 <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                   {(proposal.rfp_text as string).slice(0, 5000)}
                   {(proposal.rfp_text as string).length > 5000 && (
-                    <span className="text-gray-400">
+                    <span className="text-gray-500">
                       {'\n\n'}... ({((proposal.rfp_text as string).length / 1000).toFixed(0)}k characters total)
                     </span>
                   )}

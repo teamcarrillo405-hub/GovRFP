@@ -11,18 +11,6 @@ import {
 } from '@/lib/past-performance/types'
 import { isRedirectError } from '@/lib/supabase/is-redirect-error'
 
-/**
- * 3-step wizard for entering a Past Performance record.
- *
- * Flow: Identify → Scope → Outcomes → Save. Each step validates its own
- * required fields client-side before allowing Next; final server-action
- * re-validates via zod at the trust boundary.
- *
- * Paste-and-extract (locked design decision #3) lands in Week 2 — the
- * "Paste prior PP section" CTA on step 1 stubs out to a disabled state
- * for now.
- */
-
 interface Props {
   onSubmit: (data: PastPerformanceInput) => Promise<void>
 }
@@ -45,6 +33,16 @@ export function WizardShell({ onSubmit }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  // Paste-and-extract state
+  const [showPaste, setShowPaste] = useState(false)
+  const [pasteText, setPasteText] = useState('')
+  const [extracting, setExtracting] = useState(false)
+  const [extractError, setExtractError] = useState<string | null>(null)
+
+  // USASpending lookup state
+  const [lookupPending, setLookupPending] = useState(false)
+  const [lookupError, setLookupError] = useState<string | null>(null)
+
   const update = <K extends keyof PastPerformanceInput>(key: K, value: PastPerformanceInput[K]) =>
     setData((d) => ({ ...d, [key]: value }))
 
@@ -66,6 +64,86 @@ export function WizardShell({ onSubmit }: Props) {
     })
   }
 
+  const handleExtract = async () => {
+    if (!pasteText.trim() || extracting) return
+    setExtracting(true)
+    setExtractError(null)
+    try {
+      const res = await fetch('/api/past-performance/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: pasteText }),
+      })
+      const json = await res.json() as { records?: PastPerformanceInput[]; error?: string }
+      if (!res.ok || !json.records?.length) {
+        setExtractError(json.error ?? 'No records extracted')
+        return
+      }
+      // Merge first extracted record into form data
+      const rec = json.records[0]
+      setData((d) => ({
+        ...d,
+        contract_title: rec.contract_title || d.contract_title,
+        contract_number: rec.contract_number ?? d.contract_number,
+        customer_name: rec.customer_name || d.customer_name,
+        customer_agency_code: rec.customer_agency_code ?? d.customer_agency_code,
+        period_start: rec.period_start ?? d.period_start,
+        period_end: rec.period_end ?? d.period_end,
+        contract_value_usd: rec.contract_value_usd ?? d.contract_value_usd,
+        naics_codes: rec.naics_codes?.length ? rec.naics_codes : d.naics_codes,
+        set_asides_claimed: rec.set_asides_claimed?.length ? rec.set_asides_claimed : d.set_asides_claimed,
+        scope_narrative: rec.scope_narrative || d.scope_narrative,
+        outcomes: rec.outcomes ?? d.outcomes,
+        cpars_rating: rec.cpars_rating ?? d.cpars_rating,
+        tags: rec.tags?.length ? rec.tags : d.tags,
+      }))
+      setShowPaste(false)
+      setPasteText('')
+    } catch {
+      setExtractError('Extraction failed — try again')
+    } finally {
+      setExtracting(false)
+    }
+  }
+
+  const handleLookup = async () => {
+    const piid = data.contract_number?.trim()
+    if (!piid || lookupPending) return
+    setLookupPending(true)
+    setLookupError(null)
+    try {
+      const res = await fetch(`/api/past-performance/usaspending?piid=${encodeURIComponent(piid)}`)
+      const json = await res.json() as {
+        found: boolean
+        data?: {
+          customer_name: string | null
+          customer_agency_code: string | null
+          contract_value_usd: number | null
+          period_start: string | null
+          period_end: string | null
+          naics_code: string | null
+        }
+        error?: string
+      }
+      if (!res.ok) { setLookupError(json.error ?? 'Lookup failed'); return }
+      if (!json.found) { setLookupError('Contract not found in USASpending'); return }
+      const d = json.data!
+      setData((prev) => ({
+        ...prev,
+        customer_name: d.customer_name || prev.customer_name,
+        customer_agency_code: d.customer_agency_code ?? prev.customer_agency_code,
+        contract_value_usd: d.contract_value_usd ?? prev.contract_value_usd,
+        period_start: d.period_start ?? prev.period_start,
+        period_end: d.period_end ?? prev.period_end,
+        naics_codes: d.naics_code ? [d.naics_code] : prev.naics_codes,
+      }))
+    } catch {
+      setLookupError('Lookup failed — try again')
+    } finally {
+      setLookupPending(false)
+    }
+  }
+
   return (
     <div>
       <ProgressBar step={step} />
@@ -77,28 +155,58 @@ export function WizardShell({ onSubmit }: Props) {
             subtitle="Who was the customer, what was the contract, when and how big?"
           />
 
-          <div
-            className="mb-6 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm"
-            title="Paste-and-extract ships in Week 2"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold text-gray-700">
-                  Have a prior proposal&rsquo;s PP section?
-                </p>
-                <p className="text-xs text-gray-500">
-                  Paste it and we&rsquo;ll extract all fields across all 3 steps.
-                </p>
+          {/* Paste-and-extract */}
+          <div className="mb-6 rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm">
+            {!showPaste ? (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-gray-700">
+                    Have a prior proposal&rsquo;s PP section?
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Paste it and we&rsquo;ll extract all fields across all 3 steps.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPaste(true)}
+                  className="px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-700 hover:bg-white"
+                >
+                  Paste prior PP
+                </button>
               </div>
-              <button
-                type="button"
-                disabled
-                className="px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-400 cursor-not-allowed"
-                title="Coming next week"
-              >
-                Paste prior PP (soon)
-              </button>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="font-semibold text-gray-700 text-xs">Paste your prior PP text below:</p>
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  rows={6}
+                  maxLength={20_000}
+                  className="block w-full rounded border border-gray-300 px-3 py-2 text-xs font-sans focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                  placeholder="Paste past performance section from a prior proposal…"
+                />
+                {extractError && <p className="text-xs text-red-600">{extractError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleExtract}
+                    disabled={!pasteText.trim() || extracting}
+                    className="px-3 py-1.5 text-xs rounded-md text-gray-900 font-semibold disabled:opacity-40"
+                    style={{ backgroundColor: '#F5C518' }}
+                  >
+                    {extracting ? 'Extracting…' : 'Extract fields'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowPaste(false); setPasteText(''); setExtractError(null) }}
+                    className="px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-600 hover:bg-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -112,13 +220,25 @@ export function WizardShell({ onSubmit }: Props) {
               />
             </Field>
             <Field label="Contract number">
-              <input
-                type="text"
-                value={data.contract_number ?? ''}
-                onChange={(e) => update('contract_number', e.target.value || null)}
-                className={inputCls}
-                placeholder="W912DR-23-C-0042"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={data.contract_number ?? ''}
+                  onChange={(e) => { update('contract_number', e.target.value || null); setLookupError(null) }}
+                  className={inputCls}
+                  placeholder="W912DR-23-C-0042"
+                />
+                <button
+                  type="button"
+                  onClick={handleLookup}
+                  disabled={!data.contract_number?.trim() || lookupPending}
+                  title="Look up on USASpending.gov"
+                  className="shrink-0 px-2.5 py-1.5 text-xs rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {lookupPending ? '…' : 'Lookup'}
+                </button>
+              </div>
+              {lookupError && <p className="mt-1 text-xs text-red-600">{lookupError}</p>}
             </Field>
             <Field label="Customer" required>
               <input
@@ -415,7 +535,7 @@ function ProgressBar({ step }: { step: Step }) {
           <div key={label} className="flex items-center flex-1">
             <div
               className={`flex items-center gap-2 ${
-                active ? 'text-gray-900' : done ? 'text-gray-600' : 'text-gray-400'
+                active ? 'text-gray-900' : done ? 'text-gray-600' : 'text-gray-500'
               }`}
             >
               <span

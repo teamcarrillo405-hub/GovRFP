@@ -78,7 +78,7 @@ export default async function PastPerformanceListPage() {
                       {r.contract_title}
                     </Link>
                     {r.contract_number && (
-                      <div className="text-xs text-gray-400 font-mono mt-0.5">
+                      <div className="text-xs text-gray-500 font-mono mt-0.5">
                         {r.contract_number}
                       </div>
                     )}
@@ -86,7 +86,7 @@ export default async function PastPerformanceListPage() {
                   <Td>
                     <div>{r.customer_name}</div>
                     {r.customer_agency_code && (
-                      <div className="text-xs text-gray-400">{r.customer_agency_code}</div>
+                      <div className="text-xs text-gray-500">{r.customer_agency_code}</div>
                     )}
                   </Td>
                   <Td className="text-xs">
@@ -111,7 +111,7 @@ export default async function PastPerformanceListPage() {
                         </span>
                       ))}
                       {(r.set_asides_claimed ?? []).length === 0 && (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-gray-500">—</span>
                       )}
                     </div>
                   </Td>

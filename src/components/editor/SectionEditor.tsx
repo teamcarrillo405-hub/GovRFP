@@ -83,7 +83,7 @@ const SectionEditor = forwardRef<SectionEditorHandle, Props>(function SectionEdi
               <span className="text-sm text-blue-700 font-semibold">Generating...</span>
             </div>
             {streamBuffer && (
-              <p className="text-xs text-gray-400 max-w-sm text-center line-clamp-2">{streamBuffer.slice(-120)}</p>
+              <p className="text-xs text-gray-500 max-w-sm text-center line-clamp-2">{streamBuffer.slice(-120)}</p>
             )}
           </div>
         )}

@@ -42,13 +42,13 @@ export default function SectionLMCrosswalk({ crosswalk, hasSectionL, hasSectionM
         {crosswalk.map((entry, i) => (
           <tr key={i} className="text-gray-700">
             <td className="px-3 py-3 align-top">
-              <span className="font-mono text-xs text-gray-400 block mb-1">
+              <span className="font-mono text-xs text-gray-500 block mb-1">
                 {entry.section_l_ref}
               </span>
               <span>{entry.section_l_instruction}</span>
             </td>
             <td className="px-3 py-3 align-top">
-              <span className="font-mono text-xs text-gray-400 block mb-1">
+              <span className="font-mono text-xs text-gray-500 block mb-1">
                 {entry.section_m_ref}
               </span>
               <div className="flex items-start justify-between gap-2">
