@@ -125,7 +125,7 @@ export async function deletePastPerformance(id: string) {
 
 export async function bulkCreatePastPerformance(
   inputs: PastPerformanceInput[],
-): Promise<{ created: number }> {
+): Promise<{ created: number; skipped: number }> {
   const user = await getUser()
   if (!user) redirect('/login')
 
@@ -134,8 +134,10 @@ export async function bulkCreatePastPerformance(
   // Auto-scope bulk records to the user's team when they belong to exactly one.
   const teamId = await resolveTeamId(supabase, user.id)
 
-  const rows = inputs
-    .map((input) => pastPerformanceInputSchema.safeParse(input))
+  const parseResults = inputs.map((input) => pastPerformanceInputSchema.safeParse(input))
+  const invalidCount = parseResults.filter((r) => !r.success).length
+
+  const rows = parseResults
     .filter((r) => r.success)
     .map((r) => ({
       ...(r as { success: true; data: PastPerformanceInput }).data,
@@ -145,7 +147,11 @@ export async function bulkCreatePastPerformance(
         (r as { success: true; data: PastPerformanceInput }).data.customer_poc_email || null,
     }))
 
-  if (rows.length === 0) return { created: 0 }
+  if (rows.length === 0) {
+    throw new Error(
+      `All ${inputs.length} record(s) failed validation — check required fields (contract_title, customer_name, scope_narrative)`,
+    )
+  }
 
   const { error } = await supabase.from('past_performance').insert(rows)
 
@@ -155,5 +161,5 @@ export async function bulkCreatePastPerformance(
 
   revalidatePath('/past-performance')
   // Caller handles navigation — no redirect here.
-  return { created: rows.length }
+  return { created: rows.length, skipped: invalidCount }
 }

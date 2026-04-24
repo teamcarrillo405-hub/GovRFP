@@ -129,9 +129,15 @@ export function WizardShell({ onSubmit }: Props) {
     setBulkSaving(true)
     setBulkError(null)
     try {
-      await bulkCreatePastPerformance(extractedRecords)
+      const result = await bulkCreatePastPerformance(extractedRecords)
+      if (result.created === 0) {
+        setBulkError('No valid records to save — all records failed validation')
+        setBulkSaving(false)
+        return
+      }
       router.push('/past-performance')
     } catch (e) {
+      if (isRedirectError(e)) throw e
       setBulkError(e instanceof Error ? e.message : 'Failed to save records')
       setBulkSaving(false)
     }

@@ -39,21 +39,27 @@ Return a JSON array of records. Each record must have these fields (all optional
 
 Extract 1-5 records. Return ONLY the JSON array, no explanation.`
 
-  const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4096,
-    messages: [
-      {
-        role: 'user',
-        content: `Extract past performance records from this text:\n\n${text}`,
-      },
-    ],
-    system: systemPrompt,
-  })
+  let message: Awaited<ReturnType<typeof client.messages.create>>
+  try {
+    message = await client.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: `Extract past performance records from this text:\n\n${text}`,
+        },
+      ],
+      system: systemPrompt,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Claude API error'
+    return NextResponse.json({ error: `Extraction failed: ${msg}` }, { status: 502 })
+  }
 
   const content = message.content[0]
   if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Extraction failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Extraction failed — unexpected response type' }, { status: 500 })
   }
 
   let records: unknown[]
@@ -63,8 +69,21 @@ Extract 1-5 records. Return ONLY the JSON array, no explanation.`
     records = JSON.parse(jsonMatch[0])
     if (!Array.isArray(records) || records.length === 0) throw new Error('Empty result')
   } catch {
-    return NextResponse.json({ error: 'Could not parse extracted records' }, { status: 500 })
+    return NextResponse.json({ error: 'Could not parse extracted records — try pasting more complete text' }, { status: 500 })
   }
 
-  return NextResponse.json({ records: records.slice(0, 5) })
+  // Ensure each record has the required scope_narrative (may be missing/empty from Claude).
+  // Fill a placeholder so the record passes schema validation and the user can edit it.
+  const normalized = (records as Record<string, unknown>[]).map((rec) => ({
+    ...rec,
+    scope_narrative: rec.scope_narrative && String(rec.scope_narrative).trim()
+      ? rec.scope_narrative
+      : `${rec.contract_title ?? 'Contract'} — scope extracted from prior proposal. Please review and expand.`,
+    naics_codes: Array.isArray(rec.naics_codes) ? rec.naics_codes : [],
+    set_asides_claimed: Array.isArray(rec.set_asides_claimed) ? rec.set_asides_claimed : [],
+    key_personnel: Array.isArray(rec.key_personnel) ? rec.key_personnel : [],
+    tags: Array.isArray(rec.tags) ? rec.tags : [],
+  }))
+
+  return NextResponse.json({ records: normalized.slice(0, 5) })
 }

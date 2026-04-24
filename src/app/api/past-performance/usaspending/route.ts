@@ -52,12 +52,18 @@ export async function GET(request: Request) {
     subawards: false,
   }
 
-  const res = await fetch('https://api.usaspending.gov/api/v2/search/spending_by_award/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10_000),
-  })
+  let res: Response
+  try {
+    res = await fetch('https://api.usaspending.gov/api/v2/search/spending_by_award/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10_000),
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Network error'
+    return NextResponse.json({ error: `USASpending unreachable: ${msg}` }, { status: 502 })
+  }
 
   if (!res.ok) {
     return NextResponse.json({ error: 'USASpending lookup failed' }, { status: 502 })
@@ -72,17 +78,24 @@ export async function GET(request: Request) {
 
   const award = results[0]
 
+  // customer_agency_code has a max length of 50 in the DB schema.
+  // USASpending returns full agency names (e.g. "Department of Defense") —
+  // truncate rather than reject.
+  const rawAgencyCode = award['Awarding Agency'] ?? null
+  const customer_agency_code = rawAgencyCode
+    ? rawAgencyCode.slice(0, 50)
+    : null
+
   return NextResponse.json({
     found: true,
     data: {
       contract_number: award['Award ID'] ?? piid,
       customer_name: award['Awarding Agency'] ?? award['Funding Agency'] ?? null,
-      customer_agency_code: award['Awarding Agency'] ?? null,
+      customer_agency_code,
       contract_value_usd: award['Award Amount'] ?? null,
       period_start: award['Start Date'] ?? null,
       period_end: award['End Date'] ?? null,
       naics_code: award['NAICS Code'] ?? null,
-      naics_description: award['NAICS Description'] ?? null,
     },
   })
 }
