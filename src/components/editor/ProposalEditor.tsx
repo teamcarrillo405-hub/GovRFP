@@ -17,6 +17,11 @@ import { PastPerformancePanel } from './PastPerformancePanel'
 import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
 import { toast } from 'sonner'
 
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type ToolView = 'rfp-structure' | 'compliance' | 'past-performance' | 'scoring'
+type ActiveView = SectionName | ToolView
+
 interface SectionState {
   content: JSONContent | null
   draftStatus: ProposalSection['draft_status']
@@ -31,7 +36,10 @@ interface Props {
   requirements: AnalysisRequirement[]
   complianceMatrix: ComplianceMatrixRow[]
   rfpStructure: RfpStructure | null
+  className?: string
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function initSectionsMap(initialSections: ProposalSection[]): Map<SectionName, SectionState> {
   const map = new Map<SectionName, SectionState>()
@@ -46,14 +54,29 @@ function initSectionsMap(initialSections: ProposalSection[]): Map<SectionName, S
   return map
 }
 
+function isSectionName(view: ActiveView): view is SectionName {
+  return (SECTION_NAMES as readonly string[]).includes(view)
+}
+
+// Status dot color per draft status
+function sectionDotClass(draftStatus: ProposalSection['draft_status']): string {
+  if (draftStatus === 'edited' || draftStatus === 'draft') {
+    return draftStatus === 'edited' ? 'bg-green-500' : 'bg-yellow-400'
+  }
+  return 'bg-gray-300'
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function ProposalEditor({
   proposalId,
   initialSections,
   requirements,
   complianceMatrix,
   rfpStructure,
+  className = '',
 }: Props) {
-  const [activeSection, setActiveSection] = useState<SectionName>('Executive Summary')
+  const [activeView, setActiveView] = useState<ActiveView>('Executive Summary')
   const [sections, setSections] = useState<Map<SectionName, SectionState>>(
     () => initSectionsMap(initialSections)
   )
@@ -73,19 +96,29 @@ export default function ProposalEditor({
   const isDirtyRef = useRef(false)
   const isSavingRef = useRef(false)
   const isStreamingRef = useRef(false)
-  const activeSectionRef = useRef<SectionName>(activeSection)
+  // lastActiveSectionRef tracks the most recently active section so that
+  // save/watchdog logic always has a valid SectionName even when a tool is active.
+  const lastActiveSectionRef = useRef<SectionName>('Executive Summary')
   const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Keep refs in sync
+  // Keep lastActiveSectionRef in sync whenever a section is active
   useEffect(() => {
-    activeSectionRef.current = activeSection
-  }, [activeSection])
+    if (isSectionName(activeView)) {
+      lastActiveSectionRef.current = activeView
+    }
+  }, [activeView])
 
   useEffect(() => {
     isStreamingRef.current = isStreaming
   }, [isStreaming])
 
-  // Save current section to Supabase
+  // The currently active SectionName (falls back to last known)
+  const activeSection: SectionName = isSectionName(activeView)
+    ? activeView
+    : lastActiveSectionRef.current
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+
   const saveCurrentSection = useCallback(
     async (sectionName: SectionName, status: 'draft' | 'edited' = 'edited') => {
       const editor = editorRef.current?.editor
@@ -137,11 +170,11 @@ export default function ProposalEditor({
     [proposalId, requirements]
   )
 
-  // Set up 30-second auto-save interval
+  // 30-second auto-save interval
   useEffect(() => {
     saveTimerRef.current = setInterval(() => {
       if (!isDirtyRef.current || isSavingRef.current || isStreamingRef.current) return
-      saveCurrentSection(activeSectionRef.current, 'edited')
+      saveCurrentSection(lastActiveSectionRef.current, 'edited')
     }, 30_000)
 
     return () => {
@@ -149,36 +182,36 @@ export default function ProposalEditor({
     }
   }, [saveCurrentSection])
 
-  // Handle section tab switch — save current before switching
-  const handleTabSwitch = async (section: SectionName) => {
-    if (isStreaming) return
-    if (section === activeSection) return
+  // ── Section switch ────────────────────────────────────────────────────────
 
-    // Save current section if dirty
-    if (isDirtyRef.current) {
-      await saveCurrentSection(activeSection, 'edited')
+  const handleSectionSwitch = async (section: SectionName) => {
+    if (isStreaming) return
+    if (section === activeView) return
+
+    // Save current section if dirty before switching
+    if (isDirtyRef.current && isSectionName(activeView)) {
+      await saveCurrentSection(activeView, 'edited')
     }
-    setActiveSection(section)
+    setActiveView(section)
     isDirtyRef.current = false
   }
 
-  // Handle editor content updates
+  // ── Editor update ─────────────────────────────────────────────────────────
+
   const handleEditorUpdate = useCallback((json: JSONContent) => {
     isDirtyRef.current = true
     setSections((prev) => {
       const next = new Map(prev)
-      const existing = next.get(activeSectionRef.current)
+      const existing = next.get(lastActiveSectionRef.current)
       if (existing) {
-        next.set(activeSectionRef.current, { ...existing, content: json })
+        next.set(lastActiveSectionRef.current, { ...existing, content: json })
       }
       return next
     })
   }, [])
 
-  // Insert a tailored Past Performance narrative (Markdown) at the end of
-  // the current section's editor content. The PastPerformancePanel hits
-  // /api/past-performance/tailor (Claude streamed) and calls back with the
-  // full Markdown when the stream completes.
+  // ── Past Performance insert ───────────────────────────────────────────────
+
   const handleInsertPpNarrative = useCallback((markdown: string) => {
     const editor = editorRef.current?.editor
     if (!editor) return
@@ -186,11 +219,12 @@ export default function ProposalEditor({
     editor.chain().focus('end').insertContent(html).run()
     isDirtyRef.current = true
     toast.success('Past Performance narrative inserted', {
-      description: `Added to ${activeSection}`,
+      description: `Added to ${lastActiveSectionRef.current}`,
     })
-  }, [activeSection])
+  }, [])
 
-  // Click-to-scroll: find matching heading in editor and scroll to it
+  // ── RFP section scroll ────────────────────────────────────────────────────
+
   const handleRfpSectionClick = useCallback((sectionTitle: string) => {
     const editor = editorRef.current?.editor
     if (!editor) return
@@ -211,7 +245,8 @@ export default function ProposalEditor({
     }
   }, [])
 
-  // Detect which RFP section the cursor is currently in
+  // ── Active RFP section detection ──────────────────────────────────────────
+
   const detectActiveRfpSection = useCallback(() => {
     const editor = editorRef.current?.editor
     if (!editor || !rfpStructure) return
@@ -234,7 +269,6 @@ export default function ProposalEditor({
     setActiveRfpSection(nearestHeading)
   }, [rfpStructure])
 
-  // Wire active section detection to editor events
   useEffect(() => {
     const editor = editorRef.current?.editor
     if (!editor) return
@@ -249,13 +283,13 @@ export default function ProposalEditor({
     }
   }, [detectActiveRfpSection])
 
-  // Run detection once after mount (editor ref may not be available on first render)
   useEffect(() => {
     const timer = setTimeout(() => detectActiveRfpSection(), 500)
     return () => clearTimeout(timer)
-  }, [detectActiveRfpSection, activeSection])
+  }, [detectActiveRfpSection, activeView])
 
-  // Handle generate — runs Quality Watchdog loop (draft → score → redraft)
+  // ── Generate (Quality Watchdog loop) ─────────────────────────────────────
+
   const handleGenerate = async (section: SectionName, instruction?: string) => {
     if (isStreaming) return
 
@@ -315,7 +349,6 @@ export default function ProposalEditor({
         }
       }
 
-      // Write the approved (or best-effort) content to editor
       const editor = editorRef.current?.editor
       if (editor && finalContent) {
         editor.commands.setContent(finalContent)
@@ -329,7 +362,6 @@ export default function ProposalEditor({
         return next
       })
 
-      // The route already saved to DB; do a client-side refresh of section state
       await saveCurrentSection(section, 'draft')
       if (finalContent) {
         const score = watchdogScore
@@ -350,176 +382,276 @@ export default function ProposalEditor({
     }
   }
 
+  // ── Derived state ─────────────────────────────────────────────────────────
+
   const currentSectionState = sections.get(activeSection)
   const hasContent =
     currentSectionState?.draftStatus !== 'empty' &&
     currentSectionState?.content !== null
 
   const currentCoverage = complianceCoverage.get(activeSection) ?? new Map()
-
   const editor = editorRef.current?.editor
+  const isToolView = !isSectionName(activeView)
+
+  // ── Nav button styles ─────────────────────────────────────────────────────
+
+  const navItemBase = 'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left'
+  const navItemActive = 'bg-white text-gray-900 shadow-sm font-semibold border border-gray-200'
+  const navItemInactive = 'text-gray-600 hover:bg-gray-100'
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col lg:flex-row gap-0 overflow-x-hidden">
-      <RfpStructureSidebar
-        rfpStructure={rfpStructure}
-        activeRfpSection={activeRfpSection}
-        onSectionClick={handleRfpSectionClick}
-      />
+    <div className={`flex overflow-hidden ${className}`}>
+      {/* ── Left navigation sidebar ── */}
+      <nav
+        className="w-56 shrink-0 border-r border-gray-200 bg-gray-50 overflow-y-auto flex flex-col"
+        aria-label="Proposal navigation"
+      >
+        <div className="p-3 flex flex-col gap-1">
+          {/* SECTIONS group */}
+          <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Sections
+          </p>
 
-      {/* Editor column */}
-      <div className="flex-1 min-w-0">
-        {/* Section tabs */}
-        <div
-          className={[
-            'flex gap-0 border-b border-gray-200 overflow-x-auto scrollbar-none',
-            isStreaming ? 'pointer-events-none opacity-60' : '',
-          ].join(' ')}
-          role="tablist"
-          aria-label="Proposal sections"
-        >
-          {SECTION_NAMES.map((section) => (
-            <button
-              key={section}
-              role="tab"
-              aria-selected={section === activeSection}
-              onClick={() => handleTabSwitch(section)}
-              className={[
-                'px-3 py-2 text-sm font-medium cursor-pointer transition-colors whitespace-nowrap',
-                section === activeSection
-                  ? 'border-b-2 border-blue-700 text-blue-700 bg-white'
-                  : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100',
-              ].join(' ')}
-            >
-              {section}
-            </button>
-          ))}
-        </div>
-
-        {/* Toolbar */}
-        <EditorToolbar editor={editor ?? null} />
-
-        {/* Tiptap canvas */}
-        <SectionEditor
-          ref={editorRef}
-          content={currentSectionState?.content ?? null}
-          onUpdate={handleEditorUpdate}
-          isStreaming={isStreaming}
-          streamBuffer={streamBuffer}
-        />
-
-        {/* Empty state */}
-        {!hasContent && !isStreaming && (
-          <div className="border border-t-0 border-gray-200 bg-gray-50 px-6 py-4">
-            <p className="text-sm text-gray-500 font-medium">No draft yet</p>
-            <p className="text-xs text-gray-500 mt-1">
-              Click Generate {activeSection} to create an AI draft based on your contractor profile and RFP
-              requirements.
-            </p>
-          </div>
-        )}
-
-        {/* Quality Watchdog status bar */}
-        {isStreaming && watchdogStatus && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
-            <svg className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
-            <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
-            {watchdogScore && (
-              <span
-                className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${
-                  watchdogScore.passed
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
+          {SECTION_NAMES.map((section) => {
+            const state = sections.get(section)
+            const isActive = activeView === section
+            return (
+              <button
+                key={section}
+                onClick={() => handleSectionSwitch(section)}
+                disabled={isStreaming}
+                className={`${navItemBase} ${isActive ? navItemActive : navItemInactive} disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-current={isActive ? 'page' : undefined}
               >
-                {watchdogScore.score}/100
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Generate bar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md">
-          {/* Auto-save indicator */}
-          <div>
-            {saveStatus === 'saving' && (
-              <span className="flex items-center gap-1.5 text-xs text-blue-600">
-                <svg
-                  className="animate-spin h-3 w-3"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+                {/* Status dot */}
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${sectionDotClass(state?.draftStatus ?? 'empty')}`}
                   aria-hidden="true"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Saving...
-              </span>
-            )}
-            {saveStatus === 'saved' && currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
-            )}
-            {saveStatus === 'error' && (
-              <span className="text-xs text-red-600">Save failed — check connection</span>
-            )}
-            {saveStatus === 'idle' && !currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-500">Not yet saved</span>
-            )}
-            {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
-              <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
-            )}
-            {isStreaming && !watchdogStatus && (
-              <span className="text-xs text-blue-600">Generating...</span>
-            )}
-          </div>
+                />
+                <span className="truncate">{section}</span>
+              </button>
+            )
+          })}
 
-          {/* Generate / Regenerate button */}
-          <div className="flex items-center gap-3">
-            {hasContent ? (
+          {/* TOOLS group */}
+          <p className="px-3 pt-5 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Tools
+          </p>
+
+          {(
+            [
+              { id: 'rfp-structure', label: 'RFP Structure' },
+              { id: 'compliance', label: 'Compliance' },
+              { id: 'past-performance', label: 'Past Performance' },
+              { id: 'scoring', label: 'Scoring Rubric' },
+            ] as { id: ToolView; label: string }[]
+          ).map(({ id, label }) => {
+            const isActive = activeView === id
+            return (
               <button
-                onClick={() => setShowRegenerateDialog(true)}
-                disabled={isStreaming}
-                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                key={id}
+                onClick={() => setActiveView(id)}
+                className={`${navItemBase} ${isActive ? navItemActive : navItemInactive}`}
+                aria-current={isActive ? 'page' : undefined}
               >
-                Regenerate Section
+                <span className="truncate">{label}</span>
               </button>
-            ) : (
-              <button
-                onClick={() => handleGenerate(activeSection)}
-                disabled={isStreaming}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Generate {activeSection}
-              </button>
-            )}
-          </div>
+            )
+          })}
         </div>
+      </nav>
+
+      {/* ── Main content area ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* SECTION VIEW */}
+        {isSectionName(activeView) && (
+          <>
+            {/* Toolbar */}
+            <div className="shrink-0">
+              <EditorToolbar editor={editor ?? null} />
+            </div>
+
+            {/* Scrollable editor canvas */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-4xl mx-auto w-full px-12 py-8">
+                <SectionEditor
+                  ref={editorRef}
+                  content={currentSectionState?.content ?? null}
+                  onUpdate={handleEditorUpdate}
+                  isStreaming={isStreaming}
+                  streamBuffer={streamBuffer}
+                />
+
+                {/* Empty state */}
+                {!hasContent && !isStreaming && (
+                  <div className="border border-t-0 border-gray-200 bg-gray-50 px-6 py-4 rounded-b-md">
+                    <p className="text-sm text-gray-500 font-medium">No draft yet</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Click Generate {activeSection} to create an AI draft based on your contractor
+                      profile and RFP requirements.
+                    </p>
+                  </div>
+                )}
+
+                {/* Quality Watchdog status bar */}
+                {isStreaming && watchdogStatus && (
+                  <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
+                    <svg
+                      className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                    <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
+                    <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
+                    {watchdogScore && (
+                      <span
+                        className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${
+                          watchdogScore.passed
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {watchdogScore.score}/100
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Generate / save bar */}
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md mt-0">
+                  {/* Auto-save indicator */}
+                  <div>
+                    {saveStatus === 'saving' && (
+                      <span className="flex items-center gap-1.5 text-xs text-blue-600">
+                        <svg
+                          className="animate-spin h-3 w-3"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                        Saving...
+                      </span>
+                    )}
+                    {saveStatus === 'saved' && currentSectionState?.lastSavedAt && (
+                      <span className="text-xs text-gray-500">
+                        Saved at {currentSectionState.lastSavedAt}
+                      </span>
+                    )}
+                    {saveStatus === 'error' && (
+                      <span className="text-xs text-red-600">Save failed — check connection</span>
+                    )}
+                    {saveStatus === 'idle' && !currentSectionState?.lastSavedAt && (
+                      <span className="text-xs text-gray-500">Not yet saved</span>
+                    )}
+                    {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
+                      <span className="text-xs text-gray-500">
+                        Saved at {currentSectionState.lastSavedAt}
+                      </span>
+                    )}
+                    {isStreaming && !watchdogStatus && (
+                      <span className="text-xs text-blue-600">Generating...</span>
+                    )}
+                  </div>
+
+                  {/* Generate / Regenerate button */}
+                  <div className="flex items-center gap-3">
+                    {hasContent ? (
+                      <button
+                        onClick={() => setShowRegenerateDialog(true)}
+                        disabled={isStreaming}
+                        className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Regenerate Section
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleGenerate(activeSection)}
+                        disabled={isStreaming}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Generate {activeSection}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* TOOL VIEWS */}
+        {isToolView && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-4xl mx-auto w-full px-8 py-8">
+
+              {activeView === 'rfp-structure' && (
+                <RfpStructureSidebar
+                  rfpStructure={rfpStructure}
+                  activeRfpSection={activeRfpSection}
+                  onSectionClick={handleRfpSectionClick}
+                />
+              )}
+
+              {activeView === 'compliance' && (
+                <CompliancePanel
+                  requirements={requirements}
+                  coverage={currentCoverage}
+                  sectionName={activeSection}
+                />
+              )}
+
+              {activeView === 'past-performance' && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <PastPerformancePanel
+                    proposalId={proposalId}
+                    onInsertNarrative={handleInsertPpNarrative}
+                  />
+                </div>
+              )}
+
+              {activeView === 'scoring' && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Scoring Rubric</h2>
+                  <p className="text-sm text-gray-500">Scoring rubric analysis coming soon.</p>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Compliance panel */}
-      <CompliancePanel
-        requirements={requirements}
-        coverage={currentCoverage}
-        sectionName={activeSection}
-      />
-
-      {/* Past Performance panel — ranks PP records vs current RFP, drafts tailored narratives */}
-      <aside className="w-80 shrink-0 flex flex-col border-l border-gray-200 bg-gray-50">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <span className="text-sm font-semibold text-gray-700">Past Performance</span>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <PastPerformancePanel
-            proposalId={proposalId}
-            onInsertNarrative={handleInsertPpNarrative}
-          />
-        </div>
-      </aside>
 
       {/* Regenerate dialog */}
       <RegenerateDialog

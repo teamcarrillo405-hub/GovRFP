@@ -58,39 +58,44 @@ export default async function EditorPage({ params }: Props) {
   const complianceMatrix = ((analysisResult.data?.compliance_matrix ?? []) as ComplianceMatrixRow[])
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/dashboard" className="hover:text-gray-700">
-          Dashboard
-        </Link>
-        <span>/</span>
-        <Link href={`/proposals/${id}`} className="hover:text-gray-700">
-          {proposal.title}
-        </Link>
-        <span>/</span>
-        <span className="text-gray-900 font-medium">Editor</span>
-      </nav>
+    // Full-bleed: fills the remaining viewport below the 56px fixed header (pt-14 in layout)
+    <main className="flex flex-col h-[calc(100vh-56px)]">
+      {/* Compact header bar */}
+      <div className="flex items-center justify-between px-8 py-3 border-b border-gray-200 shrink-0 bg-white">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm text-gray-500" aria-label="Breadcrumb">
+            <Link href="/dashboard" className="hover:text-gray-700 transition-colors">
+              Dashboard
+            </Link>
+            <span aria-hidden="true">/</span>
+            <Link href={`/proposals/${id}`} className="hover:text-gray-700 transition-colors truncate max-w-[200px]">
+              {proposal.title}
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span className="text-gray-900 font-medium">Editor</span>
+          </nav>
+        </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">{proposal.title}</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href={`/proposals/${id}/review`}
-            className="text-sm font-medium text-purple-700 hover:text-purple-900"
+            className="text-sm font-medium text-purple-700 hover:text-purple-900 transition-colors"
           >
-            Review & Comment
+            Review &amp; Comment
           </Link>
           <ExportButtons proposalId={id} />
         </div>
       </div>
 
+      {/* Editor fills remaining height */}
       <ProposalEditor
         proposalId={id}
         initialSections={sections}
         requirements={requirements}
         complianceMatrix={complianceMatrix}
         rfpStructure={rfpStructure}
+        className="flex-1 overflow-hidden"
       />
     </main>
   )
