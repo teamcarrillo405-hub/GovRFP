@@ -7,28 +7,18 @@ import type { RedTeamCriterionScore, RedTeamResult } from '@/app/api/proposals/[
 
 // ─── Score helpers ─────────────────────────────────────────────────────────────
 
-function verdictColor(verdict: string): string {
+function verdictTextColor(verdict: string): string {
   const v = verdict.toLowerCase()
-  if (v === 'outstanding') return 'bg-green-600 text-white'
-  if (v === 'good') return 'bg-green-400 text-white'
-  if (v === 'acceptable') return 'bg-yellow-400 text-black'
-  if (v === 'marginal') return 'bg-orange-500 text-white'
-  return 'bg-red-600 text-white'
-}
-
-function scoreBarColor(score: number): string {
-  if (score >= 90) return 'bg-green-500'
-  if (score >= 75) return 'bg-green-400'
-  if (score >= 55) return 'bg-yellow-400'
-  if (score >= 35) return 'bg-orange-500'
-  return 'bg-red-500'
+  if (v === 'outstanding' || v === 'good') return '#00C48C'
+  if (v === 'acceptable') return '#F59E0B'
+  return '#FF4D4F'
 }
 
 function ScoreBar({ score }: { score: number }) {
   return (
     <div className="w-full bg-gray-100 rounded-full h-2">
       <div
-        className={`h-2 rounded-full transition-all duration-500 ${scoreBarColor(score)}`}
+        className="h-2 rounded-full transition-all duration-500 bg-[#2F80FF]"
         style={{ width: `${score}%` }}
       />
     </div>
@@ -51,8 +41,12 @@ function CriterionCard({ c }: { c: RedTeamCriterionScore }) {
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
-          <span className="text-xl font-black text-[#ff7b20]">{c.score}</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${verdictColor(c.verdict)}`}>
+          <span className="text-xl font-black text-[#2F80FF]">{c.score}</span>
+          <span style={{
+            fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 9999,
+            color: verdictTextColor(c.verdict),
+            background: verdictTextColor(c.verdict) + '14',
+          }}>
             {c.verdict}
           </span>
         </div>
@@ -72,7 +66,7 @@ function CriterionCard({ c }: { c: RedTeamCriterionScore }) {
             <ul className="space-y-1">
               {c.strengths.map((s, i) => (
                 <li key={i} className="flex gap-2 text-sm text-gray-700">
-                  <span className="text-green-500 shrink-0 mt-0.5">&#10003;</span>
+                  <span style={{ color: '#00C48C', flexShrink: 0, marginTop: 2 }}>&#10003;</span>
                   {s}
                 </li>
               ))}
@@ -86,7 +80,7 @@ function CriterionCard({ c }: { c: RedTeamCriterionScore }) {
             <ul className="space-y-1">
               {c.weaknesses.map((w, i) => (
                 <li key={i} className="flex gap-2 text-sm text-gray-700">
-                  <span className="text-red-500 shrink-0 mt-0.5">&#8722;</span>
+                  <span style={{ color: '#FF4D4F', flexShrink: 0, marginTop: 2 }}>&#8722;</span>
                   {w}
                 </li>
               ))}
@@ -100,7 +94,7 @@ function CriterionCard({ c }: { c: RedTeamCriterionScore }) {
             <ul className="space-y-1">
               {c.risks.map((r, i) => (
                 <li key={i} className="flex gap-2 text-sm text-gray-700">
-                  <span className="text-orange-500 shrink-0 mt-0.5">&#9650;</span>
+                  <span style={{ color: '#F59E0B', flexShrink: 0, marginTop: 2 }}>&#9650;</span>
                   {r}
                 </li>
               ))}
@@ -276,7 +270,7 @@ export default function RedTeamPage() {
             <h1 className="text-2xl font-extrabold text-gray-900 uppercase tracking-tight">
               Red Team Evaluation
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#ff7b20] text-white uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2F80FF] text-white uppercase tracking-wide">
               {/* Target icon */}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
@@ -300,30 +294,30 @@ export default function RedTeamPage() {
 
       {/* ── Error banner ── */}
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-3">
-          <span className="text-red-500 shrink-0 mt-0.5">&#9888;</span>
+        <div style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #FF4D4F', background: '#FFFFFF', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <span style={{ color: '#FF4D4F', flexShrink: 0 }}>&#9888;</span>
           <div>
-            <p className="text-sm font-semibold text-red-800">Evaluation failed</p>
-            <p className="text-xs text-red-600 mt-0.5">{error}</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#FF4D4F' }}>Evaluation failed</p>
+            <p style={{ fontSize: 12, color: '#FF4D4F', marginTop: 2 }}>{error}</p>
           </div>
-          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600 text-xs">Dismiss</button>
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', color: '#94A3B8', fontSize: 12 }}>Dismiss</button>
         </div>
       )}
 
       {/* ── Loading / streaming state ── */}
       {loading && (
-        <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 p-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <svg className="animate-spin h-5 w-5 text-[#ff7b20]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <div style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E2E8F0', background: '#FFFFFF', padding: 24, textAlign: 'center' as const }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
+            <svg className="animate-spin h-5 w-5 text-[#2F80FF]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
             </svg>
-            <span className="text-sm font-semibold text-[#ff7b20]">
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#2F80FF' }}>
               {statusMsg || 'Evaluation in progress...'}
             </span>
           </div>
           {streamingChunks > 0 && (
-            <p className="text-xs text-orange-600">
+            <p style={{ fontSize: 12, color: '#94A3B8' }}>
               Receiving evaluation... ({streamingChunks} tokens streamed)
             </p>
           )}
@@ -334,8 +328,8 @@ export default function RedTeamPage() {
       {!result && !loading && (
         <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white p-12 text-center">
           {/* Target icon */}
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#ff7b20]/10">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff7b20" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#2F80FF]/10">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
           </div>
@@ -351,7 +345,7 @@ export default function RedTeamPage() {
           </ul>
           <button
             onClick={runRedTeam}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-[#FDFF66] text-black text-sm font-black uppercase tracking-wide rounded-lg hover:brightness-105 transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
@@ -373,32 +367,25 @@ export default function RedTeamPage() {
           )}
 
           {/* Overall score hero */}
-          <div className={[
-            'rounded-xl border-l-4 p-6 flex items-center gap-6',
-            overallVerdict === 'outstanding' || overallVerdict === 'good'
-              ? 'border-l-green-500 border border-green-100 bg-green-50'
-              : overallVerdict === 'acceptable'
-              ? 'border-l-yellow-400 border border-yellow-100 bg-yellow-50'
-              : 'border-l-red-500 border border-red-100 bg-red-50',
-          ].join(' ')}>
-            <span className="text-6xl font-black text-[#ff7b20] leading-none shrink-0">
+          <div style={{ borderRadius: 12, borderLeft: '4px solid #2F80FF', border: '1px solid #E2E8F0', borderLeftWidth: 4, borderLeftColor: '#2F80FF', background: '#FFFFFF', padding: 24, display: 'flex', alignItems: 'center', gap: 24 }}>
+            <span style={{ fontSize: 56, fontWeight: 900, color: '#2F80FF', lineHeight: 1, flexShrink: 0 }}>
               {result.overall_score}
             </span>
-            <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Overall Score</span>
-              <span className={[
-                'text-lg font-black uppercase tracking-tight',
-                overallVerdict === 'outstanding' || overallVerdict === 'good' ? 'text-green-700' : '',
-                overallVerdict === 'acceptable' ? 'text-yellow-700' : '',
-                overallVerdict === 'marginal' || overallVerdict === 'unacceptable' ? 'text-red-700' : '',
-              ].join(' ')}>
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4, minWidth: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' as const, letterSpacing: '0.10em' }}>Overall Score</span>
+              <span style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' as const, letterSpacing: '-0.01em', color: verdictTextColor(overallVerdict) }}>
                 {verdictLabel[overallVerdict] ?? overallVerdict}
               </span>
-              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+              <p style={{ fontSize: 12, color: '#475569', marginTop: 4, lineHeight: 1.5 }}>
                 {result.summary}
               </p>
             </div>
-            <span className={`ml-auto shrink-0 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wide ${verdictColor(overallVerdict)}`}>
+            <span style={{
+              marginLeft: 'auto', flexShrink: 0, padding: '4px 12px', borderRadius: 9999,
+              fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+              color: verdictTextColor(overallVerdict),
+              background: verdictTextColor(overallVerdict) + '14',
+            }}>
               {verdictLabel[overallVerdict] ?? overallVerdict}
             </span>
           </div>
@@ -419,7 +406,7 @@ export default function RedTeamPage() {
           <div className="flex justify-center pt-4">
             <button
               onClick={runRedTeam}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#FDFF66] text-black text-sm font-black uppercase tracking-wide rounded-lg hover:brightness-105 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
             >
               Re-run Red Team
             </button>

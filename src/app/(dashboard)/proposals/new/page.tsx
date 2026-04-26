@@ -25,12 +25,12 @@ export default async function NewProposalPage({
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           {govRfpHandoff ? 'Continue from GovRFP' : 'Upload RFP'}
         </h1>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6">
-          <p className="text-sm text-yellow-800 mb-3">
+        <div className="rounded-lg border border-[#F59E0B] bg-white p-6">
+          <p className="text-sm text-[#F59E0B] mb-3">
             An active subscription is required to create proposals.
           </p>
           {govRfpHandoff && (
-            <p className="text-sm text-yellow-800 mb-3">
+            <p className="text-sm text-[#F59E0B] mb-3">
               The opportunity{' '}
               <strong>&ldquo;{govRfpHandoff.title}&rdquo;</strong> is waiting — your
               GovRFP handoff is preserved in this URL. Activate your ProposalAI
@@ -39,7 +39,7 @@ export default async function NewProposalPage({
           )}
           <Link
             href="/account"
-            className="text-sm font-medium text-yellow-900 underline hover:text-yellow-700"
+            className="text-sm font-medium text-[#2F80FF] underline hover:brightness-110"
           >
             Manage subscription
           </Link>

@@ -88,7 +88,7 @@ export default async function HelpPage() {
             ['Export', 'PDF or Word — ready to submit', null],
           ].map(([title, desc, href], i) => (
             <li key={i} className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-400 text-gray-900 text-xs font-bold flex items-center justify-center">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#2F80FF] text-white text-xs font-bold flex items-center justify-center">
                 {i + 1}
               </span>
               <div>

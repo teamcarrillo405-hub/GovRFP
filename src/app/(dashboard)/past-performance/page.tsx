@@ -19,7 +19,7 @@ export default async function PastPerformanceListPage() {
     return (
       <div>
         <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>Past Performance</h1>
-        <div style={{ borderRadius: 8, border: '1px solid #FF4D4F', background: '#fff0f0', padding: 16, fontSize: 13, color: '#FF4D4F' }}>
+        <div style={{ borderRadius: 8, border: '1px solid #FF4D4F', background: '#FFFFFF', padding: 16, fontSize: 13, color: '#FF4D4F' }}>
           Failed to load records: {error.message}
         </div>
       </div>

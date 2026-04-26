@@ -9,14 +9,13 @@ interface AccountPageProps {
 }
 
 function StatusBadge({ status }: { status: SubscriptionStatus }) {
-  const styles: Record<SubscriptionStatus, string> = {
-    trialing: 'bg-blue-100 text-blue-800',
-    active: 'bg-green-100 text-green-800',
-    past_due: 'bg-amber-100 text-amber-800',
-    canceled: 'bg-red-100 text-red-800',
-    none: 'bg-gray-100 text-gray-600',
+  const textColors: Record<SubscriptionStatus, string> = {
+    trialing: '#2F80FF',
+    active: '#00C48C',
+    past_due: '#F59E0B',
+    canceled: '#FF4D4F',
+    none: '#94A3B8',
   }
-
   const labels: Record<SubscriptionStatus, string> = {
     trialing: 'Trial',
     active: 'Active',
@@ -24,9 +23,15 @@ function StatusBadge({ status }: { status: SubscriptionStatus }) {
     canceled: 'Canceled',
     none: 'No Subscription',
   }
-
+  const color = textColors[status]
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles[status]}`}>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      borderRadius: 9999, padding: '2px 10px',
+      fontSize: 10.5, fontWeight: 700,
+      color,
+      background: color + '14',
+    }}>
       {labels[status]}
     </span>
   )
@@ -68,13 +73,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Account Settings</h1>
 
       {showSuccess && (
-        <div className="mb-6 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+        <div style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #00C48C', background: '#FFFFFF', padding: '12px 16px', fontSize: 13, color: '#00C48C', fontWeight: 500 }}>
           Your subscription has been activated. Welcome aboard.
         </div>
       )}
 
       {showCanceled && (
-        <div className="mb-6 rounded-md bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+        <div style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #F59E0B', background: '#FFFFFF', padding: '12px 16px', fontSize: 13, color: '#F59E0B', fontWeight: 500 }}>
           Checkout was canceled. You have not been charged.
         </div>
       )}

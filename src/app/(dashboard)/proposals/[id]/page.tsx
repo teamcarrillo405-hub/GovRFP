@@ -7,6 +7,7 @@ import ShareButton from '@/components/team/ShareButton'
 import ExportButtons from '@/components/export/ExportButtons'
 import OutcomeSelector from '@/components/proposals/OutcomeSelector'
 import Link from 'next/link'
+import { ArrowLeft, Check } from 'lucide-react'
 import {
   buildGovRfpOpportunityUrl,
   extractGovRfpSource,
@@ -89,17 +90,12 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── GovRFP back-link banner ── */}
       {govRfpSource && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#FDFF66]/40 bg-[#FDFF66]/8 px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <span
-              className="inline-flex w-5 h-5 items-center justify-center rounded-full text-xs font-bold bg-[#FDFF66] text-black"
-              aria-hidden="true"
-            >
-              ✓
+        <div style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 8, border: '1px solid #2F80FF', borderLeft: '3px solid #2F80FF', background: '#FFFFFF', padding: '10px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0F172A' }}>
+            <span style={{ display: 'inline-flex', width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 9999, background: '#2F80FF14', color: '#2F80FF' }} aria-hidden="true">
+              <Check size={11} strokeWidth={2.5} />
             </span>
-            <span>
-              Opened from <strong>GovRFP</strong>
-            </span>
+            <span>Opened from <strong>GovRFP</strong></span>
           </div>
           <a
             href={buildGovRfpOpportunityUrl(
@@ -108,7 +104,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-semibold text-gray-800 hover:text-black underline decoration-[#FDFF66]"
+            style={{ fontSize: 13, fontWeight: 600, color: '#2F80FF', textDecoration: 'none' }}
           >
             View source opportunity →
           </a>
@@ -145,33 +141,16 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── Win Score hero stat ── */}
       {winScore !== null && (
-        <div
-          className={[
-            'mb-6 rounded-xl border-l-4 p-5 flex items-center gap-5',
-            isGo      ? 'border-l-green-500 border border-green-100 bg-green-50'      : '',
-            isCaution ? 'border-l-[#ff7b20] border border-orange-100 bg-orange-50'   : '',
-            isNoGo    ? 'border-l-red-500 border border-red-100 bg-red-50'            : '',
-          ].join(' ')}
-        >
-          {/* Big orange score */}
-          <span className="text-5xl font-black text-[#ff7b20] leading-none shrink-0">
+        <div style={{ marginBottom: 24, borderRadius: 12, borderLeft: '4px solid #2F80FF', border: '1px solid #E2E8F0', borderLeftWidth: 4, borderLeftColor: '#2F80FF', background: '#FFFFFF', padding: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <span style={{ fontSize: 48, fontWeight: 900, color: '#2F80FF', lineHeight: 1, flexShrink: 0 }}>
             {winScore}
           </span>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Win Score</span>
-            <span
-              className={[
-                'text-base font-bold',
-                isGo      ? 'text-green-700'  : '',
-                isCaution ? 'text-[#ff7b20]'  : '',
-                isNoGo    ? 'text-red-600'     : '',
-              ].join(' ')}
-            >
-              {isGo      ? 'Go — Bid It'             : ''}
-              {isCaution ? 'Proceed with Caution'    : ''}
-              {isNoGo    ? 'No-Go — High Risk'        : ''}
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' as const, letterSpacing: '0.10em' }}>Win Score</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F' }}>
+              {isGo ? 'Go — Bid It' : isCaution ? 'Proceed with Caution' : 'No-Go — High Risk'}
             </span>
-            <p className="text-xs text-gray-500">
+            <p style={{ fontSize: 12, color: '#475569' }}>
               {isGo
                 ? 'Win probability is strong. This opportunity aligns well with your profile.'
                 : isCaution
@@ -179,15 +158,12 @@ export default async function ProposalDetailPage({ params }: Props) {
                 : 'Win probability is low. Significant gaps exist between your profile and this RFP.'}
             </p>
           </div>
-          {/* Verdict pill */}
-          <span
-            className={[
-              'ml-auto shrink-0 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide',
-              isGo      ? 'bg-green-500 text-white'   : '',
-              isCaution ? 'bg-[#ff7b20] text-white'   : '',
-              isNoGo    ? 'bg-red-500 text-white'      : '',
-            ].join(' ')}
-          >
+          <span style={{
+            marginLeft: 'auto', flexShrink: 0, padding: '3px 10px', borderRadius: 9999,
+            fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+            color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F',
+            background: (isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F') + '14',
+          }}>
             {isGo ? 'Go' : isCaution ? 'Caution' : 'No-Go'}
           </span>
         </div>
@@ -208,8 +184,8 @@ export default async function ProposalDetailPage({ params }: Props) {
       {isAnalyzed && (
         <div className="space-y-4">
 
-          {/* PRIMARY ACTION — full-width yellow-accent card */}
-          <div className="rounded-xl border-l-4 border-l-[#FDFF66] border border-gray-200 bg-white p-6">
+          {/* PRIMARY ACTION — full-width blue-accent card */}
+          <div className="rounded-xl border-l-4 border-l-[#2F80FF] border border-gray-200 bg-white p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-base font-bold text-gray-900">Ready to Draft</h2>
@@ -219,7 +195,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               </div>
               <Link
                 href={`/proposals/${id}/editor`}
-                className="shrink-0 px-5 py-2.5 bg-[#FDFF66] text-black text-sm font-black uppercase tracking-wide rounded-lg hover:brightness-105 transition-all shadow-sm"
+                className="shrink-0 px-5 py-2.5 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
               >
                 Draft Proposal
               </Link>
@@ -255,7 +231,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               </div>
               <Link
                 href={`/proposals/${id}/questions`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#FDFF66] transition-all w-fit"
+                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-[#2F80FF] border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#2F80FF] transition-all w-fit"
               >
                 Open Questions
               </Link>
@@ -300,7 +276,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   {/* Target/crosshair icon */}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7b20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
                   </svg>
                   <h3 className="text-sm font-bold text-gray-900">Red Team Evaluation</h3>
@@ -311,7 +287,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               </div>
               <Link
                 href={`/proposals/${id}/red-team`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#ff7b20] transition-all w-fit"
+                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-[#2F80FF] border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#2F80FF] transition-all w-fit"
               >
                 Run Red Team
               </Link>

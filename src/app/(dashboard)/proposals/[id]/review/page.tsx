@@ -20,10 +20,10 @@ const STATUS_LABEL: Record<string, string> = {
   edited: 'Edited',
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  empty: 'bg-gray-100 text-gray-500',
-  draft: 'bg-blue-50 text-blue-700',
-  edited: 'bg-green-50 text-green-700',
+const STATUS_COLOR: Record<string, { color: string; bg: string }> = {
+  empty:  { color: '#94A3B8', bg: '#94A3B814' },
+  draft:  { color: '#2F80FF', bg: '#2F80FF14' },
+  edited: { color: '#00C48C', bg: '#00C48C14' },
 }
 
 export default async function ReviewPage({ params }: Props) {
@@ -112,15 +112,16 @@ export default async function ReviewPage({ params }: Props) {
               {/* Section header */}
               <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">{sectionName}</h2>
-                <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    STATUS_COLOR[section?.draft_status ?? 'empty'] ?? 'bg-gray-100 text-gray-500'
-                  }`}
-                >
-                  {STATUS_LABEL[section?.draft_status ?? 'empty'] ?? section?.draft_status}
-                </span>
+                {(() => {
+                  const sc = STATUS_COLOR[section?.draft_status ?? 'empty'] ?? STATUS_COLOR.empty
+                  return (
+                    <span style={{ fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, color: sc.color, background: sc.bg }}>
+                      {STATUS_LABEL[section?.draft_status ?? 'empty'] ?? section?.draft_status}
+                    </span>
+                  )
+                })()}
                 {unresolvedCount > 0 && (
-                  <span className="ml-auto text-xs font-semibold text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded-full">
+                  <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, color: '#F59E0B', background: '#F59E0B14' }}>
                     {unresolvedCount} comment{unresolvedCount !== 1 ? 's' : ''}
                   </span>
                 )}
