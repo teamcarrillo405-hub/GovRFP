@@ -2,29 +2,19 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, createClient } from '@/lib/supabase/server'
 import { requireProposalRole } from '@/lib/auth/proposal-role'
-import type { CriterionScore } from '@/lib/scoring/types'
+import { ChevronLeft, CheckCircle } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-interface SectionScore {
-  id: string
-  section_name: string
-  attempt: number
-  score: number
-  passed: boolean
-  criteria_scores: CriterionScore[]
-  critique: string
-  gaps: string[]
-  created_at: string
-}
-
-function scoreBar(score: number, className = '') {
-  const color = score >= 90 ? 'bg-green-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+function ScoreBar({ score }: { score: number }) {
   return (
-    <div className={`w-full bg-gray-100 rounded-full h-2 ${className}`}>
-      <div className={`h-2 rounded-full ${color}`} style={{ width: `${score}%` }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flex: 1, height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: '#2F80FF', borderRadius: 4 }} />
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', width: 28, textAlign: 'right' as const }}>{score}</span>
     </div>
   )
 }
@@ -41,136 +31,117 @@ export default async function ScoringPage({ params }: Props) {
 
   const { data: proposal } = await supabase
     .from('proposals')
-    .select('title, status')
+    .select('id, title, status')
     .eq('id', id)
     .single()
 
   if (!proposal) notFound()
 
-  const { data: rows } = await supabase
+  // Get section scores — de-duplicate to latest attempt per section
+  const { data: sectionRows } = await supabase
     .from('section_scores')
-    .select('id, section_name, attempt, score, passed, criteria_scores, critique, gaps, created_at')
+    .select('id, section_name, attempt, score, passed, critique')
     .eq('proposal_id', id)
     .order('section_name')
-    .order('attempt')
+    .order('attempt', { ascending: false })
 
-  const scores = (rows ?? []) as SectionScore[]
-
-  // Group by section_name
-  const bySection: Record<string, SectionScore[]> = {}
-  for (const row of scores) {
-    if (!bySection[row.section_name]) bySection[row.section_name] = []
-    bySection[row.section_name].push(row)
+  const seenSections = new Set<string>()
+  const sections: { id: string; section_name: string; score: number; passed: boolean }[] = []
+  for (const row of sectionRows ?? []) {
+    if (!seenSections.has(row.section_name)) {
+      seenSections.add(row.section_name)
+      sections.push(row)
+    }
   }
 
-  const sectionNames = Object.keys(bySection).sort()
+  // Get red team result (table: red_team_results, field: summary)
+  let redTeam: { overall_score: number | null; summary: string | null } | null = null
+  try {
+    const { data } = await supabase
+      .from('red_team_results')
+      .select('overall_score, summary')
+      .eq('proposal_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    redTeam = data
+  } catch {
+    redTeam = null
+  }
+
+  const score = redTeam?.overall_score ?? 0
+  const verdictLabel = score >= 80 ? 'Go' : score >= 65 ? 'Caution' : 'No-Go'
+  const verdictColor = score >= 80 ? '#00C48C' : score >= 65 ? '#F59E0B' : '#FF4D4F'
+  const reviewSteps = ['Draft 1', 'Draft 2', 'Pink Team', 'Red Team', 'Final']
+  const currentStep = 3
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/dashboard" className="hover:text-gray-700">Dashboard</Link>
-        <span>/</span>
-        <Link href={`/proposals/${id}`} className="hover:text-gray-700">{proposal.title}</Link>
-        <span>/</span>
-        <span className="text-gray-900 font-medium">Section Scores</span>
-      </nav>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        <Link href={`/proposals/${id}/editor`} style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}>
+          <ChevronLeft size={14} strokeWidth={1.5} />{proposal.title}
+        </Link>
+      </div>
+      <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', marginBottom: 20 }}>Scoring & Red Team</h1>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Section Scores</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Quality Watchdog scores per section — each attempt shows the per-criterion breakdown.
-      </p>
-
-      {sectionNames.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-          <p className="text-sm text-gray-500">No sections have been scored yet.</p>
-          <p className="text-xs text-gray-500 mt-1">
-            Scores appear after you generate sections in the proposal editor.
-          </p>
-          <Link
-            href={`/proposals/${id}/editor`}
-            className="mt-4 inline-block text-sm font-medium text-blue-700 hover:text-blue-800"
-          >
-            Go to editor →
-          </Link>
+      {/* Score header */}
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '24px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+          <div style={{ fontSize: 48, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1 }}>
+            {score > 0 ? score : '—'} <span style={{ fontSize: 20, fontWeight: 500, color: '#94A3B8' }}>/ 100</span>
+          </div>
+          {score > 0 && (
+            <span style={{ fontSize: 14, fontWeight: 700, color: verdictColor, background: `${verdictColor}14`, padding: '6px 14px', borderRadius: 6 }}>
+              {verdictLabel}
+            </span>
+          )}
         </div>
-      ) : (
-        <div className="space-y-8">
-          {sectionNames.map((sectionName) => {
-            const attempts = bySection[sectionName]
-            const latest = attempts[attempts.length - 1]
-            return (
-              <div key={sectionName} className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-                {/* Section header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                  <h2 className="text-base font-semibold text-gray-900">{sectionName}</h2>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      latest.passed ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    }`}>
-                      {latest.passed ? 'Approved' : 'Not approved'}
-                    </span>
-                    <span className={`text-xl font-bold ${
-                      latest.score >= 90 ? 'text-green-600' : latest.score >= 70 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {latest.score}/100
-                    </span>
-                  </div>
+
+        {/* Step tracker */}
+        <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
+          {reviewSteps.map((step, i) => (
+            <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: i < currentStep ? '#2F80FF' : 'transparent', border: i < currentStep ? 'none' : i === currentStep ? '2px solid #2F80FF' : '2px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i < currentStep ? '#fff' : i === currentStep ? '#2F80FF' : '#94A3B8', fontSize: 10, fontWeight: 700 }}>
+                  {i < currentStep ? <CheckCircle size={12} strokeWidth={2} /> : i + 1}
                 </div>
-
-                {/* Per-attempt tabs (show all if more than 1 attempt) */}
-                {attempts.map((attempt) => (
-                  <div key={attempt.id} className="px-6 py-5 border-b border-gray-50 last:border-0">
-                    {attempts.length > 1 && (
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
-                        Attempt {attempt.attempt} — Score: {attempt.score}/100
-                        {attempt.passed ? ' ✓ Passed' : ''}
-                      </p>
-                    )}
-
-                    {/* Criteria breakdown */}
-                    {attempt.criteria_scores?.length > 0 && (
-                      <div className="space-y-4 mb-4">
-                        {attempt.criteria_scores.map((c) => (
-                          <div key={c.ref}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm text-gray-700">{c.label}</span>
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className="font-semibold text-gray-900">{c.score}/100</span>
-                                <span className="text-xs text-gray-500">{Math.round(c.weight * 100)}%</span>
-                              </div>
-                            </div>
-                            {scoreBar(c.score, 'mb-1')}
-                            {c.rationale && (
-                              <p className="text-xs text-gray-500">{c.rationale}</p>
-                            )}
-                            {c.gaps?.length > 0 && (
-                              <ul className="mt-1 space-y-0.5">
-                                {c.gaps.map((g, i) => (
-                                  <li key={i} className="text-xs text-red-600 flex gap-1">
-                                    <span>↳</span> {g}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Critique */}
-                    {attempt.critique && (
-                      <div className="mt-3 rounded-md bg-gray-50 border border-gray-100 px-4 py-3">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Critique</p>
-                        <p className="text-sm text-gray-700">{attempt.critique}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                <span style={{ fontSize: 10, fontWeight: i === currentStep ? 700 : 500, color: i === currentStep ? '#0F172A' : '#94A3B8', whiteSpace: 'nowrap' as const }}>{step}</span>
               </div>
-            )
-          })}
+              {i < reviewSteps.length - 1 && <div style={{ width: 40, height: 1, background: i < currentStep ? '#2F80FF' : '#E2E8F0', margin: '0 4px', marginBottom: 18 }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Section breakdown */}
+      {sections.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Section Breakdown</div>
+          {sections.map(s => (
+            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A' }}>{s.section_name}</span>
+              <ScoreBar score={s.score ?? 0} />
+            </div>
+          ))}
         </div>
       )}
-    </main>
+
+      {/* Red team summary */}
+      {redTeam?.summary && (
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>Red Team Summary</div>
+          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{redTeam.summary}</p>
+        </div>
+      )}
+
+      {score === 0 && sections.length === 0 && (
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '32px', textAlign: 'center' as const }}>
+          <p style={{ fontSize: 13, color: '#94A3B8' }}>No scoring data yet. Run Red Team analysis to score this proposal.</p>
+          <Link href={`/proposals/${id}/red-team`} style={{ display: 'inline-block', marginTop: 12, background: '#2F80FF', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+            Start Red Team Review
+          </Link>
+        </div>
+      )}
+    </div>
   )
 }
