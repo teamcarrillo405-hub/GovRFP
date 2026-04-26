@@ -1,55 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* ─── HCC Brand Token System ─── */
 :root {
-  --hcc-yellow: #FDFF66;
-  --hcc-orange: #ff7b20;
-  --hcc-stone:  #EDF1F4;
-  --hcc-dark:   #000000;
-  --hcc-card:   #FFFFFF;
-  --hcc-border: #E5E7EB;
-  --hcc-white:  #FFFFFF;
-  --hcc-black:  #000000;
+  /* Chrome — dark surfaces only */
+  --navy:       #0B1220;
+  --slate:      #1A2433;
+  --mid:        #1E2B3C;
+  --navborder:  #263447;
+  --softgray:   #9AA4B2;
 
-  /* Page base */
-  --background: #FFFFFF;
-  --foreground: #111111;
-}
+  /* Primary interactive — ONE color */
+  --blue:       #2F80FF;
 
-@theme inline {
-  --color-background:  var(--background);
-  --color-foreground:  var(--foreground);
+  /* Semantic status — TEXT ONLY, never fills */
+  --success:    #00C48C;
+  --error:      #FF4D4F;
+  --warning:    #F59E0B;
 
-  /* HCC palette exposed to Tailwind v4 @theme */
-  --color-hcc-yellow: #FDFF66;
-  --color-hcc-orange: #ff7b20;
-  --color-hcc-stone:  #EDF1F4;
-  --color-hcc-dark:   #000000;
-  --color-hcc-card:   #FFFFFF;
-  --color-hcc-border: #E5E7EB;
-  --color-hcc-white:  #FFFFFF;
-  --color-hcc-black:  #000000;
+  /* Data viz — charts only */
+  --chart-1:    #2F80FF;
+  --chart-2:    #7B61FF;
+  --chart-3:    #00C2FF;
+  --chart-4:    #00A3A3;
 
-  /* Font: Inter only */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Inter', monospace;
-}
-
-/* ─── Base: white body, black header chrome ─── */
-html {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #FFFFFF;
-  color: #111111;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Light surfaces */
+  --body:       #F0F2F5;
+  --card:       #FFFFFF;
+  --text-1:     #0F172A;
+  --text-2:     #475569;
+  --text-3:     #94A3B8;
+  --border:     #E2E8F0;
+  --divider:    #F8FAFC;
 }
 
 body {
-  background: #FFFFFF;
-  color: #111111;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--body);
+  color: var(--text-1);
 }
 
 /* ─── Utility helpers ─── */
