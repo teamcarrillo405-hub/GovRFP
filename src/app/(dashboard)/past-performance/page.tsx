@@ -1,14 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, createClient } from '@/lib/supabase/server'
-import { CPARS_LABELS } from '@/lib/past-performance/types'
+import { Award, Star, Plus } from 'lucide-react'
 
-/**
- * Past Performance library — list of all records visible to the current
- * user (solo owned + team shared, enforced by RLS).
- *
- * Filters come in a follow-up (Day 5): NAICS, set-aside, customer search.
- */
 export default async function PastPerformanceListPage() {
   const user = await getUser()
   if (!user) redirect('/login')
@@ -23,191 +17,72 @@ export default async function PastPerformanceListPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Past Performance</h1>
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>Past Performance</h1>
+        <div style={{ borderRadius: 8, border: '1px solid #FF4D4F', background: '#fff0f0', padding: 16, fontSize: 13, color: '#FF4D4F' }}>
           Failed to load records: {error.message}
         </div>
-      </main>
+      </div>
     )
   }
 
+  const cparsColors: Record<string, string> = {
+    Exceptional: '#00C48C',
+    'Very Good': '#2F80FF',
+    Satisfactory: '#475569',
+    Marginal: '#F59E0B',
+    Unsatisfactory: '#FF4D4F',
+  }
+
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <div className="flex items-start justify-between mb-8">
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Past Performance</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {rows?.length ?? 0} record{rows?.length === 1 ? '' : 's'} in your library.
-            Used to auto-draft PP narratives for each new proposal.
-          </p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em' }}>Past Performance</h1>
+          <p style={{ fontSize: 13, color: '#475569', marginTop: 2 }}>{rows?.length ?? 0} records</p>
         </div>
-        <Link
-          href="/past-performance/new"
-          className="px-4 py-2 text-sm font-semibold rounded-md text-gray-900"
-          style={{ backgroundColor: '#F5C518' }}
-        >
-          + Add record
+        <Link href="/past-performance/new" style={{ background: '#2F80FF', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Plus size={15} strokeWidth={1.5} />Add Record
         </Link>
       </div>
 
-      {!rows || rows.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <Th>Contract</Th>
-                <Th>Customer</Th>
-                <Th>Period</Th>
-                <Th>Value</Th>
-                <Th>NAICS</Th>
-                <Th>Set-asides</Th>
-                <Th>CPARS</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-50">
-                  <Td>
-                    <Link
-                      href={`/past-performance/${r.id}`}
-                      className="font-medium text-gray-900 hover:text-yellow-700"
-                    >
-                      {r.contract_title}
-                    </Link>
-                    {r.contract_number && (
-                      <div className="text-xs text-gray-500 font-mono mt-0.5">
-                        {r.contract_number}
-                      </div>
-                    )}
-                  </Td>
-                  <Td>
-                    <div>{r.customer_name}</div>
-                    {r.customer_agency_code && (
-                      <div className="text-xs text-gray-500">{r.customer_agency_code}</div>
-                    )}
-                  </Td>
-                  <Td className="text-xs">
-                    {formatPeriod(r.period_start, r.period_end)}
-                  </Td>
-                  <Td className="text-xs font-mono">
-                    {r.contract_value_usd != null
-                      ? `$${Number(r.contract_value_usd).toLocaleString()}`
-                      : '—'}
-                  </Td>
-                  <Td className="text-xs font-mono">
-                    {(r.naics_codes ?? []).join(', ') || '—'}
-                  </Td>
-                  <Td>
-                    <div className="flex flex-wrap gap-1">
-                      {(r.set_asides_claimed ?? []).map((s: string) => (
-                        <span
-                          key={s}
-                          className="px-1.5 py-0.5 text-xs rounded bg-yellow-50 text-yellow-900 border border-yellow-200"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                      {(r.set_asides_claimed ?? []).length === 0 && (
-                        <span className="text-xs text-gray-500">—</span>
-                      )}
-                    </div>
-                  </Td>
-                  <Td className="text-xs">
-                    {r.cpars_rating
-                      ? CPARS_LABELS[r.cpars_rating as keyof typeof CPARS_LABELS]
-                      : '—'}
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 100px 130px', padding: '10px 20px', borderBottom: '1px solid #E2E8F0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.10em', color: '#475569' }}>
+          <span>Project</span><span>Customer</span><span>NAICS</span><span>CPARS</span>
         </div>
-      )}
-    </main>
-  )
-}
 
-function formatPeriod(start: string | null, end: string | null): string {
-  if (!start && !end) return '—'
-  const fmt = (d: string) => d.slice(0, 7)
-  if (start && end) return `${fmt(start)} → ${fmt(end)}`
-  return fmt(start ?? end!)
-}
+        {(rows ?? []).map((pp) => {
+          const cparsColor = cparsColors[pp.cpars_rating ?? ''] ?? '#94A3B8'
+          const naics = Array.isArray(pp.naics_codes) ? pp.naics_codes[0] : pp.naics_codes
+          return (
+            <Link
+              key={pp.id}
+              href={`/past-performance/${pp.id}`}
+              style={{ display: 'grid', gridTemplateColumns: '1fr 160px 100px 130px', padding: '13px 20px', borderBottom: '1px solid #F8FAFC', textDecoration: 'none', alignItems: 'center' }}
+            >
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{pp.contract_title}</div>
+                <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
+                  {pp.contract_value_usd ? `$${(Number(pp.contract_value_usd) / 1_000_000).toFixed(1)}M` : ''}
+                </div>
+              </div>
+              <span style={{ fontSize: 12, color: '#475569' }}>{pp.customer_name ?? '—'}</span>
+              <span style={{ fontSize: 12, color: '#94A3B8' }}>{naics ?? '—'}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: cparsColor }}>{pp.cpars_rating ?? '—'}</span>
+            </Link>
+          )
+        })}
 
-function EmptyState() {
-  return (
-    <div>
-      <div className="mb-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">
-          No past-performance records yet
-        </h3>
-        <p className="text-sm text-gray-600">
-          Add your prior contracts. When you write proposals, we&rsquo;ll rank and tailor
-          them to each RFP automatically.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Path A — paste and extract (primary) */}
-        <div className="rounded-xl border-2 border-yellow-300 bg-yellow-50 p-6 flex flex-col">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="text-sm font-semibold text-gray-900">
-              Import from a prior proposal
-            </h4>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-300 text-gray-900">
-              Fastest
-            </span>
+        {(!rows || rows.length === 0) && (
+          <div style={{ padding: '40px 20px', textAlign: 'center' as const }}>
+            <Award size={32} strokeWidth={1} style={{ color: '#E2E8F0', margin: '0 auto 12px', display: 'block' }} />
+            <p style={{ fontSize: 13, color: '#475569' }}>
+              No past performance records.{' '}
+              <Link href="/past-performance/new" style={{ color: '#2F80FF' }}>Add your first →</Link>
+            </p>
           </div>
-          <p className="text-sm text-gray-600 mb-5 flex-1">
-            Paste your Past Performance section from a prior proposal — we&rsquo;ll extract
-            your contracts automatically.
-          </p>
-          <Link
-            href="/past-performance/new"
-            className="inline-block self-start px-4 py-2 text-sm font-semibold rounded-md text-gray-900"
-            style={{ backgroundColor: '#F5C518' }}
-          >
-            Paste and extract
-          </Link>
-        </div>
-
-        {/* Path B — manual entry (secondary) */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 flex flex-col">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            Add a record manually
-          </h4>
-          <p className="text-sm text-gray-600 mb-5 flex-1">
-            Fill in a contract one at a time.
-          </p>
-          <Link
-            href="/past-performance/new?skip-wizard=1"
-            className="inline-block self-start px-4 py-2 text-sm font-semibold rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-          >
-            Add manually
-          </Link>
-        </div>
+        )}
       </div>
     </div>
   )
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-      {children}
-    </th>
-  )
-}
-
-function Td({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return <td className={`px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>
 }
