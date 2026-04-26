@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { BarChart2, FileText, DollarSign, TrendingUp, ChevronRight } from 'lucide-react';
+import { BarChart2, FileText, DollarSign, TrendingUp, ChevronRight, Calendar } from 'lucide-react';
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -20,6 +20,17 @@ function StatusBadge({ status }: { status: string }) {
     <span style={{ fontSize: 10.5, fontWeight: 700, color, background: `${color}14`, padding: '2px 7px', borderRadius: 4 }}>
       {labels[status] ?? status}
     </span>
+  );
+}
+
+function ScoreBar({ score }: { score: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flex: 1, height: 6, background: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: '#2F80FF', borderRadius: 3 }} />
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 600, color: '#475569', flexShrink: 0 }}>{score}</span>
+    </div>
   );
 }
 
@@ -90,6 +101,24 @@ export default async function DashboardPage() {
                   </Link>
                 </div>
                 <StatusBadge status={p.status ?? 'draft'} />
+                {/* Score bar — renders when overall_score is populated */}
+                {(p as any).overall_score != null && (
+                  <div style={{ width: 120, flexShrink: 0 }}>
+                    <ScoreBar score={(p as any).overall_score} />
+                  </div>
+                )}
+                {/* Deadline — renders when due_date is populated */}
+                {(p as any).due_date && (() => {
+                  const dueDate = new Date((p as any).due_date);
+                  const daysLeft = Math.ceil((dueDate.getTime() - Date.now()) / 86400000);
+                  const dateColor = daysLeft <= 1 ? '#FF4D4F' : daysLeft <= 7 ? '#F59E0B' : '#94A3B8';
+                  return (
+                    <div style={{ fontSize: 11, fontWeight: 500, color: dateColor, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Calendar size={11} strokeWidth={1.5} />
+                      {daysLeft >= 0 ? `Due in ${daysLeft}d` : dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                  );
+                })()}
                 {createdAt && (
                   <div style={{ fontSize: 11, fontWeight: 500, color: '#94A3B8', flexShrink: 0 }}>
                     {createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
