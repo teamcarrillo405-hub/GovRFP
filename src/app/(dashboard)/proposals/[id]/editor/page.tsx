@@ -7,6 +7,7 @@ import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import Link from 'next/link'
+import { ChevronLeft, Clock, Download } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -28,7 +29,7 @@ export default async function EditorPage({ params }: Props) {
   // Load proposal — RLS enforces user_id
   const { data: proposal } = await supabase
     .from('proposals')
-    .select('id, title, rfp_text, status, rfp_structure')
+    .select('id, title, rfp_text, status, rfp_structure, updated_at')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -57,46 +58,56 @@ export default async function EditorPage({ params }: Props) {
   const requirements = ((analysisResult.data?.requirements ?? []) as AnalysisRequirement[])
   const complianceMatrix = ((analysisResult.data?.compliance_matrix ?? []) as ComplianceMatrixRow[])
 
-  return (
-    // Full-bleed: fills the remaining viewport below the 56px fixed header (pt-14 in layout)
-    <main className="flex flex-col h-[calc(100vh-56px)]">
-      {/* Compact header bar */}
-      <div className="flex items-center justify-between px-8 py-3 border-b border-gray-200 shrink-0 bg-white">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm text-gray-500" aria-label="Breadcrumb">
-            <Link href="/dashboard" className="hover:text-gray-700 transition-colors">
-              Dashboard
-            </Link>
-            <span aria-hidden="true">/</span>
-            <Link href={`/proposals/${id}`} className="hover:text-gray-700 transition-colors truncate max-w-[200px]">
-              {proposal.title}
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span className="text-gray-900 font-medium">Editor</span>
-          </nav>
-        </div>
+  const updatedAt = proposal.updated_at
+    ? new Date(proposal.updated_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    : null
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Link
-            href={`/proposals/${id}/review`}
-            className="text-sm font-medium text-purple-700 hover:text-purple-900 transition-colors"
-          >
-            Review &amp; Comment
-          </Link>
-          <ExportButtons proposalId={id} />
-        </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px - 44px)', marginTop: -28, marginLeft: -28, marginRight: -28 }}>
+      {/* Top bar */}
+      <div style={{ height: 48, background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
+        <Link href="/proposals" style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}>
+          <ChevronLeft size={14} strokeWidth={1.5} />
+          Proposals
+        </Link>
+        <span style={{ color: '#E2E8F0' }}>|</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{proposal.title}</span>
+        <div style={{ flex: 1 }} />
+        {updatedAt && (
+          <span style={{ fontSize: 11, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Clock size={11} strokeWidth={1.5} />
+            Saved {updatedAt}
+          </span>
+        )}
+        <ExportButtons proposalId={id} />
       </div>
 
-      {/* Editor fills remaining height */}
-      <ProposalEditor
-        proposalId={id}
-        initialSections={sections}
-        requirements={requirements}
-        complianceMatrix={complianceMatrix}
-        rfpStructure={rfpStructure}
-        className="flex-1 overflow-hidden"
-      />
-    </main>
+      {/* 3-column body */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Left: section nav — dark RFP structure sidebar */}
+        <div style={{ width: 240, background: '#0B1220', borderRight: '1px solid #263447', overflowY: 'auto', flexShrink: 0 }}>
+          {/* RFP structure nav rendered inside ProposalEditor via rfpStructure prop */}
+        </div>
+
+        {/* Center: editor canvas */}
+        <div style={{ flex: 1, overflowY: 'auto', background: '#F0F2F5', display: 'flex', justifyContent: 'center', padding: '24px 20px' }}>
+          <div style={{ width: '100%', maxWidth: 860, background: '#fff', borderRadius: 8, border: '1px solid #E2E8F0', minHeight: '100%' }}>
+            <ProposalEditor
+              proposalId={id}
+              initialSections={sections}
+              requirements={requirements}
+              complianceMatrix={complianceMatrix}
+              rfpStructure={rfpStructure}
+              className="h-full"
+            />
+          </div>
+        </div>
+
+        {/* Right: compliance tool panel */}
+        <div style={{ width: 280, borderLeft: '1px solid #E2E8F0', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
+          {/* Compliance panel is rendered inside ProposalEditor via complianceMatrix/requirements props */}
+        </div>
+      </div>
+    </div>
   )
 }
