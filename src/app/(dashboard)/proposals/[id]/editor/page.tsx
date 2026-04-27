@@ -7,7 +7,7 @@ import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import Link from 'next/link'
-import { ChevronLeft, Clock, Download } from 'lucide-react'
+import { ChevronLeft, Clock, Download, ClipboardList } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -72,6 +72,24 @@ export default async function EditorPage({ params }: Props) {
         </Link>
         <span style={{ color: '#E2E8F0' }}>|</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{proposal.title}</span>
+        <Link
+          href={`/proposals/${id}/tasks`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#2F80FF',
+            textDecoration: 'none',
+            padding: '4px 10px',
+            border: '1px solid #2F80FF',
+            borderRadius: 6,
+          }}
+        >
+          <ClipboardList size={13} strokeWidth={1.5} />
+          Tasks
+        </Link>
         <div style={{ flex: 1 }} />
         {updatedAt && (
           <span style={{ fontSize: 11, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
