@@ -7,7 +7,7 @@ import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import Link from 'next/link'
-import { ChevronLeft, Clock, Download, ClipboardList, History, ShieldCheck, DollarSign } from 'lucide-react'
+import { ChevronLeft, Clock, Download, ClipboardList, History, ShieldCheck, DollarSign, Users } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -143,6 +143,24 @@ export default async function EditorPage({ params }: Props) {
         >
           <DollarSign size={13} strokeWidth={1.5} />
           Prevailing Wage
+        </Link>
+        <Link
+          href={`/proposals/${id}/teaming`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#2F80FF',
+            textDecoration: 'none',
+            padding: '4px 10px',
+            border: '1px solid #2F80FF',
+            borderRadius: 6,
+          }}
+        >
+          <Users size={13} strokeWidth={1.5} />
+          Teaming
         </Link>
         <div style={{ flex: 1 }} />
         {updatedAt && (
