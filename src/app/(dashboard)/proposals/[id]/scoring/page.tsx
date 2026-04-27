@@ -6,6 +6,7 @@ import { ChevronLeft, CheckCircle } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ compare?: string }>
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -19,8 +20,127 @@ function ScoreBar({ score }: { score: number }) {
   )
 }
 
-export default async function ScoringPage({ params }: Props) {
+interface AttemptPoint {
+  attempt: number
+  avgScore: number
+}
+
+function ScoreHistoryChart({ points }: { points: AttemptPoint[] }) {
+  if (points.length === 0) return null
+
+  const WIDTH = 480
+  const HEIGHT = 140
+  const PAD_LEFT = 36
+  const PAD_RIGHT = 20
+  const PAD_TOP = 28
+  const PAD_BOTTOM = 24
+
+  const chartW = WIDTH - PAD_LEFT - PAD_RIGHT
+  const chartH = HEIGHT - PAD_TOP - PAD_BOTTOM
+
+  const maxAttempt = Math.max(...points.map(p => p.attempt))
+  const minAttempt = Math.min(...points.map(p => p.attempt))
+  const attemptRange = maxAttempt === minAttempt ? 1 : maxAttempt - minAttempt
+
+  function xOf(attempt: number): number {
+    if (points.length === 1) return PAD_LEFT + chartW / 2
+    return PAD_LEFT + ((attempt - minAttempt) / attemptRange) * chartW
+  }
+
+  function yOf(score: number): number {
+    // score 0 -> bottom, 100 -> top
+    return PAD_TOP + chartH - (score / 100) * chartH
+  }
+
+  // Build polyline points string
+  const polylinePoints = points.map(p => `${xOf(p.attempt)},${yOf(p.avgScore)}`).join(' ')
+
+  // Y-axis gridlines at 0, 25, 50, 75, 100
+  const yTicks = [0, 25, 50, 75, 100]
+
+  return (
+    <svg
+      width={WIDTH}
+      height={HEIGHT}
+      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+      style={{ display: 'block', maxWidth: '100%', overflow: 'visible' }}
+    >
+      {/* Y gridlines */}
+      {yTicks.map(tick => (
+        <g key={tick}>
+          <line
+            x1={PAD_LEFT}
+            y1={yOf(tick)}
+            x2={PAD_LEFT + chartW}
+            y2={yOf(tick)}
+            stroke="#E2E8F0"
+            strokeWidth={1}
+          />
+          <text
+            x={PAD_LEFT - 6}
+            y={yOf(tick) + 4}
+            textAnchor="end"
+            fontSize={9}
+            fill="#94A3B8"
+          >
+            {tick}
+          </text>
+        </g>
+      ))}
+
+      {/* Line */}
+      {points.length > 1 && (
+        <polyline
+          points={polylinePoints}
+          fill="none"
+          stroke="#2F80FF"
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      )}
+
+      {/* Dots and labels */}
+      {points.map((p, i) => {
+        const cx = xOf(p.attempt)
+        const cy = yOf(p.avgScore)
+        const label = points.length === 1 ? 'First submission' : `Draft ${p.attempt}`
+        return (
+          <g key={i}>
+            <circle cx={cx} cy={cy} r={5} fill="#2F80FF" stroke="#fff" strokeWidth={2} />
+            {/* Score label above dot */}
+            <text
+              x={cx}
+              y={cy - 10}
+              textAnchor="middle"
+              fontSize={10}
+              fontWeight={700}
+              fill="#0F172A"
+            >
+              {Math.round(p.avgScore)}
+            </text>
+            {/* X axis label below chart */}
+            <text
+              x={cx}
+              y={PAD_TOP + chartH + 14}
+              textAnchor="middle"
+              fontSize={9}
+              fill="#94A3B8"
+            >
+              {label}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+export default async function ScoringPage({ params, searchParams }: Props) {
   const { id } = await params
+  const { compare } = await searchParams
+  const compareMode = compare === '1'
+
   const user = await getUser()
   if (!user) redirect('/login')
 
@@ -54,6 +174,61 @@ export default async function ScoringPage({ params }: Props) {
     }
   }
 
+  // --- Score History: query ALL attempts ---
+  const { data: allScoreRows } = await supabase
+    .from('section_scores')
+    .select('section_name, attempt, score, created_at')
+    .eq('proposal_id', id)
+    .order('attempt', { ascending: true })
+
+  // Group by attempt number and compute average score per attempt
+  const attemptMap = new Map<number, number[]>()
+  for (const row of allScoreRows ?? []) {
+    const a = row.attempt as number
+    if (!attemptMap.has(a)) attemptMap.set(a, [])
+    attemptMap.get(a)!.push(row.score as number)
+  }
+
+  const historyPoints: AttemptPoint[] = Array.from(attemptMap.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([attempt, scores]) => ({
+      attempt,
+      avgScore: scores.reduce((sum, s) => sum + s, 0) / scores.length,
+    }))
+
+  const totalAttempts = historyPoints.length
+  const hasHistory = totalAttempts >= 1
+
+  // --- Delta computation for compare mode ---
+  // latestAttemptScore - previousAttemptScore per section
+  type DeltaMap = Record<string, number>
+  let deltaMap: DeltaMap = {}
+  const hasMultipleAttempts = totalAttempts >= 2
+
+  if (hasMultipleAttempts && allScoreRows) {
+    // Find max attempt number
+    const maxAttempt = Math.max(...(allScoreRows.map(r => r.attempt as number)))
+    const prevAttempt = maxAttempt - 1
+
+    const latestScores: Record<string, number> = {}
+    const prevScores: Record<string, number> = {}
+
+    for (const row of allScoreRows) {
+      if (row.attempt === maxAttempt) {
+        latestScores[row.section_name as string] = row.score as number
+      }
+      if (row.attempt === prevAttempt) {
+        prevScores[row.section_name as string] = row.score as number
+      }
+    }
+
+    for (const sectionName of Object.keys(latestScores)) {
+      if (prevScores[sectionName] !== undefined) {
+        deltaMap[sectionName] = latestScores[sectionName] - prevScores[sectionName]
+      }
+    }
+  }
+
   // Get red team result (table: red_team_results, field: summary)
   let redTeam: { overall_score: number | null; summary: string | null } | null = null
   try {
@@ -74,6 +249,10 @@ export default async function ScoringPage({ params }: Props) {
   const verdictColor = score >= 80 ? '#00C48C' : score >= 65 ? '#F59E0B' : '#FF4D4F'
   const reviewSteps = ['Draft 1', 'Draft 2', 'Pink Team', 'Red Team', 'Final']
   const currentStep = 3
+
+  const compareHref = compareMode
+    ? `/proposals/${id}/scoring`
+    : `/proposals/${id}/scoring?compare=1`
 
   return (
     <div>
@@ -113,16 +292,90 @@ export default async function ScoringPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Score History Chart — between step tracker and section breakdown */}
+      {hasHistory && (
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Score History</div>
+          <ScoreHistoryChart points={historyPoints} />
+        </div>
+      )}
+
       {/* Section breakdown */}
       {sections.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Section Breakdown</div>
-          {sections.map(s => (
-            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A' }}>{s.section_name}</span>
-              <ScoreBar score={s.score ?? 0} />
-            </div>
-          ))}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Section Breakdown</div>
+            {hasMultipleAttempts && (
+              <Link
+                href={compareHref}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: compareMode ? '#fff' : '#2F80FF',
+                  background: compareMode ? '#2F80FF' : '#2F80FF14',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '4px 12px',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {compareMode ? 'Hide comparison' : 'Compare Drafts'}
+              </Link>
+            )}
+          </div>
+          {sections.map(s => {
+            const delta = compareMode ? deltaMap[s.section_name] : undefined
+            const deltaColor =
+              delta === undefined
+                ? '#94A3B8'
+                : delta > 0
+                ? '#00C48C'
+                : delta < 0
+                ? '#FF4D4F'
+                : '#94A3B8'
+            const deltaLabel =
+              delta === undefined
+                ? null
+                : delta > 0
+                ? `+${delta}`
+                : delta < 0
+                ? `\u2212${Math.abs(delta)}`
+                : '0'
+            const deltaArrow =
+              delta === undefined ? null : delta > 0 ? '\u25b2' : delta < 0 ? '\u25bc' : '\u2014'
+
+            return (
+              <div
+                key={s.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: compareMode ? '180px 1fr 56px' : '180px 1fr',
+                  gap: 12,
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A' }}>{s.section_name}</span>
+                <ScoreBar score={s.score ?? 0} />
+                {compareMode && (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: deltaColor,
+                      textAlign: 'right' as const,
+                      whiteSpace: 'nowrap' as const,
+                    }}
+                  >
+                    {deltaArrow !== null && deltaLabel !== null
+                      ? `${deltaArrow} ${deltaLabel}`
+                      : '\u2014'}
+                  </span>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
