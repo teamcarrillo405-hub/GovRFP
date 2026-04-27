@@ -48,11 +48,11 @@ export type WatchdogEvent =
   | { type: 'watchdog_approved'; score: number; attempt: number; content: string }
   | { type: 'watchdog_failed'; attempts: number; last_score: number; content: string }
 
-/** Threshold for passing — 90/100 */
-export const PASS_THRESHOLD = 90
+/** Threshold for passing — 75/100 */
+export const PASS_THRESHOLD = 75
 
 /** Max auto-redraft attempts before releasing best effort */
-export const MAX_ATTEMPTS = 3
+export const MAX_ATTEMPTS = 2
 
 /**
  * Default scoring criteria used when the RFP has no Section M.
