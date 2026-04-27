@@ -2,21 +2,50 @@ import type { SamGovApiResponse } from './types'
 
 const BASE_URL = 'https://api.sam.gov/opportunities/v2/search'
 
-// NAICS codes for federal construction: 236, 237, 238 ranges
-const CONSTRUCTION_NAICS = ['236', '237', '238']
+// Most common federal construction NAICS codes (6-digit for exact matching)
+export const CONSTRUCTION_NAICS_CODES = [
+  '236220', // Commercial/Institutional Building Construction
+  '236210', // Industrial Building Construction
+  '237110', // Water Supply Line Construction
+  '237310', // Highway, Street, and Bridge Construction
+  '237990', // Other Heavy/Civil Engineering Construction
+  '238110', // Poured Concrete Foundation
+  '238120', // Structural Steel/Precast Concrete
+  '238160', // Roofing Contractors
+  '238190', // Other Foundation/Structure/Building Exterior
+  '238210', // Electrical Contractors
+  '238220', // Plumbing/Heating/Air-Conditioning
+  '238290', // Other Building Equipment
+  '238310', // Drywall/Insulation
+  '238320', // Painting/Wall Covering
+  '238910', // Site Preparation
+  '238990', // All Other Specialty Trade
+]
+
+function mmddyyyy(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${m}/${d}/${date.getFullYear()}`
+}
 
 export async function fetchSamGovOpportunities(
   apiKey: string,
-  naicsPrefix: string,
+  naicsCode: string,
   limit = 100,
   offset = 0,
+  daysBack = 90,
 ): Promise<SamGovApiResponse> {
+  const now = new Date()
+  const from = new Date(now.getTime() - daysBack * 86400 * 1000)
+
   const params = new URLSearchParams({
     api_key: apiKey,
-    ptype: 'o,p,k',   // solicitation, presolicitation, combined
-    ncode: naicsPrefix,
-    limit: String(limit),
+    ptype: 'o,p,k',
+    ncode: naicsCode,
+    limit: String(Math.min(limit, 1000)),
     offset: String(offset),
+    postedFrom: mmddyyyy(from),
+    postedTo: mmddyyyy(now),
     active: 'Yes',
   })
 
@@ -34,18 +63,32 @@ export async function fetchSamGovOpportunities(
 
 export async function fetchAllConstructionOpportunities(
   apiKey: string,
+  maxPerNaics = 200,
 ): Promise<SamGovApiResponse['opportunitiesData']> {
   const all: SamGovApiResponse['opportunitiesData'] = []
+  const seenIds = new Set<string>()
 
-  for (const prefix of CONSTRUCTION_NAICS) {
+  for (const naics of CONSTRUCTION_NAICS_CODES) {
     let offset = 0
-    const pageSize = 100
-    // max 500 per NAICS prefix to stay well within rate limits
-    for (let page = 0; page < 5; page++) {
-      const resp = await fetchSamGovOpportunities(apiKey, prefix, pageSize, offset)
-      all.push(...(resp.opportunitiesData ?? []))
-      if (all.length >= resp.totalRecords || (resp.opportunitiesData?.length ?? 0) < pageSize) break
-      offset += pageSize
+    const pageSize = Math.min(maxPerNaics, 100)
+    const maxPages = Math.ceil(maxPerNaics / pageSize)
+
+    for (let page = 0; page < maxPages; page++) {
+      try {
+        const resp = await fetchSamGovOpportunities(apiKey, naics, pageSize, offset)
+        const batch = resp.opportunitiesData ?? []
+        for (const opp of batch) {
+          if (!seenIds.has(opp.noticeId)) {
+            seenIds.add(opp.noticeId)
+            all.push(opp)
+          }
+        }
+        if (batch.length < pageSize) break
+        offset += pageSize
+      } catch (err) {
+        console.error(`[sam-gov] Error fetching NAICS ${naics}:`, err)
+        break
+      }
     }
   }
 
