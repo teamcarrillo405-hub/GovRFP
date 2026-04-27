@@ -6,6 +6,8 @@ import { buildScoringMatrix } from '@/lib/scoring/types'
 import { autoRedraft } from '@/lib/scoring/auto-redraft'
 import type { WatchdogEvent } from '@/lib/scoring/types'
 
+export const maxDuration = 60
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

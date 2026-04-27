@@ -176,14 +176,8 @@ export default async function EditorPage({ params }: Props) {
         <ExportButtons proposalId={id} />
       </div>
 
-      {/* 3-column body */}
+      {/* Editor body */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left: section nav — dark RFP structure sidebar */}
-        <div style={{ width: 240, background: '#0B1220', borderRight: '1px solid #263447', overflowY: 'auto', flexShrink: 0 }}>
-          {/* RFP structure nav rendered inside ProposalEditor via rfpStructure prop */}
-        </div>
-
-        {/* Center: editor canvas */}
         <div style={{ flex: 1, overflowY: 'auto', background: '#F0F2F5', display: 'flex', justifyContent: 'center', padding: '24px 20px' }}>
           <div style={{ width: '100%', maxWidth: 860, background: '#fff', borderRadius: 8, border: '1px solid #E2E8F0', minHeight: '100%' }}>
             <ProposalEditor
@@ -195,11 +189,6 @@ export default async function EditorPage({ params }: Props) {
               className="h-full"
             />
           </div>
-        </div>
-
-        {/* Right: compliance tool panel */}
-        <div style={{ width: 280, borderLeft: '1px solid #E2E8F0', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
-          {/* Compliance panel is rendered inside ProposalEditor via complianceMatrix/requirements props */}
         </div>
       </div>
     </div>
