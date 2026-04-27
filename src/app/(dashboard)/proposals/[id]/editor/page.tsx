@@ -29,13 +29,17 @@ export default async function EditorPage({ params }: Props) {
   // Load proposal — RLS enforces user_id
   const { data: proposal } = await supabase
     .from('proposals')
-    .select('id, title, rfp_text, status, rfp_structure, updated_at')
+    .select('id, title, rfp_text, status, rfp_structure, updated_at, opportunity_id')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
-  // Must exist and be analyzed before editor is accessible
-  if (!proposal || proposal.status !== 'analyzed') {
+  // Allow: analyzed proposals OR draft proposals created from a SAM.gov opportunity
+  const editorAllowed =
+    proposal?.status === 'analyzed' ||
+    (proposal?.status === 'draft' && (proposal as any).opportunity_id)
+
+  if (!proposal || !editorAllowed) {
     redirect(`/proposals/${id}`)
   }
 

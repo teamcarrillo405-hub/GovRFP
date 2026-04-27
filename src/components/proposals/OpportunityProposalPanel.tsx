@@ -46,7 +46,9 @@ export function OpportunityProposalPanel({ opportunity: raw }: Props) {
     startTransition(async () => {
       try {
         await createProposalFromOpportunity(opp.id)
-      } catch (e) {
+      } catch (e: unknown) {
+        // Next.js redirect() throws internally — let it propagate
+        if (e && typeof e === 'object' && 'digest' in e) throw e
         setError(e instanceof Error ? e.message : 'Failed to create proposal')
       }
     })
