@@ -16,17 +16,24 @@ interface Opportunity {
   id: string
   title: string | null
   agency: string | null
+  agency_name: string | null
   naics_code: string | null
   set_aside: string | null
+  set_aside_description: string | null
   due_date: string | null
+  response_deadline: string | null
   estimated_value: number | null
   match_score: number | null
   solicitation_number: string | null
-  scope_of_work: string | null
-  place_of_performance: string | null
-  contract_type: string | null
+  description_text: string | null
+  description: string | null
+  pop_city: string | null
+  pop_state: string | null
+  place_of_performance_state: string | null
   posted_date: string | null
   point_of_contact: string | null
+  sam_url: string | null
+  ui_link: string | null
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -283,7 +290,7 @@ export default async function OpportunityDetailPage({
     const { data } = await supabase
       .from('opportunities' as any)
       .select(
-        'id, title, agency, naics_code, set_aside, due_date, estimated_value, match_score, solicitation_number, scope_of_work, place_of_performance, place_of_performance_state, contract_type, posted_date, point_of_contact',
+        'id, title, agency, agency_name, naics_code, set_aside, set_aside_description, due_date, response_deadline, estimated_value, match_score, solicitation_number, description_text, description, pop_city, pop_state, place_of_performance_state, posted_date, point_of_contact, sam_url, ui_link',
       )
       .eq('id', id)
       .single()
@@ -313,8 +320,8 @@ export default async function OpportunityDetailPage({
       },
       {
         naics_code: opportunity.naics_code,
-        set_aside: opportunity.set_aside,
-        place_of_performance_state: (opportunity as any).place_of_performance_state ?? null,
+        set_aside: opportunity.set_aside ?? opportunity.set_aside_description,
+        place_of_performance_state: opportunity.place_of_performance_state ?? opportunity.pop_state ?? null,
         estimated_value: opportunity.estimated_value ?? null,
         title: opportunity.title ?? null,
       },
@@ -412,7 +419,7 @@ export default async function OpportunityDetailPage({
             {opportunity.title ?? 'Untitled Opportunity'}
           </h1>
           <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
-            {opportunity.agency ?? 'Unknown Agency'}
+            {opportunity.agency ?? opportunity.agency_name ?? 'Unknown Agency'}
             {opportunity.solicitation_number ? ` · ${opportunity.solicitation_number}` : ''}
           </p>
         </div>
@@ -480,11 +487,10 @@ export default async function OpportunityDetailPage({
           <MetaRow label="Solicitation Number" value={opportunity.solicitation_number ?? '—'} />
           <MetaRow label="Notice Type" value="Sources Sought / Pre-Solicitation" />
           <MetaRow label="NAICS Code" value={opportunity.naics_code ?? '—'} />
-          <MetaRow label="Set-Aside Type" value={opportunity.set_aside ?? 'Unrestricted'} />
+          <MetaRow label="Set-Aside Type" value={opportunity.set_aside ?? opportunity.set_aside_description ?? 'Unrestricted'} />
           <MetaRow label="Posted Date" value={formatDate(opportunity.posted_date)} />
-          <MetaRow label="Response Deadline" value={formatDate(opportunity.due_date)} />
-          <MetaRow label="Place of Performance" value={opportunity.place_of_performance ?? '—'} />
-          <MetaRow label="Contract Type" value={opportunity.contract_type ?? '—'} />
+          <MetaRow label="Response Deadline" value={formatDate(opportunity.due_date ?? opportunity.response_deadline)} />
+          <MetaRow label="Place of Performance" value={[opportunity.pop_city, opportunity.place_of_performance_state ?? opportunity.pop_state].filter(Boolean).join(', ') || '—'} />
           <MetaRow label="Estimated Value" value={formatValue(opportunity.estimated_value)} />
           <MetaRow
             label="Point of Contact"
@@ -589,8 +595,8 @@ export default async function OpportunityDetailPage({
 
         {/* Scope of Work card */}
         <SectionCard title="Scope of Work">
-          {opportunity.scope_of_work ? (
-            opportunity.scope_of_work.split('\n').filter(Boolean).map((para, i) => (
+          {(opportunity.description_text ?? opportunity.description) ? (
+            (opportunity.description_text ?? opportunity.description)!.split('\n').filter(Boolean).map((para, i) => (
               <p
                 key={i}
                 style={{
