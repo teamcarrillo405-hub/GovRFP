@@ -1,21 +1,38 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getUser } from '@/lib/supabase/server'
+import { getUser, createClient } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import FileUpload from '@/components/documents/FileUpload'
 import { GovRfpHandoffPanel } from '@/components/proposals/GovRfpHandoffPanel'
 import { parseGovRfpHandoff, type RawGovRfpSearchParams } from '@/lib/bridge/govrfp-handoff'
+import { OpportunityProposalPanel } from '@/components/proposals/OpportunityProposalPanel'
+
+interface SearchParams extends RawGovRfpSearchParams {
+  opportunity?: string
+}
 
 export default async function NewProposalPage({
   searchParams,
 }: {
-  searchParams: Promise<RawGovRfpSearchParams>
+  searchParams: Promise<SearchParams>
 }) {
   const user = await getUser()
   if (!user) redirect('/login')
 
   const params = await searchParams
   const govRfpHandoff = parseGovRfpHandoff(params)
+
+  // Fetch opportunity if coming from /opportunities/[id] → Start Proposal
+  let opportunity: Record<string, unknown> | null = null
+  if (params.opportunity && !govRfpHandoff) {
+    const supabase = await createClient()
+    const { data } = await (supabase as any)
+      .from('opportunities')
+      .select('id, title, agency, agency_name, solicitation_number, naics_code, set_aside, set_aside_description, due_date, response_deadline, place_of_performance_state, pop_state, sam_url, ui_link')
+      .eq('id', params.opportunity)
+      .single()
+    opportunity = data ?? null
+  }
 
   const subscription = await checkSubscription(user.id)
 
@@ -51,10 +68,10 @@ export default async function NewProposalPage({
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <Link
-        href="/dashboard"
+        href={opportunity ? `/opportunities/${opportunity.id}` : '/dashboard'}
         className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-block"
       >
-        Back to Dashboard
+        {opportunity ? '← Back to Opportunity' : 'Back to Dashboard'}
       </Link>
 
       {govRfpHandoff ? (
@@ -74,6 +91,15 @@ export default async function NewProposalPage({
             </h2>
             <FileUpload />
           </div>
+        </>
+      ) : opportunity ? (
+        <>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Start a new proposal</h1>
+          <p className="text-sm text-gray-500 mb-8">
+            Confirm the SAM.gov opportunity below and create a draft proposal. You can
+            optionally upload the RFP PDF from SAM.gov for deeper AI analysis.
+          </p>
+          <OpportunityProposalPanel opportunity={opportunity} />
         </>
       ) : (
         <>

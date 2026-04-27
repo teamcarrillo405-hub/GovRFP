@@ -1,10 +1,78 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/supabase/server'
+import { getUser, createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import { govRfpHandoffSchema, type GovRfpHandoffInput } from '@/lib/bridge/govrfp-handoff'
+
+export async function createProposalFromOpportunity(opportunityId: string) {
+  const user = await getUser()
+  if (!user) redirect('/login')
+
+  const subscription = await checkSubscription(user.id)
+  if (!isSubscriptionActive(subscription.status)) {
+    redirect('/account?reason=subscription-required')
+  }
+
+  const supabase = await createClient()
+  const { data: opp } = await (supabase as any)
+    .from('opportunities')
+    .select('id, title, agency, agency_name, solicitation_number, naics_code, set_aside, set_aside_description, due_date, response_deadline, place_of_performance_state, pop_state, sam_url, ui_link')
+    .eq('id', opportunityId)
+    .single()
+
+  if (!opp) throw new Error('Opportunity not found')
+
+  const title = opp.solicitation_number
+    ? `${opp.solicitation_number} — ${opp.title}`
+    : (opp.title ?? 'Untitled Proposal')
+
+  const admin = createAdminClient()
+
+  const { data: proposal, error } = await admin
+    .from('proposals')
+    .insert({
+      user_id: user.id,
+      title: title.slice(0, 200),
+      status: 'draft',
+      opportunity_id: opportunityId,
+    })
+    .select('id')
+    .single()
+
+  if (error || !proposal) throw new Error(`Failed to create proposal: ${error?.message ?? 'unknown'}`)
+
+  const agency = opp.agency ?? opp.agency_name ?? null
+  const setAside = opp.set_aside ?? opp.set_aside_description ?? null
+  const deadline = opp.due_date ?? opp.response_deadline ?? null
+  const popState = opp.place_of_performance_state ?? opp.pop_state ?? null
+  const samUrl = opp.sam_url ?? opp.ui_link ?? null
+
+  await admin.from('rfp_analysis').insert({
+    proposal_id: proposal.id,
+    user_id: user.id,
+    requirements: [],
+    compliance_matrix: [],
+    win_score: null,
+    win_factors: {
+      opportunity_id: opportunityId,
+      solicitation_number: opp.solicitation_number ?? null,
+      agency,
+      naics: opp.naics_code ?? null,
+      place_of_performance: popState,
+      response_deadline: deadline,
+      source_portal_url: samUrl,
+    },
+    set_asides_detected: setAside ? [setAside] : [],
+    set_aside_flags: [],
+    section_lm_crosswalk: [],
+    crosswalk_note: 'Pre-populated from SAM.gov opportunity — upload the RFP PDF from SAM.gov to run full analysis.',
+    model_used: 'sam-gov-opportunity',
+  })
+
+  redirect(`/proposals/${proposal.id}`)
+}
 
 /**
  * GovRFP → ProposalAI bridge.
