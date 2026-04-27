@@ -1,0 +1,230 @@
+<style>
+  body { font-family: 'Inter', -apple-system, sans-serif; }
+  .gap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .gap-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; }
+  .gap-card.critical { border-left: 4px solid #ef4444; }
+  .gap-card.high { border-left: 4px solid #f97316; }
+  .gap-card.medium { border-left: 4px solid #eab308; }
+  .gap-card.good { border-left: 4px solid #22c55e; }
+  .gap-card h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; color: #111; }
+  .score-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 13px; }
+  .score-label { width: 110px; color: #6b7280; flex-shrink: 0; }
+  .score-bar-wrap { flex: 1; background: #f3f4f6; border-radius: 99px; height: 7px; }
+  .score-bar { height: 7px; border-radius: 99px; }
+  .score-num { width: 28px; text-align: right; font-weight: 600; font-size: 12px; color: #111; }
+  .bar-us { background: #FDFF66; border: 1px solid #d4d600; }
+  .bar-them { background: #6366f1; }
+  .legend { display: flex; gap: 16px; margin: 6px 0 14px; font-size: 12px; color: #6b7280; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .severity { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+  .sev-critical { background: #fee2e2; color: #dc2626; }
+  .sev-high { background: #ffedd5; color: #ea580c; }
+  .sev-medium { background: #fef9c3; color: #ca8a04; }
+  .sev-good { background: #dcfce7; color: #16a34a; }
+  .gap-desc { font-size: 12px; color: #6b7280; margin-top: 10px; line-height: 1.5; border-top: 1px solid #f3f4f6; padding-top: 10px; }
+  .page-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .chip { font-size: 11px; background: #f3f4f6; color: #374151; border-radius: 6px; padding: 2px 8px; }
+  .header-band { background: #0a0a0a; color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .header-band h2 { margin: 0; font-size: 18px; font-weight: 800; }
+  .header-band p { margin: 4px 0 0; font-size: 13px; color: #9ca3af; }
+  .header-band .badge-group { display: flex; gap: 8px; }
+  .hbadge { background: #1f2937; color: #FDFF66; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin: 24px 0 10px; }
+  .competitor-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .comp-pill { font-size: 11px; background: #ede9fe; color: #6d28d9; border-radius: 6px; padding: 2px 8px; font-weight: 500; }
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f9fafb; text-align: left; padding: 8px 12px; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; }
+  td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; vertical-align: top; }
+  tr:hover td { background: #fafafa; }
+  .tick { color: #22c55e; font-weight: 700; }
+  .cross { color: #ef4444; font-weight: 700; }
+  .partial { color: #f59e0b; font-weight: 700; }
+</style>
+
+<div class="header-band">
+  <div>
+    <h2>Competitive Gap Analysis</h2>
+    <p>ProposalAI + GovRFP vs. GovWin IQ · Loopio · Responsive · Unanet · GovTribe</p>
+  </div>
+  <div class="badge-group">
+    <span class="hbadge">5 Competitors</span>
+    <span class="hbadge">2 Products</span>
+    <span class="hbadge">Research: 2026-04-25</span>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#FDFF66;border:1px solid #d4d600"></span> Our Score</span>
+  <span><span class="dot" style="background:#6366f1"></span> Competitor Best</span>
+</div>
+
+<div class="section-title">Score by Dimension — 0 to 100</div>
+
+<div class="gap-grid">
+
+  <!-- CRITICAL GAPS -->
+  <div class="gap-card critical">
+    <h3>Dashboard & Mission Control <span class="severity sev-critical">CRITICAL GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:30%"></div></div><span class="score-num">30</span></div>
+    <div class="score-row"><span class="score-label">Loopio / Unanet</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:88%"></div></div><span class="score-num">88</span></div>
+    <div class="gap-desc">Competitors show active RFPs, team tasks due, win-rate trends, and deadline alerts on login. Ours is a simple welcome card + stats count. Users need "mission control" — one view to run their whole bid operation.</div>
+    <div class="page-chips"><span class="chip">/dashboard</span></div>
+  </div>
+
+  <div class="gap-card critical">
+    <h3>Proposal Editor UI/UX <span class="severity sev-critical">CRITICAL GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:52%"></div></div><span class="score-num">52</span></div>
+    <div class="score-row"><span class="score-label">Loopio / Responsive</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:92%"></div></div><span class="score-num">92</span></div>
+    <div class="gap-desc">Loopio's editor is the industry UX gold standard — clean canvas, context panel, task sidebar. Ours has strong features but tools are hard to discover; left/right nav is overwhelming. No inline SME assignment, no version compare, no approval workflow.</div>
+    <div class="page-chips"><span class="chip">/proposals/[id]/editor</span></div>
+  </div>
+
+  <div class="gap-card critical">
+    <h3>Content Library <span class="severity sev-critical">CRITICAL GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:25%"></div></div><span class="score-num">25</span></div>
+    <div class="score-row"><span class="score-label">Loopio / Responsive</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:95%"></div></div><span class="score-num">95</span></div>
+    <div class="gap-desc">We have Past Performance records but no general content library. 70% of proposal work is reuse. Loopio built their entire product around tagged, searchable content snippets. We have zero: no boilerplate, no tagged sections, no "save this as reusable asset" flow.</div>
+    <div class="page-chips"><span class="chip">MISSING PAGE</span><span class="chip">/library (new)</span></div>
+  </div>
+
+  <div class="gap-card critical">
+    <h3>Compliance Matrix Tracking <span class="severity sev-critical">CRITICAL GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:45%"></div></div><span class="score-num">45</span></div>
+    <div class="score-row"><span class="score-label">Responsive / Narrative AI</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:94%"></div></div><span class="score-num">94</span></div>
+    <div class="gap-desc">We have a compliance panel in the editor but no standalone matrix page. Competitors show a spreadsheet-like grid: requirement × section, % coverage, owner, status — filterable, exportable. Ours is buried in the editor sidebar. No filter, no export, no owner assignment.</div>
+    <div class="page-chips"><span class="chip">/proposals/[id]/analysis</span></div>
+  </div>
+
+  <!-- HIGH GAPS -->
+  <div class="gap-card high">
+    <h3>Opportunity Detail Pages <span class="severity sev-high">HIGH GAP</span></h3>
+    <div class="score-row"><span class="score-label">GovRFP today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:55%"></div></div><span class="score-num">55</span></div>
+    <div class="score-row"><span class="score-label">GovTribe / GovWin IQ</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:88%"></div></div><span class="score-num">88</span></div>
+    <div class="gap-desc">GovTribe shows procurement forecast, prior awards timeline, agency spend breakdown, and related opportunities on one page. Ours has good metadata but the layout is flat. No visual timeline, no agency spend chart, no related opps. Panels feel tacked on.</div>
+    <div class="page-chips"><span class="chip">/opportunities/[id]</span></div>
+  </div>
+
+  <div class="gap-card high">
+    <h3>Pipeline / Bid Tracking <span class="severity sev-high">HIGH GAP</span></h3>
+    <div class="score-row"><span class="score-label">GovRFP today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:48%"></div></div><span class="score-num">48</span></div>
+    <div class="score-row"><span class="score-label">Govly / Unanet</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:85%"></div></div><span class="score-num">85</span></div>
+    <div class="gap-desc">Govly shows stage totals, value at risk, win probability per deal, and linked proposal status. Our kanban has no value display, no probability, no capacity alerts (are we overloaded?). Cards are minimal — agency + title, nothing actionable.</div>
+    <div class="page-chips"><span class="chip">/pipeline</span></div>
+  </div>
+
+  <div class="gap-card high">
+    <h3>Past Performance Library <span class="severity sev-high">HIGH GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:58%"></div></div><span class="score-num">58</span></div>
+    <div class="score-row"><span class="score-label">Unanet / Loopio</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:85%"></div></div><span class="score-num">85</span></div>
+    <div class="gap-desc">Unanet structures PP by project, customer, NAICS, CPARS rating, and outcome — searchable with relevance score. Ours is a flat list with basic filtering. No search by challenge type, no relevance scoring, no "used in N proposals", no quality rating displayed.</div>
+    <div class="page-chips"><span class="chip">/past-performance</span></div>
+  </div>
+
+  <div class="gap-card high">
+    <h3>Opportunity Directory / Feed <span class="severity sev-high">HIGH GAP</span></h3>
+    <div class="score-row"><span class="score-label">GovRFP today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:60%"></div></div><span class="score-num">60</span></div>
+    <div class="score-row"><span class="score-label">GovTribe / Bloomberg</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:90%"></div></div><span class="score-num">90</span></div>
+    <div class="gap-desc">GovTribe shows match score, forecast probability, agency relationship strength, and set-aside flag all on the card. Ours shows title + deadline + NAICS. Cards are data-light. Filter bar is limited — no Boolean search, no saved filter chips, no results count.</div>
+    <div class="page-chips"><span class="chip">/ (directory)</span></div>
+  </div>
+
+  <!-- MEDIUM GAPS -->
+  <div class="gap-card medium">
+    <h3>Scoring & Red Team Pages <span class="severity sev-medium">MEDIUM GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:68%"></div></div><span class="score-num">68</span></div>
+    <div class="score-row"><span class="score-label">Responsive / Qvidian</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:80%"></div></div><span class="score-num">80</span></div>
+    <div class="gap-desc">We have unique Red Team simulation — competitors don't. But the layout is plain. Scoring cards lack visual comparison (e.g., how did score change between drafts?). No history chart, no section comparison.</div>
+    <div class="page-chips"><span class="chip">/proposals/[id]/scoring</span><span class="chip">/proposals/[id]/red-team</span></div>
+  </div>
+
+  <div class="gap-card medium">
+    <h3>Analytics & Win Intelligence <span class="severity sev-medium">MEDIUM GAP</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:40%"></div></div><span class="score-num">40</span></div>
+    <div class="score-row"><span class="score-label">GovWin IQ / Unanet</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:82%"></div></div><span class="score-num">82</span></div>
+    <div class="gap-desc">GovWin shows win rates by agency, NAICS, set-aside, and competitor. Ours shows basic status counts. No trend charts, no win rate by type, no proposal-to-proposal learning loop.</div>
+    <div class="page-chips"><span class="chip">/analytics</span></div>
+  </div>
+
+  <!-- GOOD / STRONG AREAS -->
+  <div class="gap-card good">
+    <h3>AI Drafting Engine <span class="severity sev-good">STRONG — DIFFERENTIATED</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:82%"></div></div><span class="score-num">82</span></div>
+    <div class="score-row"><span class="score-label">Responsive AI</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:85%"></div></div><span class="score-num">85</span></div>
+    <div class="gap-desc">Quality Watchdog (auto-redraft to 90+ score), Q&A-seeded drafts, section-by-section streaming — genuinely competitive. Gap is construction-specific compliance guardrails and live guidance during writing.</div>
+    <div class="page-chips"><span class="chip">/editor</span><span class="chip">/questions</span></div>
+  </div>
+
+  <div class="gap-card good">
+    <h3>Win Score + Go/No-Go <span class="severity sev-good">STRONG — UNIQUE</span></h3>
+    <div class="score-row"><span class="score-label">Us today</span><div class="score-bar-wrap"><div class="score-bar bar-us" style="width:78%"></div></div><span class="score-num">78</span></div>
+    <div class="score-row"><span class="score-label">No direct competitor</span><div class="score-bar-wrap"><div class="score-bar bar-them" style="width:40%"></div></div><span class="score-num">40</span></div>
+    <div class="gap-desc">No competitor has automated Go/No-Go verdict with score breakdown. This is a major differentiator. The gap is improving the visual presentation and adding predictive elements (incumbent strength, set-aside match).</div>
+    <div class="page-chips"><span class="chip">/proposals/[id]</span></div>
+  </div>
+
+</div>
+
+<div class="section-title">Feature-by-Feature: Us vs. Top 3 Competitors</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>ProposalAI</th>
+      <th>Loopio</th>
+      <th>Responsive</th>
+      <th>Unanet</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>AI first-draft generation</td><td class="tick">✓ (strong)</td><td class="partial">~ AutoFill</td><td class="tick">✓ 80% draft</td><td class="tick">✓ 70% faster</td></tr>
+    <tr><td>Compliance matrix (real-time)</td><td class="partial">~ editor sidebar</td><td class="tick">✓ standalone</td><td class="tick">✓ full page</td><td class="tick">✓ full page</td></tr>
+    <tr><td>Content library (tagged reuse)</td><td class="cross">✗</td><td class="tick">✓ core feature</td><td class="tick">✓ core feature</td><td class="tick">✓ project-linked</td></tr>
+    <tr><td>Go/No-Go win score</td><td class="tick">✓ unique</td><td class="cross">✗</td><td class="cross">✗</td><td class="partial">~ pipeline only</td></tr>
+    <tr><td>Red team simulation</td><td class="tick">✓ unique</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+    <tr><td>Color team workflow</td><td class="tick">✓ Shipley</td><td class="partial">~ basic status</td><td class="partial">~ basic status</td><td class="tick">✓ full workflow</td></tr>
+    <tr><td>Dashboard mission control</td><td class="cross">✗ basic</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+    <tr><td>SME task assignment per requirement</td><td class="cross">✗</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+    <tr><td>Version history / compare</td><td class="cross">✗</td><td class="tick">✓</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+    <tr><td>Opportunity discovery</td><td class="partial">~ GovRFP bridge</td><td class="cross">✗</td><td class="cross">✗</td><td class="partial">~ pipeline only</td></tr>
+    <tr><td>Construction-specific compliance</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+    <tr><td>Prevailing wage guardrails</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+    <tr><td>Subcontractor teaming</td><td class="partial">~ USASpending panel</td><td class="cross">✗</td><td class="cross">✗</td><td class="partial">~ basic</td></tr>
+    <tr><td>Win/loss analytics (deep)</td><td class="cross">✗ basic</td><td class="partial">~</td><td class="tick">✓</td><td class="tick">✓</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="section-title">Priority Order for This Redesign</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px;">
+  <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;">
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;color:#dc2626;margin-bottom:8px;">P0 — Critical (Do First)</div>
+    <div style="font-size:12px;color:#374151;line-height:1.8;">
+      Dashboard redesign<br>
+      Editor UX simplification<br>
+      Content Library (new page)<br>
+      Compliance Matrix (full page)
+    </div>
+  </div>
+  <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px;">
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;color:#ea580c;margin-bottom:8px;">P1 — High (This Sprint)</div>
+    <div style="font-size:12px;color:#374151;line-height:1.8;">
+      Opportunity cards + detail<br>
+      Pipeline board upgrade<br>
+      Past Performance library<br>
+      Analytics charts
+    </div>
+  </div>
+  <div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:14px;">
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;color:#ca8a04;margin-bottom:8px;">P2 — Medium (Next Sprint)</div>
+    <div style="font-size:12px;color:#374151;line-height:1.8;">
+      Scoring/Red Team polish<br>
+      SME task assignment<br>
+      Version compare<br>
+      Construction compliance module
+    </div>
+  </div>
+</div>

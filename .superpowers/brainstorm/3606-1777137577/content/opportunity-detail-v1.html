@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USACE Levee Infrastructure Design-Build — Avero GovTool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F0F2F5; color: #0F172A; font-size: 14px; line-height: 1.5; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* HEADER */
+  .app-header { position: sticky; top: 0; z-index: 100; height: 52px; background: #0B1220; display: flex; align-items: center; padding: 0 24px; gap: 32px; border-bottom: 1px solid #263447; }
+  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+  .logo-mark { width: 28px; height: 28px; background: #2F80FF; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .logo-mark svg { width: 16px; height: 16px; fill: #fff; }
+  .logo-text { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+  .logo-text span { color: #2F80FF; }
+  .header-nav { display: flex; gap: 4px; flex: 1; }
+  .header-nav a { color: #9AA4B2; font-size: 13px; font-weight: 500; text-decoration: none; padding: 6px 12px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
+  .header-nav a:hover { color: #fff; background: #1E2B3C; }
+  .header-nav a.active { color: #fff; background: #1E2B3C; }
+  .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 6px; background: #1E2B3C; border: 1px solid #263447; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9AA4B2; }
+  .icon-btn svg { width: 15px; height: 15px; fill: currentColor; }
+  .user-chip { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; background: #1E2B3C; border: 1px solid #263447; border-radius: 20px; cursor: pointer; }
+  .user-avatar { width: 24px; height: 24px; border-radius: 50%; background: #2F80FF; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; }
+  .user-name { color: #9AA4B2; font-size: 12px; font-weight: 500; }
+
+  /* LAYOUT */
+  .app-body { display: flex; flex: 1; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; background: #0B1220; position: sticky; top: 52px; height: calc(100vh - 52px - 44px); overflow-y: auto; border-right: 1px solid #263447; flex-shrink: 0; padding: 16px 0; }
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; padding: 0 16px 8px; }
+  .sidebar-link { display: flex; align-items: center; justify-content: space-between; padding: 7px 16px; color: #9AA4B2; font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; transition: color 0.15s, background 0.15s; }
+  .sidebar-link:hover { color: #fff; background: #1E2B3C; }
+  .sidebar-link.active { color: #fff; background: #1E2B3C; border-left: 3px solid #2F80FF; padding-left: 13px; }
+  .sidebar-link .link-icon { width: 15px; height: 15px; fill: currentColor; margin-right: 8px; opacity: 0.7; flex-shrink: 0; }
+  .sidebar-link .link-inner { display: flex; align-items: center; }
+  .sidebar-count { font-size: 11px; font-weight: 600; color: #475569; background: #1E2B3C; border-radius: 10px; padding: 1px 6px; }
+  .sidebar-count.blue { color: #2F80FF; background: rgba(47,128,255,0.12); }
+
+  /* MAIN */
+  .main-content { flex: 1; padding: 24px; min-width: 0; }
+
+  /* BREADCRUMB */
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #94A3B8; margin-bottom: 10px; }
+  .breadcrumb a { color: #2F80FF; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { color: #CBD5E1; }
+
+  /* PAGE TITLE BLOCK */
+  .page-title-block { margin-bottom: 20px; }
+  .page-title { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1.25; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: #475569; }
+
+  /* ACTION BAR */
+  .action-bar { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .action-bar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .action-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid transparent; }
+  .pill-blue { color: #2F80FF; background: rgba(47,128,255,0.1); border-color: rgba(47,128,255,0.25); }
+  .pill-gray { color: #475569; background: #F0F2F5; border-color: #E2E8F0; }
+  .pill-amber { color: #F59E0B; background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; text-decoration: none; white-space: nowrap; }
+  .btn-outline { background: #fff; border: 1.5px solid #E2E8F0; color: #475569; }
+  .btn-outline:hover { border-color: #2F80FF; color: #2F80FF; }
+  .btn-primary { background: #2F80FF; color: #fff; border: 1.5px solid #2F80FF; }
+  .btn-primary:hover { background: #1a6ee0; border-color: #1a6ee0; }
+  .btn-primary-lg { padding: 9px 18px; font-size: 14px; }
+  .btn-block { display: flex; width: 100%; justify-content: center; }
+
+  /* TWO-COLUMN LAYOUT */
+  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+
+  /* CARDS */
+  .card { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .card-header { padding: 14px 18px 12px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 14px; font-weight: 700; color: #0F172A; }
+  .card-body { padding: 18px; }
+
+  /* METADATA GRID */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .meta-row { display: contents; }
+  .meta-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; padding: 9px 0; border-bottom: 1px solid #F0F2F5; }
+  .meta-value { font-size: 13px; color: #0F172A; font-weight: 500; padding: 9px 0; border-bottom: 1px solid #F0F2F5; }
+  .meta-value a { color: #2F80FF; text-decoration: none; }
+  .meta-value a:hover { text-decoration: underline; }
+  .meta-value.green { color: #00C48C; }
+  .meta-value.amber { color: #F59E0B; }
+
+  /* TIMELINE */
+  .timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 11px; top: 16px; bottom: 16px; width: 1px; background: #E2E8F0; }
+  .timeline-item { display: flex; gap: 14px; align-items: flex-start; padding: 10px 0; position: relative; }
+  .timeline-dot { width: 23px; height: 23px; border-radius: 50%; background: #F0F2F5; border: 2px solid #E2E8F0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+  .timeline-dot.current { background: #2F80FF; border-color: #2F80FF; }
+  .timeline-dot svg { width: 10px; height: 10px; fill: #94A3B8; }
+  .timeline-dot.current svg { fill: #fff; }
+  .timeline-content {}
+  .timeline-year { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .timeline-text { font-size: 13px; color: #0F172A; font-weight: 500; }
+  .timeline-sub { font-size: 12px; color: #475569; }
+  .timeline-badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #2F80FF; background: rgba(47,128,255,0.1); border: 1px solid rgba(47,128,255,0.2); margin-left: 8px; vertical-align: middle; }
+  .timeline-note { font-size: 12px; color: #F59E0B; margin-top: 10px; padding: 8px 12px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 6px; }
+
+  /* SCOPE */
+  .scope-text p { font-size: 13px; color: #475569; line-height: 1.65; margin-bottom: 12px; }
+  .scope-text p:last-child { margin-bottom: 0; }
+
+  /* MATCH SCORE SIDEBAR */
+  .score-display { text-align: center; padding: 8px 0 16px; }
+  .score-number { font-size: 48px; font-weight: 900; color: #2F80FF; line-height: 1; }
+  .score-denom { font-size: 16px; color: #94A3B8; font-weight: 500; }
+  .score-label { font-size: 12px; font-weight: 700; color: #00C48C; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; }
+  .score-bars { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .score-bar-row { }
+  .score-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .score-bar-label { font-size: 12px; color: #475569; font-weight: 500; }
+  .score-bar-pct { font-size: 12px; color: #2F80FF; font-weight: 700; }
+  .score-bar-track { height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden; }
+  .score-bar-fill { height: 100%; background: #2F80FF; border-radius: 2px; }
+
+  /* SBA ELIGIBILITY */
+  .elig-status { font-size: 14px; font-weight: 700; color: #00C48C; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .elig-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #00C48C; flex-shrink: 0; }
+  .elig-detail { font-size: 12px; color: #475569; line-height: 1.6; }
+  .elig-detail strong { color: #0F172A; }
+
+  /* TEAMING PARTNERS */
+  .partner-list { display: flex; flex-direction: column; gap: 1px; }
+  .partner-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F0F2F5; }
+  .partner-row:last-child { border-bottom: none; }
+  .partner-avatar { width: 32px; height: 32px; border-radius: 6px; background: #F0F2F5; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #475569; flex-shrink: 0; }
+  .partner-info { flex: 1; min-width: 0; }
+  .partner-name { font-size: 12px; font-weight: 700; color: #0F172A; }
+  .partner-meta { font-size: 11px; color: #94A3B8; }
+  .partner-compat { font-size: 12px; font-weight: 700; color: #2F80FF; margin-right: 6px; }
+  .partner-action { padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid #E2E8F0; background: #fff; color: #475569; cursor: pointer; white-space: nowrap; }
+  .partner-action:hover { border-color: #2F80FF; color: #2F80FF; }
+
+  /* COMPETITOR */
+  .competitor-list { display: flex; flex-direction: column; gap: 1px; }
+  .competitor-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F0F2F5; }
+  .competitor-row:last-child { border-bottom: none; }
+  .comp-avatar { width: 32px; height: 32px; border-radius: 6px; background: #F0F2F5; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #475569; flex-shrink: 0; }
+  .comp-info { flex: 1; min-width: 0; }
+  .comp-name { font-size: 12px; font-weight: 700; color: #0F172A; }
+  .comp-meta { font-size: 11px; color: #94A3B8; }
+  .comp-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; }
+  .comp-badge-current { color: #2F80FF; background: rgba(47,128,255,0.1); border: 1px solid rgba(47,128,255,0.2); }
+  .comp-badge-hist { color: #475569; background: #F0F2F5; border: 1px solid #E2E8F0; }
+  .comp-note { font-size: 11px; color: #F59E0B; margin-top: 10px; padding: 7px 10px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 5px; line-height: 1.5; }
+
+  /* PAST PERFORMANCE */
+  .pp-list { display: flex; flex-direction: column; gap: 1px; }
+  .pp-row { padding: 10px 0; border-bottom: 1px solid #F0F2F5; }
+  .pp-row:last-child { border-bottom: none; }
+  .pp-title { font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 3px; }
+  .pp-meta { font-size: 11px; color: #94A3B8; }
+  .pp-rating { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #00C48C; margin-top: 4px; }
+  .pp-rating::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #00C48C; }
+
+  /* FOOTER */
+  .app-footer { height: 44px; background: #0B1220; border-top: 1px solid #263447; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .footer-text { font-size: 11px; color: #475569; }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a { font-size: 11px; color: #475569; text-decoration: none; }
+  .footer-links a:hover { color: #9AA4B2; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <a href="#" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16"><path d="M3 2h10l-2 4H5L3 2zm0 0l-1 6h12l-1-6M2 8l1 6h10l1-6H2zm4 2h4v2H6v-2z"/></svg>
+    </div>
+    <span class="logo-text">Avero <span>GovTool</span></span>
+  </a>
+  <nav class="header-nav">
+    <a href="#">Dashboard</a>
+    <a href="#">Proposals</a>
+    <a href="opportunities-v1.html" class="active">Opportunities</a>
+    <a href="#">Past Performance</a>
+    <a href="#">Analytics</a>
+  </nav>
+  <div class="header-right">
+    <div class="icon-btn" title="Notifications">
+      <svg viewBox="0 0 16 16"><path d="M8 1a4 4 0 0 0-4 4v3l-1.5 2.5h11L12 8V5a4 4 0 0 0-4-4zm0 14a1.5 1.5 0 0 1-1.5-1.5h3A1.5 1.5 0 0 1 8 15z"/></svg>
+    </div>
+    <div class="icon-btn" title="Search">
+      <svg viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.868-3.834zM1 6.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0z"/></svg>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar">GC</div>
+      <span class="user-name">G. Carrillo</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">
+          <svg class="link-icon" viewBox="0 0 16 16"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zm-7 7h5v5H2V9zm7 0h5v5H9V9z"/></svg>
+          Dashboard
+        </span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">
+          <svg class="link-icon" viewBox="0 0 16 16"><path d="M4 1h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm1 3v1h6V4H5zm0 3v1h6V7H5zm0 3v1h4v-1H5z"/></svg>
+          Proposals
+        </span>
+        <span class="sidebar-count blue">7</span>
+      </a>
+      <a href="opportunities-v1.html" class="sidebar-link active">
+        <span class="link-inner">
+          <svg class="link-icon" viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 2a5 5 0 1 1 0 10A5 5 0 0 1 8 3zm0 2v3l2 2-1 1-2.5-2.5V5h1.5z"/></svg>
+          Opportunities
+        </span>
+        <span class="sidebar-count blue">12</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">
+          <svg class="link-icon" viewBox="0 0 16 16"><path d="M2 2h12v2H2V2zm0 4h12v2H2V6zm0 4h8v2H2v-2z"/></svg>
+          Past Performance
+        </span>
+        <span class="sidebar-count">24</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">
+          <svg class="link-icon" viewBox="0 0 16 16"><path d="M1 11l4-4 3 3 4-5 3 3v3H1v-1zm0-1V3h14v7"/></svg>
+          Analytics
+        </span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Opportunities</div>
+      <a href="opportunities-v1.html" class="sidebar-link">
+        <span class="link-inner">All Opportunities</span>
+        <span class="sidebar-count">423</span>
+      </a>
+      <a href="opportunities-v1.html" class="sidebar-link">
+        <span class="link-inner">Profile Matches</span>
+        <span class="sidebar-count blue">12</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Saved Searches</span>
+        <span class="sidebar-count">4</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Tracked</span>
+        <span class="sidebar-count">9</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Closing Soon</span>
+        <span class="sidebar-count blue">3</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">This Opportunity</div>
+      <a href="#" class="sidebar-link active">
+        <span class="link-inner">Overview</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Match Analysis</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Competitor Intel</span>
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="link-inner">Teaming</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a href="opportunities-v1.html">Opportunities</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>USACE Levee Infrastructure</span>
+    </div>
+
+    <!-- PAGE TITLE -->
+    <div class="page-title-block">
+      <h1 class="page-title">USACE Levee Infrastructure Design-Build — Phase III</h1>
+      <p class="page-subtitle">Army Corps of Engineers &middot; Sacramento District &middot; Solicitation W912DR-26-R-0041</p>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+      <div class="action-bar-left">
+        <span class="pill pill-blue">87% Match</span>
+        <span class="pill pill-gray">WOSB Set-Aside</span>
+        <span class="pill pill-blue">Recompete</span>
+        <span class="pill pill-gray">33 days remaining</span>
+      </div>
+      <div class="action-bar-right">
+        <button class="btn btn-outline">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm1 2H7v3l2.5 1.5.75-1.25L8 8.5V6z"/></svg>
+          Add to Pipeline
+        </button>
+        <a href="#" class="btn btn-primary btn-primary-lg">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm1 3v1h6V4H5zm0 3v1h6V7H5zm0 3v1h4v-1H5z"/></svg>
+          Open in ProposalAI &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- TWO COLUMN -->
+    <div class="two-col">
+
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+
+        <!-- METADATA CARD -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Opportunity Details</span>
+            <a href="#" style="font-size:12px;font-weight:600;color:#2F80FF;text-decoration:none;">View on SAM.gov &rarr;</a>
+          </div>
+          <div class="card-body">
+            <div class="meta-grid">
+              <span class="meta-label">Solicitation Number</span>
+              <span class="meta-value">W912DR-26-R-0041</span>
+
+              <span class="meta-label">Notice Type</span>
+              <span class="meta-value">Sources Sought / Presolicitation</span>
+
+              <span class="meta-label">NAICS Code</span>
+              <span class="meta-value">237990 — Other Heavy and Civil Engineering Construction</span>
+
+              <span class="meta-label">Set-Aside Type</span>
+              <span class="meta-value">Women-Owned Small Business (WOSB)</span>
+
+              <span class="meta-label">Posted Date</span>
+              <span class="meta-value">April 15, 2026</span>
+
+              <span class="meta-label">Response Deadline</span>
+              <span class="meta-value">May 28, 2026 at 3:00 PM ET</span>
+
+              <span class="meta-label">Place of Performance</span>
+              <span class="meta-value">Sacramento, CA 95814</span>
+
+              <span class="meta-label">Contract Type</span>
+              <span class="meta-value">Firm Fixed Price (FFP)</span>
+
+              <span class="meta-label">Estimated Value</span>
+              <span class="meta-value">$3.2M – $5.8M</span>
+
+              <span class="meta-label">Point of Contact</span>
+              <span class="meta-value">Capt. James Thornton &mdash; <a href="mailto:jthornton@usace.army.mil">jthornton@usace.army.mil</a></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRIOR AWARDS TIMELINE -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Prior Awards — This Contract Vehicle</span>
+            <span class="pill pill-blue" style="font-size:11px;padding:2px 8px;">Recompete</span>
+          </div>
+          <div class="card-body">
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-dot">
+                  <svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3z"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-year">2018</div>
+                  <div class="timeline-text">Morrison-Knudsen Corp</div>
+                  <div class="timeline-sub">Award value: $2.1M &nbsp;&middot;&nbsp; NAICS 237990 &nbsp;&middot;&nbsp; Sacramento District</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot">
+                  <svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3z"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-year">2021</div>
+                  <div class="timeline-text">Jacobs Engineering Group</div>
+                  <div class="timeline-sub">Award value: $3.4M &nbsp;&middot;&nbsp; NAICS 237990 &nbsp;&middot;&nbsp; Sacramento District</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot current">
+                  <svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3z"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-year">2024 <span class="timeline-badge">Current Incumbent</span></div>
+                  <div class="timeline-text">Jacobs Engineering Group</div>
+                  <div class="timeline-sub">Award value: $3.8M &nbsp;&middot;&nbsp; NAICS 237990 &nbsp;&middot;&nbsp; Sacramento District</div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-note">Jacobs Engineering Group has held this contract for 2 consecutive terms. Factor incumbent strength into pricing strategy and differentiators.</div>
+          </div>
+        </div>
+
+        <!-- SCOPE OF WORK -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Scope of Work</span>
+          </div>
+          <div class="card-body scope-text">
+            <p>The Sacramento District, U.S. Army Corps of Engineers (USACE) is soliciting proposals for design-build services for Phase III levee infrastructure improvements along the American River Corridor. The selected contractor will be responsible for the complete design, engineering, and construction of approximately 4.2 miles of levee rehabilitation, including earthwork, slope stabilization, drainage improvements, and riprap revetment in accordance with USACE Engineering Manual EM 1110-2-1913 and applicable federal and state flood control standards.</p>
+            <p>The scope includes geotechnical investigation and seepage analysis, preparation of 100% design drawings and specifications, environmental monitoring and compliance per NEPA and Section 404/401 permit conditions, and coordination with the California Department of Water Resources (DWR) and local reclamation districts. The contractor shall provide a qualified Professional Engineer licensed in the State of California for all structural and geotechnical design submissions. Construction quality control (CQC) documentation, as-built drawings, and a 3-year O&amp;M manual are required deliverables upon project completion.</p>
+            <p>The period of performance is estimated at 18 months from Notice to Proceed (NTP). The contractor must demonstrate prior experience on USACE or comparable federal levee or civil infrastructure projects within the last 7 years, with individual project values of $1.5M or greater. Offerors are advised that this procurement is set aside exclusively for Women-Owned Small Businesses (WOSB) under FAR 52.219-29, and award will be made on a best-value tradeoff basis considering technical approach, past performance, and price.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="right-col">
+
+        <!-- MATCH SCORE -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Your Match Score</span>
+          </div>
+          <div class="card-body">
+            <div class="score-display">
+              <div><span class="score-number">87</span><span class="score-denom"> / 100</span></div>
+              <div class="score-label">Strong Match</div>
+            </div>
+            <div class="score-bars">
+              <div class="score-bar-row">
+                <div class="score-bar-top">
+                  <span class="score-bar-label">NAICS alignment</span>
+                  <span class="score-bar-pct">100%</span>
+                </div>
+                <div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div>
+              </div>
+              <div class="score-bar-row">
+                <div class="score-bar-top">
+                  <span class="score-bar-label">Set-aside eligibility</span>
+                  <span class="score-bar-pct">100%</span>
+                </div>
+                <div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div>
+              </div>
+              <div class="score-bar-row">
+                <div class="score-bar-top">
+                  <span class="score-bar-label">Geographic coverage</span>
+                  <span class="score-bar-pct">85%</span>
+                </div>
+                <div class="score-bar-track"><div class="score-bar-fill" style="width:85%"></div></div>
+              </div>
+              <div class="score-bar-row">
+                <div class="score-bar-top">
+                  <span class="score-bar-label">Past performance depth</span>
+                  <span class="score-bar-pct">72%</span>
+                </div>
+                <div class="score-bar-track"><div class="score-bar-fill" style="width:72%"></div></div>
+              </div>
+              <div class="score-bar-row">
+                <div class="score-bar-top">
+                  <span class="score-bar-label">Incumbent strength</span>
+                  <span class="score-bar-pct">60%</span>
+                </div>
+                <div class="score-bar-track"><div class="score-bar-fill" style="width:60%"></div></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <a href="#" class="btn btn-primary btn-block">Open in GovTool — Start Proposal</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- SBA SIZE ELIGIBILITY -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">SBA Size Eligibility</span>
+          </div>
+          <div class="card-body">
+            <div class="elig-status">Eligible — Small Business</div>
+            <div class="elig-detail">
+              <strong>NAICS 237990</strong> size standard: $45M average annual receipts<br>
+              <br>
+              Your annual revenue: <strong>$12.0M</strong><br>
+              Status: Well within the SBA threshold. No affiliation issues detected in SAM.gov registration.<br>
+              <br>
+              WOSB certification: <strong>Active through Dec 2026</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- TEAMING PARTNERS -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Potential Teaming Partners</span>
+          </div>
+          <div class="card-body" style="padding-top:10px;padding-bottom:10px;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:10px;">NAICS 237990 &middot; California &middot; Active SAM registrations</div>
+            <div class="partner-list">
+              <div class="partner-row">
+                <div class="partner-avatar">KW</div>
+                <div class="partner-info">
+                  <div class="partner-name">Kiewit Infrastructure West Co.</div>
+                  <div class="partner-meta">Sacramento, CA &middot; $48.2M fed contracts</div>
+                </div>
+                <span class="partner-compat">94%</span>
+                <button class="partner-action">Contact</button>
+              </div>
+              <div class="partner-row">
+                <div class="partner-avatar">GE</div>
+                <div class="partner-info">
+                  <div class="partner-name">GeoStabilization Intl. LLC</div>
+                  <div class="partner-meta">Rancho Cordova, CA &middot; $11.7M fed contracts</div>
+                </div>
+                <span class="partner-compat">81%</span>
+                <button class="partner-action">Contact</button>
+              </div>
+              <div class="partner-row">
+                <div class="partner-avatar">PC</div>
+                <div class="partner-info">
+                  <div class="partner-name">Pacific Civil &amp; Engineering Inc.</div>
+                  <div class="partner-meta">Elk Grove, CA &middot; $6.3M fed contracts</div>
+                </div>
+                <span class="partner-compat">76%</span>
+                <button class="partner-action">Contact</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPETITOR INTELLIGENCE -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Competitor Intelligence</span>
+          </div>
+          <div class="card-body" style="padding-top:10px;padding-bottom:10px;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:10px;">Known incumbents &middot; USACE Sacramento District</div>
+            <div class="competitor-list">
+              <div class="competitor-row">
+                <div class="comp-avatar">JE</div>
+                <div class="comp-info">
+                  <div class="comp-name">Jacobs Engineering Group <span class="comp-badge comp-badge-current">Current Incumbent</span></div>
+                  <div class="comp-meta">Award: $3.8M &middot; Contract ended Jan 2026 &middot; 2 consecutive terms</div>
+                </div>
+              </div>
+              <div class="competitor-row">
+                <div class="comp-avatar">MK</div>
+                <div class="comp-info">
+                  <div class="comp-name">Morrison-Knudsen Corp <span class="comp-badge comp-badge-hist">Historical</span></div>
+                  <div class="comp-meta">Award: $2.1M &middot; Contract ended 2021</div>
+                </div>
+              </div>
+            </div>
+            <div class="comp-note">Incumbent identified — Jacobs has 2 consecutive terms. Factor pricing competitiveness, differentiated technical approach, and WOSB set-aside advantage into strategy.</div>
+          </div>
+        </div>
+
+        <!-- PAST PERFORMANCE MATCH -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Your Matching Past Performance</span>
+          </div>
+          <div class="card-body" style="padding-top:10px;padding-bottom:10px;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:10px;">Matched on NAICS 237990 &middot; Levee / Civil scope keywords</div>
+            <div class="pp-list">
+              <div class="pp-row">
+                <div class="pp-title">Sacramento Slough Levee Rehabilitation — Reach 4B</div>
+                <div class="pp-meta">USACE Sacramento District &middot; Contract No. W912P3-22-C-0018 &middot; $2.7M &middot; Completed Aug 2024</div>
+                <div class="pp-rating">Exceptional — CPARS</div>
+              </div>
+              <div class="pp-row">
+                <div class="pp-title">North Delta Flood Control Earthwork — Phase I</div>
+                <div class="pp-meta">California Dept. of Water Resources &middot; Contract No. B21014 &middot; $1.4M &middot; Completed Mar 2023</div>
+                <div class="pp-rating">Very Good — CPARS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <span class="footer-text">Avero GovTool &copy; 2026 &nbsp;&middot;&nbsp; Powered by SAM.gov data feed &nbsp;&middot;&nbsp; Last sync: 14 min ago</span>
+  <div class="footer-links">
+    <a href="#">Help Center</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Status</a>
+  </div>
+</footer>
+
+</body>
+</html>

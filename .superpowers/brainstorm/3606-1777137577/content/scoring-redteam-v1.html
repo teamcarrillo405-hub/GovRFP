@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scoring & Red Team — Avero GovTool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #F0F2F5; color: #0F172A; min-height: 100vh; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+.app-header { position: sticky; top: 0; z-index: 200; height: 52px; background: #0B1220; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+.body-row { display: flex; flex: 1; }
+.sidebar { width: 220px; position: sticky; top: 52px; height: calc(100vh - 52px); background: #0B1220; overflow-y: auto; flex-shrink: 0; }
+.main-content { flex: 1; padding: 28px; overflow: visible; }
+.app-footer { background: #0B1220; height: 44px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <!-- A monogram -->
+    <div style="width:28px;height:28px;background:#2F80FF;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 13L8 3L12 13" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5.5 9.5H10.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <!-- Wordmark -->
+    <span style="color:#fff;font-size:15px;font-weight:700;letter-spacing:-0.3px;">Avero <span style="color:#2F80FF;">GovTool</span></span>
+    <!-- Breadcrumb -->
+    <div style="display:flex;align-items:center;gap:6px;margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,0.15);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <span style="color:#94A3B8;font-size:12px;">Army Corps Construction Management Tools</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#64748B;font-size:12px;">USACE</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#64748B;font-size:12px;">$4.1M</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#94A3B8;font-size:12px;">Due Apr 30</span>
+    </div>
+    <!-- Spacer -->
+    <div style="flex:1;"></div>
+    <!-- Notification Bell -->
+    <button style="background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:#2F80FF;border-radius:50%;border:1.5px solid #0B1220;"></span>
+    </button>
+    <!-- Avatar -->
+    <div style="width:30px;height:30px;background:#2F80FF;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+      <span style="color:#fff;font-size:11px;font-weight:700;">GC</span>
+    </div>
+  </header>
+
+  <div class="body-row">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div style="padding:16px 0;">
+
+        <!-- Nav section: Workspace -->
+        <div style="padding:0 12px 8px;margin-bottom:4px;">
+          <span style="color:#475569;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;">Workspace</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;transition:all 0.15s;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Opportunities
+        </a>
+
+        <!-- Nav section: Proposals -->
+        <div style="padding:16px 12px 8px;margin-top:8px;">
+          <span style="color:#475569;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;">Proposals</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          All Proposals
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editor
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Compliance
+        </a>
+        <!-- Active item -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#fff;font-size:13px;font-weight:600;text-decoration:none;background:rgba(47,128,255,0.12);border-right:2px solid #2F80FF;position:relative;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span style="color:#2F80FF;">Scoring</span>
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Team
+        </a>
+
+        <!-- Nav section: Intelligence -->
+        <div style="padding:16px 12px 8px;margin-top:8px;">
+          <span style="color:#475569;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;">Intelligence</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Gap Analysis
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Past Performance
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Content Library
+        </a>
+
+        <!-- Nav section: Settings -->
+        <div style="padding:16px 12px 8px;margin-top:8px;">
+          <span style="color:#475569;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;">Settings</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 16px;color:#94A3B8;font-size:13px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0M4.93 19.07a10 10 0 0 0 14.14 0M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+          Settings
+        </a>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Page Title -->
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:20px;font-weight:800;color:#0F172A;letter-spacing:-0.4px;">Scoring &amp; Red Team</h1>
+        <p style="margin-top:4px;font-size:13px;color:#475569;">Army Corps Construction Management Tools &nbsp;&middot;&nbsp; Red Team Review #2 &nbsp;&middot;&nbsp; Apr 24, 2026</p>
+      </div>
+
+      <!-- Score Header Card -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:28px 32px;margin-bottom:20px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+          <!-- Score Display -->
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span style="font-size:48px;font-weight:900;color:#0F172A;letter-spacing:-2px;line-height:1;">82</span>
+              <span style="font-size:24px;font-weight:500;color:#94A3B8;line-height:1;">/&nbsp;100</span>
+            </div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:rgba(0,196,140,0.10);border-radius:999px;font-size:14px;font-weight:700;color:#00C48C;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Go
+              </span>
+              <span style="font-size:13px;color:#475569;">Proceed to Pink Team</span>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:#64748B;">
+              Red Team Review #2 of 3 &nbsp;&middot;&nbsp; Submitted Apr 24 &nbsp;&middot;&nbsp; 3 reviewers
+            </div>
+          </div>
+          <!-- Step Tracker -->
+          <div style="flex:1;min-width:340px;">
+            <div style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:14px;">Review Progress</div>
+            <div style="display:flex;align-items:center;gap:0;">
+              <!-- Step 1: Draft 1 - completed -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#2F80FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:10px;color:#2F80FF;font-weight:600;white-space:nowrap;">Draft 1</span>
+              </div>
+              <div style="flex:1;height:2px;background:#2F80FF;margin-bottom:18px;"></div>
+              <!-- Step 2: Draft 2 - completed -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#2F80FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:10px;color:#2F80FF;font-weight:600;white-space:nowrap;">Draft 2</span>
+              </div>
+              <div style="flex:1;height:2px;background:#2F80FF;margin-bottom:18px;"></div>
+              <!-- Step 3: Red Team 1 - completed -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#2F80FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:10px;color:#2F80FF;font-weight:600;white-space:nowrap;">Red Team 1</span>
+              </div>
+              <div style="flex:1;height:2px;background:#2F80FF;margin-bottom:18px;"></div>
+              <!-- Step 4: Red Team 2 - current -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #2F80FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#2F80FF;"></div>
+                </div>
+                <span style="font-size:10px;color:#2F80FF;font-weight:700;white-space:nowrap;">Red Team 2</span>
+              </div>
+              <div style="flex:1;height:2px;background:#E2E8F0;margin-bottom:18px;"></div>
+              <!-- Step 5: Pink Team - future -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#E2E8F0;"></div>
+                </div>
+                <span style="font-size:10px;color:#94A3B8;font-weight:500;white-space:nowrap;">Pink Team</span>
+              </div>
+              <div style="flex:1;height:2px;background:#E2E8F0;margin-bottom:18px;"></div>
+              <!-- Step 6: Final - future -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#E2E8F0;"></div>
+                </div>
+                <span style="font-size:10px;color:#94A3B8;font-weight:500;white-space:nowrap;">Final</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score History Chart -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px 28px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:14px;font-weight:700;color:#0F172A;">Score History — All Reviews</h2>
+            <p style="font-size:12px;color:#94A3B8;margin-top:2px;">Overall score across review cycles</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:16px;height:2px;background:#2F80FF;border-radius:2px;"></div>
+            <span style="font-size:11px;color:#64748B;">Overall Score</span>
+          </div>
+        </div>
+        <!-- SVG Chart -->
+        <svg viewBox="0 0 860 220" width="100%" height="220" style="overflow:visible;">
+          <!-- Y-axis grid lines + labels -->
+          <!-- y=0 → 200, y=25 → 175, y=50 → 150, y=75 → 125, y=100 → 100 -->
+          <!-- grid at 0, 25, 50, 75, 100 score values -->
+          <!-- chart area: x: 60–840, y: 20–190 -->
+          <!-- y scale: score 0=190, 100=20, so y = 190 - (score/100)*170 -->
+
+          <!-- Grid lines -->
+          <line x1="60" y1="190" x2="840" y2="190" stroke="#E2E8F0" stroke-width="1"/>
+          <line x1="60" y1="148" x2="840" y2="148" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="60" y1="105" x2="840" y2="105" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="60" y1="63" x2="840" y2="63" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="60" y1="20" x2="840" y2="20" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Y labels -->
+          <text x="50" y="193" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">0</text>
+          <text x="50" y="151" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">25</text>
+          <text x="50" y="108" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">50</text>
+          <text x="50" y="66" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">75</text>
+          <text x="50" y="23" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">100</text>
+
+          <!-- Data points:
+            Draft 1 (Mar 18): 61 → x=120, y=190-(61/100)*170=86.3 → y=86
+            Draft 2 (Mar 28): 68 → y=190-115.6=74.4 → y=74
+            Pink Team (Apr 3): 72 → y=190-122.4=67.6 → y=68
+            Red Team 1 (Apr 12): 77 → y=190-130.9=59.1 → y=59
+            Red Team 2 (Apr 24): 82 → y=190-139.4=50.6 → y=51
+            X positions evenly: 120, 255, 390, 570, 780
+          -->
+
+          <!-- Area fill -->
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#2F80FF" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#2F80FF" stop-opacity="0.01"/>
+            </linearGradient>
+          </defs>
+          <polygon
+            points="120,86 255,74 390,68 570,59 780,51 780,190 120,190"
+            fill="url(#areaGrad)"
+          />
+
+          <!-- Line -->
+          <polyline
+            points="120,86 255,74 390,68 570,59 780,51"
+            fill="none"
+            stroke="#2F80FF"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <!-- Dots -->
+          <circle cx="120" cy="86" r="5" fill="#2F80FF" stroke="#fff" stroke-width="2"/>
+          <circle cx="255" cy="74" r="5" fill="#2F80FF" stroke="#fff" stroke-width="2"/>
+          <circle cx="390" cy="68" r="5" fill="#2F80FF" stroke="#fff" stroke-width="2"/>
+          <circle cx="570" cy="59" r="5" fill="#2F80FF" stroke="#fff" stroke-width="2"/>
+          <circle cx="780" cy="51" r="7" fill="#2F80FF" stroke="#fff" stroke-width="2.5"/>
+
+          <!-- Score labels above dots -->
+          <text x="120" y="74" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A" font-family="Inter, system-ui">61</text>
+          <text x="255" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A" font-family="Inter, system-ui">68</text>
+          <text x="390" y="56" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A" font-family="Inter, system-ui">72</text>
+          <text x="570" y="47" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A" font-family="Inter, system-ui">77</text>
+          <text x="780" y="38" text-anchor="middle" font-size="13" font-weight="800" fill="#2F80FF" font-family="Inter, system-ui">82</text>
+
+          <!-- X-axis labels -->
+          <text x="120" y="208" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">Draft 1</text>
+          <text x="120" y="220" text-anchor="middle" font-size="10" fill="#CBD5E1" font-family="Inter, system-ui">Mar 18</text>
+          <text x="255" y="208" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">Draft 2</text>
+          <text x="255" y="220" text-anchor="middle" font-size="10" fill="#CBD5E1" font-family="Inter, system-ui">Mar 28</text>
+          <text x="390" y="208" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">Pink Team</text>
+          <text x="390" y="220" text-anchor="middle" font-size="10" fill="#CBD5E1" font-family="Inter, system-ui">Apr 3</text>
+          <text x="570" y="208" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="Inter, system-ui">Red Team 1</text>
+          <text x="570" y="220" text-anchor="middle" font-size="10" fill="#CBD5E1" font-family="Inter, system-ui">Apr 12</text>
+          <text x="780" y="208" text-anchor="middle" font-size="11" font-weight="700" fill="#2F80FF" font-family="Inter, system-ui">Red Team 2</text>
+          <text x="780" y="220" text-anchor="middle" font-size="10" fill="#2F80FF" font-family="Inter, system-ui">Apr 24</text>
+
+          <!-- Vertical line at current point -->
+          <line x1="780" y1="51" x2="780" y2="190" stroke="#2F80FF" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+        </svg>
+      </div>
+
+      <!-- Section Scores -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px 28px;margin-bottom:20px;">
+        <div style="margin-bottom:18px;">
+          <h2 style="font-size:14px;font-weight:700;color:#0F172A;">Section Breakdown — Current Review</h2>
+          <p style="font-size:12px;color:#94A3B8;margin-top:2px;">Scores by section with delta vs. Red Team 1</p>
+        </div>
+
+        <!-- Table Header -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:0 0 10px;border-bottom:1px solid #F1F5F9;margin-bottom:4px;">
+          <span style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.5px;text-transform:uppercase;">Section</span>
+          <span style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.5px;text-transform:uppercase;">Score</span>
+          <span style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.5px;text-transform:uppercase;">Progress</span>
+          <span style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.5px;text-transform:uppercase;">Delta</span>
+          <span style="font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:0.5px;text-transform:uppercase;">Top Finding</span>
+        </div>
+
+        <!-- Section rows -->
+        <!-- Helper structure: name, score, delta, finding -->
+
+        <!-- Row 1: Technical Approach 85 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Technical Approach</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">85<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:85%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +6 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">Risk mitigation approach strengthened</span>
+        </div>
+
+        <!-- Row 2: Management Approach 78 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Management Approach</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">78<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:78%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +4 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">Staffing plan needs senior PM detail</span>
+        </div>
+
+        <!-- Row 3: Past Performance 92 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Past Performance</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">92<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:92%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +2 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">USACE examples are highly relevant</span>
+        </div>
+
+        <!-- Row 4: Price 76 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Price</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">76<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:76%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +3 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">Basis of estimate lacks labor category detail</span>
+        </div>
+
+        <!-- Row 5: Compliance 88 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Compliance</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">88<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:88%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +5 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">2 L-format requirements still unaddressed</span>
+        </div>
+
+        <!-- Row 6: Win Themes 71 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Win Themes</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">71<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:71%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +8 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">Discriminators need sharper language</span>
+        </div>
+
+        <!-- Row 7: Executive Summary 80 -->
+        <div style="display:grid;grid-template-columns:200px 80px 1fr 110px 1fr;gap:12px;align-items:center;padding:12px 0;">
+          <span style="font-size:13px;font-weight:500;color:#0F172A;">Executive Summary</span>
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">80<span style="font-size:11px;font-weight:400;color:#94A3B8;">/100</span></span>
+          <div style="height:6px;background:#F0F2F5;border-radius:99px;overflow:hidden;">
+            <div style="width:80%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:#00C48C;display:flex;align-items:center;gap:3px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C48C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            +4 pts
+          </span>
+          <span style="font-size:12px;color:#475569;">Hook paragraph rewrite effective</span>
+        </div>
+      </div>
+
+      <!-- Two-Column Section -->
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:20px;align-items:start;">
+
+        <!-- LEFT: Reviewer Comments -->
+        <div>
+          <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px 28px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <div>
+                <h2 style="font-size:14px;font-weight:700;color:#0F172A;">Reviewer Comments</h2>
+                <p style="font-size:12px;color:#94A3B8;margin-top:2px;">3 comments · Red Team Review #2</p>
+              </div>
+              <button style="display:flex;align-items:center;gap:6px;background:#2F80FF;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Comment
+              </button>
+            </div>
+
+            <!-- Comment 1: Marcus W. -->
+            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:16px 18px;margin-bottom:12px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:11px;font-weight:700;color:#2F80FF;">MW</span>
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;">Marcus W.</div>
+                    <div style="font-size:11px;color:#94A3B8;">Technical · Apr 24, 2026</div>
+                  </div>
+                </div>
+                <span style="font-size:12px;font-weight:600;color:#FF4D4F;background:rgba(255,77,79,0.06);padding:3px 10px;border-radius:999px;">High</span>
+              </div>
+              <p style="font-size:13px;color:#334155;line-height:1.6;margin-bottom:12px;">The cloud migration architecture section reads well but the transition timeline overlaps with Phase 2 milestones. Add buffer or justify dependency.</p>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:11px;font-weight:500;color:#475569;background:#F0F2F5;padding:3px 10px;border-radius:999px;">Technical Approach</span>
+              </div>
+            </div>
+
+            <!-- Comment 2: Sarah C. -->
+            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:16px 18px;margin-bottom:12px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#FFF7ED;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:11px;font-weight:700;color:#F59E0B;">SC</span>
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;">Sarah C.</div>
+                    <div style="font-size:11px;color:#94A3B8;">Win Themes · Apr 24, 2026</div>
+                  </div>
+                </div>
+                <span style="font-size:12px;font-weight:600;color:#F59E0B;background:rgba(245,158,11,0.08);padding:3px 10px;border-radius:999px;">Medium</span>
+              </div>
+              <p style="font-size:13px;color:#334155;line-height:1.6;margin-bottom:12px;">Recommend leading with the USACE Walla Walla District success story in the executive summary intro. It directly parallels this requirement.</p>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:11px;font-weight:500;color:#475569;background:#F0F2F5;padding:3px 10px;border-radius:999px;">Win Themes</span>
+              </div>
+            </div>
+
+            <!-- Comment 3: Lisa T. -->
+            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:16px 18px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#FFF1F2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:11px;font-weight:700;color:#FF4D4F;">LT</span>
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;">Lisa T.</div>
+                    <div style="font-size:11px;color:#94A3B8;">Price · Apr 24, 2026</div>
+                  </div>
+                </div>
+                <span style="font-size:12px;font-weight:600;color:#FF4D4F;background:rgba(255,77,79,0.06);padding:3px 10px;border-radius:999px;">High</span>
+              </div>
+              <p style="font-size:13px;color:#334155;line-height:1.6;margin-bottom:12px;">Labor rates for GS-14 equivalent positions appear 8–12% below market. Flag for pricing team.</p>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:11px;font-weight:500;color:#475569;background:#F0F2F5;padding:3px 10px;border-radius:999px;">Price</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: SSEB Simulation -->
+        <div>
+          <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px 24px;">
+            <div style="margin-bottom:18px;">
+              <h2 style="font-size:14px;font-weight:700;color:#0F172A;">SSEB Verdict Simulation</h2>
+              <p style="font-size:12px;color:#94A3B8;margin-top:2px;">Based on current scores + competitive intelligence</p>
+            </div>
+
+            <!-- Scenario 1: Most Likely -->
+            <div style="border-radius:10px;padding:16px 18px;background:rgba(47,128,255,0.06);border:1px solid rgba(47,128,255,0.16);margin-bottom:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:11px;font-weight:600;color:#64748B;letter-spacing:0.4px;text-transform:uppercase;">Most Likely Outcome</span>
+                <span style="font-size:13px;font-weight:700;color:#2F80FF;">68%</span>
+              </div>
+              <div style="font-size:15px;font-weight:700;color:#2F80FF;margin-bottom:8px;">Competitive</div>
+              <div style="height:4px;background:#E8F0FE;border-radius:99px;overflow:hidden;">
+                <div style="width:68%;height:100%;background:#2F80FF;border-radius:99px;"></div>
+              </div>
+            </div>
+
+            <!-- Scenario 2: Best Case -->
+            <div style="border-radius:10px;padding:16px 18px;background:#F0FDF4;border:1px solid #BBF7D0;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:11px;font-weight:600;color:#64748B;letter-spacing:0.4px;text-transform:uppercase;">Best Case</span>
+                <span style="font-size:13px;font-weight:700;color:#00C48C;">23%</span>
+              </div>
+              <div style="font-size:15px;font-weight:700;color:#00C48C;margin-bottom:8px;">Technical Superiority</div>
+              <div style="height:4px;background:#DCFCE7;border-radius:99px;overflow:hidden;">
+                <div style="width:23%;height:100%;background:#00C48C;border-radius:99px;"></div>
+              </div>
+            </div>
+
+            <!-- Scenario 3: Risk Case -->
+            <div style="border-radius:10px;padding:16px 18px;background:#FFF5F5;border:1px solid #FED7D7;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:11px;font-weight:600;color:#64748B;letter-spacing:0.4px;text-transform:uppercase;">Risk Case</span>
+                <span style="font-size:13px;font-weight:700;color:#FF4D4F;">9%</span>
+              </div>
+              <div style="font-size:15px;font-weight:700;color:#FF4D4F;margin-bottom:8px;">Price-Out Risk</div>
+              <div style="height:4px;background:#FED7D7;border-radius:99px;overflow:hidden;">
+                <div style="width:9%;height:100%;background:#FF4D4F;border-radius:99px;"></div>
+              </div>
+            </div>
+
+            <!-- Key Discriminators -->
+            <div style="padding-top:16px;border-top:1px solid #F1F5F9;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span style="font-size:12px;font-weight:700;color:#0F172A;">Key Discriminators</span>
+              </div>
+              <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+                <li style="display:flex;align-items:flex-start;gap:8px;">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#2F80FF;flex-shrink:0;margin-top:5px;"></div>
+                  <span style="font-size:12px;color:#475569;line-height:1.55;">USACE direct agency experience (82% of SSEB weighting for Past Performance)</span>
+                </li>
+                <li style="display:flex;align-items:flex-start;gap:8px;">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#2F80FF;flex-shrink:0;margin-top:5px;"></div>
+                  <span style="font-size:12px;color:#475569;line-height:1.55;">Technical lead has 12 years Huntsville District — high evaluator confidence</span>
+                </li>
+                <li style="display:flex;align-items:flex-start;gap:8px;">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#2F80FF;flex-shrink:0;margin-top:5px;"></div>
+                  <span style="font-size:12px;color:#475569;line-height:1.55;">Price within 4% of IGE — competitive without leaving money on table</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Action CTA card -->
+          <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px 24px;margin-top:16px;">
+            <h3 style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:4px;">Next Step</h3>
+            <p style="font-size:12px;color:#64748B;margin-bottom:14px;">Address 2 high-priority comments before Pink Team review on Apr 28.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button style="display:flex;align-items:center;justify-content:center;gap:6px;background:#2F80FF;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Open Editor
+              </button>
+              <button style="display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:#475569;border:1px solid #E2E8F0;border-radius:8px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Schedule Pink Team
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Bottom padding -->
+      <div style="height:40px;"></div>
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="app-footer" style="display:flex;align-items:center;justify-content:center;">
+    <span style="color:#64748B;font-size:11px;font-weight:500;">© 2026 Avero &nbsp;&middot;&nbsp; Powered by AI</span>
+  </footer>
+
+</div>
+</body>
+</html>

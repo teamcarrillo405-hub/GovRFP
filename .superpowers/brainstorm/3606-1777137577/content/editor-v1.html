@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avero GovTool — Proposal Editor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #F0F2F5; color: #0F172A; }
+
+  /* ── HEADER ── */
+  .app-header {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 100;
+    background: #0B1220; display: flex; align-items: center; padding: 0 16px;
+    gap: 12px; border-bottom: 1px solid #263447;
+  }
+  .app-logo {
+    display: flex; align-items: center; gap: 8px; text-decoration: none;
+  }
+  .logo-mark {
+    width: 26px; height: 26px; background: #2F80FF; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { width: 14px; height: 14px; fill: #fff; }
+  .logo-text { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+  .logo-text span { color: #2F80FF; }
+  .header-sep { width: 1px; height: 24px; background: #263447; flex-shrink: 0; }
+  .header-crumb { font-size: 12px; color: #9AA4B2; }
+  .header-crumb a { color: #9AA4B2; text-decoration: none; }
+  .header-crumb a:hover { color: #fff; }
+  .header-crumb span { color: #475569; }
+  .header-spacer { flex: 1; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: #1E2B3C;
+    border: 1px solid #263447; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #9AA4B2; cursor: pointer;
+  }
+
+  /* ── FOOTER ── */
+  .app-footer {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 44px; z-index: 100;
+    background: #0B1220; display: flex; align-items: center; padding: 0 16px;
+    gap: 16px; border-top: 1px solid #263447;
+  }
+  .footer-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #9AA4B2; }
+  .status-dot-sm { width: 6px; height: 6px; border-radius: 50%; background: #00C48C; flex-shrink: 0; }
+  .footer-spacer { flex: 1; }
+  .footer-info { font-size: 11px; color: #475569; }
+
+  /* ── BODY LAYOUT ── */
+  .editor-body {
+    position: fixed; top: 52px; bottom: 44px; left: 0; right: 0;
+    display: flex; overflow: hidden;
+  }
+
+  /* ── LEFT NAV ── */
+  .section-nav {
+    width: 240px; flex-shrink: 0;
+    background: #0B1220;
+    display: flex; flex-direction: column;
+    overflow-y: auto; overflow-x: hidden;
+    border-right: 1px solid #263447;
+  }
+  .section-nav::-webkit-scrollbar { width: 4px; }
+  .section-nav::-webkit-scrollbar-track { background: transparent; }
+  .section-nav::-webkit-scrollbar-thumb { background: #263447; border-radius: 2px; }
+
+  .nav-title-bar {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #1a2535;
+  }
+  .nav-project-name {
+    font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; line-height: 1.4;
+  }
+  .nav-project-score {
+    font-size: 10px; color: #F59E0B; margin-top: 3px; font-weight: 500;
+  }
+
+  .nav-section-label {
+    font-size: 9px; font-weight: 700; color: #475569; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 12px 16px 6px;
+  }
+
+  .nav-section-item {
+    display: flex; align-items: center; gap: 0;
+    padding: 0; cursor: pointer; position: relative;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+  .nav-section-item:hover .nav-item-inner { background: #111c2d; }
+  .nav-section-item.active { border-left-color: #2F80FF; }
+  .nav-section-item.active .nav-item-inner { background: #1E2B3C; }
+
+  .nav-item-inner {
+    flex: 1; display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px 7px 14px;
+  }
+  .nav-item-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-gray { background: #37475A; }
+  .dot-blue { background: #2F80FF; }
+  .dot-amber { background: #F59E0B; }
+
+  .nav-item-text {
+    font-size: 12px; font-weight: 500; color: #9AA4B2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nav-section-item.active .nav-item-text { color: #fff; font-weight: 600; }
+
+  .nav-item-pct { font-size: 10px; color: #37475A; flex-shrink: 0; margin-left: 4px; }
+  .nav-section-item.active .nav-item-pct { color: #475569; }
+
+  .nav-divider { height: 1px; background: #1a2535; margin: 8px 0; }
+
+  .nav-tools-label {
+    font-size: 9px; font-weight: 700; color: #475569; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 8px 16px 4px;
+  }
+  .nav-tool-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 16px; cursor: pointer; text-decoration: none;
+  }
+  .nav-tool-item:hover { background: #111c2d; }
+  .nav-tool-left { display: flex; align-items: center; gap: 8px; }
+  .nav-tool-icon { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.55; }
+  .nav-tool-name { font-size: 12px; font-weight: 500; color: #9AA4B2; }
+  .nav-tool-badge {
+    font-size: 9px; font-weight: 700; color: #FF4D4F;
+    background: rgba(255,77,79,0.12); border-radius: 3px;
+    padding: 1px 5px; line-height: 1.5;
+  }
+  .nav-tool-badge.amber {
+    color: #F59E0B; background: rgba(245,158,11,0.12);
+  }
+  .nav-tool-badge.blue {
+    color: #2F80FF; background: rgba(47,128,255,0.12);
+  }
+
+  .nav-back {
+    margin: 12px 16px 16px;
+    font-size: 11px; color: #475569; text-decoration: none;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .nav-back:hover { color: #9AA4B2; }
+  .nav-back svg { width: 10px; height: 10px; fill: currentColor; }
+
+  /* ── CENTER CANVAS ── */
+  .center-canvas {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    background: #F0F2F5; overflow: hidden;
+  }
+
+  .canvas-top-bar {
+    background: #fff; border-bottom: 1px solid #E2E8F0;
+    padding: 0 20px; height: 48px; display: flex; align-items: center;
+    gap: 12px; flex-shrink: 0;
+  }
+  .canvas-breadcrumb { font-size: 11px; color: #94A3B8; white-space: nowrap; }
+  .canvas-breadcrumb a { color: #94A3B8; text-decoration: none; }
+  .canvas-breadcrumb a:hover { color: #2F80FF; }
+  .canvas-title-center {
+    flex: 1; text-align: center;
+    font-size: 15px; font-weight: 700; color: #0F172A;
+  }
+  .canvas-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .autosave-label { font-size: 11px; color: #94A3B8; }
+  .btn-outline {
+    height: 30px; padding: 0 12px;
+    border: 1px solid #E2E8F0; border-radius: 6px;
+    background: #fff; font-size: 12px; font-weight: 500; color: #475569;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-outline:hover { border-color: #2F80FF; color: #2F80FF; }
+  .btn-primary {
+    height: 30px; padding: 0 14px;
+    border: none; border-radius: 6px;
+    background: #2F80FF; font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-primary:hover { background: #1a6fe8; }
+
+  .format-toolbar {
+    background: #fff; border-bottom: 1px solid #E2E8F0;
+    padding: 0 20px; height: 40px; display: flex; align-items: center;
+    gap: 2px; flex-shrink: 0; position: sticky; top: 48px; z-index: 10;
+  }
+  .fmt-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: none; background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #475569;
+  }
+  .fmt-btn:hover { background: #F0F2F5; }
+  .fmt-btn.active { background: #EBF3FF; color: #2F80FF; }
+  .fmt-btn svg { width: 13px; height: 13px; fill: currentColor; }
+  .fmt-sep { width: 1px; height: 18px; background: #E2E8F0; margin: 0 4px; flex-shrink: 0; }
+  .fmt-spacer { flex: 1; }
+  .compliance-pill {
+    font-size: 11px; font-weight: 600; color: #F59E0B; cursor: pointer;
+    padding: 3px 8px; border-radius: 4px; background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2); white-space: nowrap;
+  }
+  .compliance-pill:hover { background: rgba(245,158,11,0.14); }
+
+  .canvas-scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 32px 0 48px;
+  }
+  .canvas-scroll::-webkit-scrollbar { width: 6px; }
+  .canvas-scroll::-webkit-scrollbar-track { background: #F0F2F5; }
+  .canvas-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+  .canvas-scroll::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+  .editor-paper {
+    max-width: 860px; margin: 0 auto;
+    background: #fff; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 48px 56px; box-shadow: 0 1px 4px rgba(15,23,42,0.06);
+  }
+
+  .section-heading {
+    font-size: 18px; font-weight: 800; color: #0F172A; margin-bottom: 20px;
+    padding-bottom: 14px; border-bottom: 2px solid #E2E8F0;
+  }
+
+  .editor-body-text p {
+    font-size: 13.5px; line-height: 1.75; color: #0F172A; margin-bottom: 16px;
+  }
+  .editor-body-text p strong { font-weight: 600; }
+
+  .compliance-underline {
+    border-bottom: 2px solid #F59E0B; cursor: pointer; position: relative;
+  }
+  .compliance-underline:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: 100%; left: 0;
+    background: #0F172A; color: #fff; font-size: 11px; font-weight: 500;
+    padding: 5px 9px; border-radius: 5px; white-space: nowrap; z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 4px;
+  }
+
+  /* Inline comment thread */
+  .inline-comment {
+    border-left: 2px solid #2F80FF; padding: 10px 14px;
+    margin: 20px 0; background: #F8FBFF; border-radius: 0 6px 6px 0;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .comment-icon {
+    width: 22px; height: 22px; border-radius: 50%; background: #EBF3FF;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .comment-icon svg { width: 11px; height: 11px; fill: #2F80FF; }
+  .comment-body { flex: 1; }
+  .comment-author { font-size: 11px; font-weight: 700; color: #2F80FF; }
+  .comment-text { font-size: 12px; color: #475569; margin-top: 2px; line-height: 1.5; }
+  .comment-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .comment-action { font-size: 11px; color: #2F80FF; cursor: pointer; text-decoration: none; }
+  .comment-action:hover { text-decoration: underline; }
+
+  .section-word-count {
+    font-size: 11px; color: #94A3B8; margin-top: 28px; padding-top: 16px;
+    border-top: 1px solid #F0F2F5;
+  }
+
+  .section-nav-links {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 32px; padding-top: 20px; border-top: 1px solid #E2E8F0;
+  }
+  .section-nav-link {
+    font-size: 12px; font-weight: 600; color: #2F80FF; text-decoration: none;
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  .section-nav-link:hover { background: #EBF3FF; }
+  .section-nav-link svg { width: 12px; height: 12px; fill: currentColor; }
+
+  /* ── RIGHT TOOLS PANEL ── */
+  .tools-panel {
+    width: 280px; flex-shrink: 0;
+    background: #fff; border-left: 1px solid #E2E8F0;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .panel-title { font-size: 13px; font-weight: 700; color: #0F172A; }
+  .panel-close {
+    width: 22px; height: 22px; border-radius: 4px;
+    border: none; background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #94A3B8;
+  }
+  .panel-close:hover { background: #F0F2F5; color: #475569; }
+  .panel-close svg { width: 12px; height: 12px; fill: currentColor; }
+
+  .panel-scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 16px;
+  }
+  .panel-scroll::-webkit-scrollbar { width: 4px; }
+  .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+  .panel-scroll::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 2px; }
+
+  .compliance-summary {
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px;
+    padding: 12px 14px; margin-bottom: 14px;
+  }
+  .compliance-summary-label {
+    font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 8px;
+  }
+  .compliance-summary-nums {
+    font-size: 20px; font-weight: 800; color: #0F172A; line-height: 1;
+    margin-bottom: 8px;
+  }
+  .compliance-summary-nums span { font-size: 13px; font-weight: 500; color: #94A3B8; }
+  .progress-bar-track {
+    height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: #2F80FF; border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .req-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+  .req-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .req-item:hover { background: #F8FAFC; }
+  .req-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+  }
+  .req-dot-blue { background: #2F80FF; }
+  .req-dot-amber { background: #F59E0B; }
+  .req-dot-red { background: #FF4D4F; }
+  .req-dot-gray { background: #CBD5E1; }
+  .req-body { flex: 1; min-width: 0; }
+  .req-id { font-size: 10px; font-weight: 700; color: #94A3B8; }
+  .req-desc { font-size: 12px; color: #0F172A; line-height: 1.4; margin-top: 1px; }
+  .req-status {
+    font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+  .req-status.covered { color: #00C48C; }
+  .req-status.partial { color: #F59E0B; }
+  .req-status.missing { color: #FF4D4F; }
+  .req-status.not-reached { color: #94A3B8; }
+
+  .panel-section-label {
+    font-size: 9px; font-weight: 700; color: #94A3B8; letter-spacing: 0.07em;
+    text-transform: uppercase; margin-bottom: 8px; margin-top: 4px;
+  }
+
+  .panel-actions { display: flex; flex-direction: column; gap: 7px; }
+  .btn-panel-primary {
+    height: 32px; border-radius: 6px; border: none;
+    background: #2F80FF; color: #fff; font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-panel-primary:hover { background: #1a6fe8; }
+  .btn-panel-outline {
+    height: 32px; border-radius: 6px;
+    border: 1px solid #2F80FF; background: transparent;
+    color: #2F80FF; font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-panel-outline:hover { background: #EBF3FF; }
+  .btn-panel-outline svg, .btn-panel-primary svg { width: 12px; height: 12px; fill: currentColor; }
+
+  /* Tool switcher tabs */
+  .panel-tab-bar {
+    border-top: 1px solid #E2E8F0; flex-shrink: 0;
+    display: flex; overflow-x: auto;
+  }
+  .panel-tab-bar::-webkit-scrollbar { height: 0; }
+  .panel-tab {
+    flex: 1; min-width: 48px; padding: 8px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    font-size: 9px; font-weight: 600; color: #94A3B8; text-transform: uppercase;
+    letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .panel-tab:hover { color: #475569; background: #F8FAFC; }
+  .panel-tab.active { color: #2F80FF; border-bottom-color: #2F80FF; }
+  .panel-tab svg { width: 13px; height: 13px; fill: currentColor; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="app-header">
+  <a href="#" class="app-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z"/>
+      </svg>
+    </div>
+    <span class="logo-text">Avero <span>GovTool</span></span>
+  </a>
+  <div class="header-sep"></div>
+  <div class="header-crumb">
+    <a href="#">Proposals</a>
+    <span> / </span>
+    <a href="#">USACE Levee Repair Phase II</a>
+    <span> / </span>
+    <a href="#" style="color:#9AA4B2;">Editor</a>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="header-actions">
+    <span style="font-size:11px;color:#475569;">Workspace: <span style="color:#9AA4B2;">Avero Infrastructure Group</span></span>
+    <div class="avatar">JM</div>
+  </div>
+</header>
+
+<!-- ═══════════ BODY ═══════════ -->
+<div class="editor-body">
+
+  <!-- ═══ LEFT SECTION NAV ═══ -->
+  <nav class="section-nav">
+    <div class="nav-title-bar">
+      <div class="nav-project-name">USACE Levee Repair Phase II</div>
+      <div class="nav-project-score">Score 61 &middot; Caution</div>
+    </div>
+
+    <div class="nav-section-label">Sections</div>
+
+    <!-- 1 Cover Letter -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-gray"></div>
+          <span class="nav-item-text">1. Cover Letter</span>
+        </div>
+        <span class="nav-item-pct">—</span>
+      </div>
+    </a>
+
+    <!-- 2 Executive Summary -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-blue"></div>
+          <span class="nav-item-text">2. Executive Summary</span>
+        </div>
+        <span class="nav-item-pct">71%</span>
+      </div>
+    </a>
+
+    <!-- 3 Technical Approach — ACTIVE -->
+    <a href="#" class="nav-section-item active">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-amber"></div>
+          <span class="nav-item-text">3. Technical Approach</span>
+        </div>
+        <span class="nav-item-pct">84%</span>
+      </div>
+    </a>
+
+    <!-- 4 Management Plan -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-gray"></div>
+          <span class="nav-item-text">4. Management Plan</span>
+        </div>
+        <span class="nav-item-pct">—</span>
+      </div>
+    </a>
+
+    <!-- 5 Staffing Plan -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-gray"></div>
+          <span class="nav-item-text">5. Staffing Plan</span>
+        </div>
+        <span class="nav-item-pct">—</span>
+      </div>
+    </a>
+
+    <!-- 6 Quality Control Plan -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-blue"></div>
+          <span class="nav-item-text">6. Quality Control Plan</span>
+        </div>
+        <span class="nav-item-pct">68%</span>
+      </div>
+    </a>
+
+    <!-- 7 Safety Plan -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-gray"></div>
+          <span class="nav-item-text">7. Safety Plan</span>
+        </div>
+        <span class="nav-item-pct">—</span>
+      </div>
+    </a>
+
+    <!-- 8 Project Schedule -->
+    <a href="#" class="nav-section-item">
+      <div class="nav-item-inner">
+        <div class="nav-item-left">
+          <div class="status-dot dot-gray"></div>
+          <span class="nav-item-text">8. Project Schedule</span>
+        </div>
+        <span class="nav-item-pct">—</span>
+      </div>
+    </a>
+
+    <div class="nav-divider"></div>
+    <div class="nav-tools-label">Tools</div>
+
+    <!-- Compliance Check -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8L7.5 9.5L10 6.5" stroke="#9AA4B2" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="#9AA4B2" stroke-width="1.3"/>
+        </svg>
+        <span class="nav-tool-name">Compliance Check</span>
+      </div>
+      <span class="nav-tool-badge">3</span>
+    </a>
+
+    <!-- Past Performance -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="6.5" stroke="#9AA4B2" stroke-width="1.3"/>
+          <path d="M8 4.5V8.5L10.5 10" stroke="#9AA4B2" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-tool-name">Past Performance</span>
+      </div>
+      <span class="nav-tool-badge blue">2</span>
+    </a>
+
+    <!-- Scoring Rubric -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4H14M2 8H10M2 12H7" stroke="#9AA4B2" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-tool-name">Scoring Rubric</span>
+      </div>
+    </a>
+
+    <!-- Grammar & Style -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12L6.5 4L10 12M4.5 9.5H8.5" stroke="#9AA4B2" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M12 6L13.5 4L15 6" stroke="#9AA4B2" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-tool-name">Grammar &amp; Style</span>
+      </div>
+      <span class="nav-tool-badge amber">7</span>
+    </a>
+
+    <!-- Win Themes -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 2L9.8 6.2L14.4 6.5L11 9.5L12.1 14L8 11.5L3.9 14L5 9.5L1.6 6.5L6.2 6.2L8 2Z" stroke="#9AA4B2" stroke-width="1.3" stroke-linejoin="round"/>
+        </svg>
+        <span class="nav-tool-name">Win Themes</span>
+      </div>
+    </a>
+
+    <!-- Page Limits -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="1.5" width="11" height="13" rx="1.5" stroke="#9AA4B2" stroke-width="1.3"/>
+          <path d="M5 5.5H11M5 8H9" stroke="#9AA4B2" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-tool-name">Page Limits</span>
+      </div>
+    </a>
+
+    <!-- Color Team -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5.5" cy="5.5" r="3" stroke="#9AA4B2" stroke-width="1.3"/>
+          <circle cx="10.5" cy="5.5" r="3" stroke="#9AA4B2" stroke-width="1.3"/>
+          <circle cx="8" cy="10" r="3" stroke="#9AA4B2" stroke-width="1.3"/>
+        </svg>
+        <span class="nav-tool-name">Color Team</span>
+      </div>
+    </a>
+
+    <!-- Custom Template -->
+    <a href="#" class="nav-tool-item">
+      <div class="nav-tool-left">
+        <svg class="nav-tool-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3.5C2 2.67 2.67 2 3.5 2H12.5C13.33 2 14 2.67 14 3.5V5.5H2V3.5Z" stroke="#9AA4B2" stroke-width="1.3"/>
+          <rect x="2" y="5.5" width="5" height="8.5" stroke="#9AA4B2" stroke-width="1.3"/>
+          <rect x="9" y="5.5" width="5" height="8.5" stroke="#9AA4B2" stroke-width="1.3"/>
+        </svg>
+        <span class="nav-tool-name">Custom Template</span>
+      </div>
+    </a>
+
+    <div style="flex:1;"></div>
+    <a href="#" class="nav-back">
+      <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 2L3 5L6 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      </svg>
+      Back to proposals
+    </a>
+  </nav>
+
+  <!-- ═══ CENTER CANVAS ═══ -->
+  <main class="center-canvas">
+
+    <!-- Top bar -->
+    <div class="canvas-top-bar">
+      <div class="canvas-breadcrumb">
+        <a href="#">Proposals</a> / <a href="#">USACE Levee Repair</a> / Editor
+      </div>
+      <div class="canvas-title-center">Technical Approach</div>
+      <div class="canvas-top-right">
+        <span class="autosave-label">Last saved 2m ago</span>
+        <button class="btn-outline">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+            <path d="M2 9L5 6L2 3M6.5 9H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Export
+        </button>
+        <button class="btn-primary">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+            <path d="M2 6H10M7 3L10 6L7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Submit Proposal
+        </button>
+      </div>
+    </div>
+
+    <!-- Format toolbar -->
+    <div class="format-toolbar">
+      <button class="fmt-btn" title="Heading 1">H1</button>
+      <button class="fmt-btn" title="Heading 2">H2</button>
+      <button class="fmt-btn" title="Heading 3">H3</button>
+      <div class="fmt-sep"></div>
+      <button class="fmt-btn active" title="Bold">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 2h4a2.5 2.5 0 010 5H3.5V2zm0 5h4.5a2.5 2.5 0 010 5H3.5V7z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+      </button>
+      <button class="fmt-btn" title="Italic">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2h4M3.5 11h4M7 2L5 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <button class="fmt-btn" title="Underline">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><path d="M3 2v5a3.5 3.5 0 007 0V2M2 12h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <div class="fmt-sep"></div>
+      <button class="fmt-btn" title="Bullet list">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><circle cx="2.5" cy="4" r="1" fill="currentColor"/><circle cx="2.5" cy="8" r="1" fill="currentColor"/><path d="M5 4h6M5 8h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="fmt-btn" title="Numbered list">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><path d="M2 3h1.5M2 7.5h1.5M2 12h1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5.5 3.5h5M5.5 8h5M5.5 12.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="fmt-btn" title="Insert table">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M1.5 5h10M6.5 1.5v10" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+      <button class="fmt-btn" title="Insert link">
+        <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 7.5a3 3 0 004 0l2-2a3 3 0 00-4-4L6 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M7.5 5.5a3 3 0 00-4 0l-2 2a3 3 0 004 4L7 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <div class="fmt-spacer"></div>
+      <span class="compliance-pill">Compliance: 84% &middot; 3 requirements uncovered</span>
+    </div>
+
+    <!-- Scrollable editor content -->
+    <div class="canvas-scroll">
+      <div class="editor-paper">
+        <div class="section-heading">3. Technical Approach</div>
+
+        <div class="editor-body-text">
+          <p>
+            Avero Infrastructure Group proposes a comprehensive, risk-informed technical methodology for the USACE Levee Repair Phase II project at the Sacramento River Control Reach, encompassing approximately 4.3 linear miles of critical flood-control infrastructure. Our approach integrates geotechnical analysis, real-time monitoring instrumentation, and staged construction sequencing to ensure that levee system integrity is maintained throughout all phases of repair activity, with zero interruption to the existing flood-protection baseline during construction operations.
+          </p>
+
+          <p>
+            Our technical team will commence mobilization within <strong>14 calendar days</strong> of Notice to Proceed, deploying a dedicated crew of 38 personnel including licensed Professional Engineers registered in California, Certified Levee Inspectors (CLI), and USACE EM 385-1-1 Safety Officers. Pre-construction subsurface investigation will include 12 soil borings to depths not less than 30 feet below existing ground surface, continuous CPT soundings at 500-foot intervals, and installation of automated piezometric monitoring wells to establish baseline seepage conditions prior to initiation of any earthwork.
+          </p>
+        </div>
+
+        <!-- Inline comment thread -->
+        <div class="inline-comment">
+          <div class="comment-icon">
+            <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 2h8a1 1 0 011 1v5a1 1 0 01-1 1H4L2 11V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            </svg>
+          </div>
+          <div class="comment-body">
+            <div class="comment-author">Maria R. &mdash; Proposal Manager</div>
+            <div class="comment-text">Clarify the construction methodology for the internal drainage blanket tie-in at Station 42+00. USACE evaluators consistently flag this transition point in levee repair proposals. Recommend adding a detail diagram reference here.</div>
+            <div class="comment-actions">
+              <a href="#" class="comment-action">Reply</a>
+              <a href="#" class="comment-action">Resolve</a>
+              <a href="#" class="comment-action" style="color:#94A3B8;">Dismiss</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-body-text">
+          <p>
+            Repair work will be executed in four discrete construction phases aligned with USACE's phased funding structure and seasonal flood-risk constraints. Phase 1 (Stations 0+00 to 12+50) addresses the highest-priority seepage zones identified in the 2024 Periodic Inspection Report, utilizing impervious core augmentation and riverside berm placement to restore factor-of-safety values to not less than 1.5 under static loading conditions. <span class="compliance-underline" data-tooltip="Requirement R3.2 — must include schedule methodology for each phase">Phase 2 through Phase 4 will be executed on an accelerated critical-path schedule incorporating night-shift earthwork operations</span>, reducing overall project duration by 22 days compared to a standard single-shift baseline schedule.
+          </p>
+
+          <p>
+            Material procurement for structural fill and riprap armor will be sourced from USACE-approved borrow sites and quarries within a 45-mile radius of the project site, ensuring material traceability and compliance with Army Corps Engineering Manual EM 1110-2-1913 grading specifications. All earthwork compaction will be verified by a licensed geotechnical testing laboratory under contract to Avero, with density testing at intervals not to exceed one test per 500 cubic yards of placed material. <strong>Non-conforming lifts will be reworked immediately</strong> at no additional cost to the government, and all test reports will be uploaded to the project quality management system within 24 hours of completion.
+          </p>
+
+          <p>
+            Avero will employ a dedicated Environmental Compliance Monitor throughout construction to ensure full adherence to the project's Section 404/401 Nationwide Permit conditions, SWPPP requirements, and USFWS Biological Opinion conditions related to giant garter snake and Swainson's hawk. Daily turbidity monitoring at designated compliance points and real-time reporting to the USACE Contracting Officer Representative will be conducted from first earthwork through final seeding and vegetation establishment.
+          </p>
+        </div>
+
+        <div class="section-word-count">
+          847 words &nbsp;&middot;&nbsp; Est. 3.4 pages of 4 page limit
+        </div>
+
+        <div class="section-nav-links">
+          <a href="#" class="section-nav-link">
+            <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M8 2L4 6L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            Management Plan
+          </a>
+          <a href="#" class="section-nav-link">
+            Staffing Plan
+            <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M4 2L8 6L4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═══ RIGHT TOOLS PANEL ═══ -->
+  <aside class="tools-panel">
+    <div class="panel-header">
+      <span class="panel-title">Compliance Check</span>
+      <button class="panel-close" title="Close panel">
+        <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-scroll">
+
+      <!-- Summary -->
+      <div class="compliance-summary">
+        <div class="compliance-summary-label">Coverage — Section 3</div>
+        <div class="compliance-summary-nums">3 <span>/ 8 requirements covered</span></div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" style="width:37.5%;"></div>
+        </div>
+      </div>
+
+      <!-- Requirement list -->
+      <div class="panel-section-label">Requirements</div>
+      <div class="req-list">
+
+        <div class="req-item">
+          <div class="req-dot req-dot-blue"></div>
+          <div class="req-body">
+            <div class="req-id">R3.1</div>
+            <div class="req-desc">Technical methodology described</div>
+          </div>
+          <div class="req-status covered">Covered</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-amber"></div>
+          <div class="req-body">
+            <div class="req-id">R3.2</div>
+            <div class="req-desc">Schedule methodology included</div>
+          </div>
+          <div class="req-status partial">Partial</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-red"></div>
+          <div class="req-body">
+            <div class="req-id">R3.3</div>
+            <div class="req-desc">Key personnel qualifications</div>
+          </div>
+          <div class="req-status missing">Missing</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-red"></div>
+          <div class="req-body">
+            <div class="req-id">R3.4</div>
+            <div class="req-desc">Quality approach specifics</div>
+          </div>
+          <div class="req-status missing">Missing</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-blue"></div>
+          <div class="req-body">
+            <div class="req-id">R3.5</div>
+            <div class="req-desc">Environmental compliance plan</div>
+          </div>
+          <div class="req-status covered">Covered</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-blue"></div>
+          <div class="req-body">
+            <div class="req-id">R3.6</div>
+            <div class="req-desc">Material specifications cited</div>
+          </div>
+          <div class="req-status covered">Covered</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-gray"></div>
+          <div class="req-body">
+            <div class="req-id">R3.7</div>
+            <div class="req-desc">Past performance references</div>
+          </div>
+          <div class="req-status not-reached">Not reached</div>
+        </div>
+
+        <div class="req-item">
+          <div class="req-dot req-dot-gray"></div>
+          <div class="req-body">
+            <div class="req-id">R3.8</div>
+            <div class="req-desc">Subcontractor roles defined</div>
+          </div>
+          <div class="req-status not-reached">Not reached</div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="panel-section-label" style="margin-top:8px;">Actions</div>
+      <div class="panel-actions">
+        <button class="btn-panel-primary">
+          <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <path d="M6 3.5V6.5L7.5 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+          Insert Past Performance
+        </button>
+        <button class="btn-panel-outline">
+          <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.5 6h9M6.5 3L9.5 6L6.5 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+          Suggest Draft for R3.3
+        </button>
+        <button class="btn-panel-outline">
+          <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.5 6h9M6.5 3L9.5 6L6.5 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+          Suggest Draft for R3.4
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Tool switcher tabs -->
+    <div class="panel-tab-bar">
+      <div class="panel-tab active" title="Compliance Check">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 7.5L6.5 9L9 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          <rect x="1.5" y="1.5" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+        </svg>
+        Comply
+      </div>
+      <div class="panel-tab" title="Past Performance">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          <path d="M7 4V7.5L9 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+        </svg>
+        Past Perf
+      </div>
+      <div class="panel-tab" title="Scoring Rubric">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4H12M2 7.5H9M2 11H6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+        </svg>
+        Scoring
+      </div>
+      <div class="panel-tab" title="Grammar & Style">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 11L5.5 4L8.5 11M4 8.5H7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          <path d="M10.5 5.5L12 4L13.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+        </svg>
+        Grammar
+      </div>
+      <div class="panel-tab" title="Win Themes">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 1.5L8.5 5.3L12.5 5.6L9.5 8.3L10.5 12.2L7 10.1L3.5 12.2L4.5 8.3L1.5 5.6L5.5 5.3L7 1.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="none"/>
+        </svg>
+        Themes
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="app-footer">
+  <div class="footer-status">
+    <div class="status-dot-sm"></div>
+    All changes saved
+  </div>
+  <div class="footer-status" style="margin-left:12px;color:#475569;">
+    <div style="width:6px;height:6px;border-radius:50%;background:#2F80FF;flex-shrink:0;"></div>
+    Section 3 of 8
+  </div>
+  <div class="footer-spacer"></div>
+  <div class="footer-info">
+    Avero GovTool &nbsp;&middot;&nbsp; USACE Levee Repair Phase II &nbsp;&middot;&nbsp; Solicitation W912EK-26-R-0041
+  </div>
+</footer>
+
+</body>
+</html>

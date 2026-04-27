@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Library — Avero GovTool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F0F2F5; color: #0F172A; font-size: 14px; }
+
+  /* HEADER */
+  .app-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 56px; background: #0B1220; display: flex; align-items: center;
+    padding: 0 20px; gap: 32px; border-bottom: 1px solid #263447;
+  }
+  .app-logo { color: #FFFFFF; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; }
+  .app-logo span { color: #2F80FF; }
+  .header-nav { display: flex; gap: 4px; flex: 1; }
+  .header-nav a {
+    color: #9AA4B2; font-size: 13px; font-weight: 500; text-decoration: none;
+    padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+  }
+  .header-nav a:hover { color: #FFFFFF; background: #1E2B3C; }
+  .header-nav a.active { color: #FFFFFF; background: #1E2B3C; }
+  .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .header-icon-btn {
+    width: 34px; height: 34px; background: #1E2B3C; border: 1px solid #263447;
+    border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; color: #9AA4B2; font-size: 15px;
+  }
+  .header-icon-btn:hover { color: #FFFFFF; }
+  .header-avatar {
+    width: 34px; height: 34px; background: #2F80FF; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+
+  /* LAYOUT */
+  .app-body { display: flex; padding-top: 56px; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .app-sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0; width: 220px;
+    background: #0B1220; border-right: 1px solid #263447; overflow-y: auto;
+    padding: 16px 0;
+  }
+  .sidebar-section-label {
+    color: #9AA4B2; font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; padding: 0 16px 8px; margin-top: 8px;
+  }
+  .sidebar-nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    color: #9AA4B2; font-size: 13px; font-weight: 500; cursor: pointer;
+    text-decoration: none; border-left: 2px solid transparent;
+  }
+  .sidebar-nav-item:hover { color: #FFFFFF; background: #1E2B3C; }
+  .sidebar-nav-item.active { color: #FFFFFF; background: #1E2B3C; border-left-color: #2F80FF; }
+  .sidebar-icon { width: 16px; text-align: center; font-size: 14px; }
+
+  /* MAIN CONTENT */
+  .app-main { margin-left: 220px; flex: 1; display: flex; min-height: calc(100vh - 56px); }
+
+  /* THREE ZONE LAYOUT */
+  .zone-tree {
+    width: 220px; min-width: 220px; background: #FFFFFF;
+    border-right: 1px solid #E2E8F0; position: sticky; top: 56px;
+    height: calc(100vh - 56px); overflow-y: auto; flex-shrink: 0;
+  }
+  .zone-grid {
+    flex: 1; overflow-y: auto; padding: 24px; background: #F0F2F5;
+  }
+  .zone-preview {
+    width: 320px; min-width: 320px; background: #FFFFFF;
+    border-left: 1px solid #E2E8F0; position: sticky; top: 56px;
+    height: calc(100vh - 56px); overflow-y: auto; flex-shrink: 0;
+  }
+
+  /* CATEGORY TREE */
+  .tree-header {
+    padding: 16px; border-bottom: 1px solid #E2E8F0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .tree-header-title { font-size: 13px; font-weight: 700; color: #0F172A; }
+  .tree-search-icon { color: #94A3B8; cursor: pointer; font-size: 14px; }
+  .tree-search-wrap { padding: 10px 12px; border-bottom: 1px solid #E2E8F0; }
+  .tree-search-input {
+    width: 100%; border: 1px solid #E2E8F0; border-radius: 5px;
+    padding: 5px 8px; font-size: 12px; color: #475569; outline: none;
+    background: #F0F2F5;
+  }
+  .tree-search-input::placeholder { color: #94A3B8; }
+  .tree-search-input:focus { border-color: #2F80FF; }
+
+  .tree-nodes { padding: 8px 0; }
+  .tree-node {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; cursor: pointer; font-size: 12.5px; font-weight: 500;
+    color: #475569; border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .tree-node:hover { background: #F0F2F5; color: #0F172A; }
+  .tree-node.active { color: #2F80FF; border-left-color: #2F80FF; background: #EFF6FF; }
+  .tree-node.level-0 { padding-left: 12px; font-weight: 600; color: #0F172A; }
+  .tree-node.level-1 { padding-left: 24px; }
+  .tree-node.level-2 { padding-left: 38px; }
+  .tree-arrow { font-size: 9px; color: #94A3B8; width: 10px; flex-shrink: 0; }
+  .tree-count { margin-left: auto; font-size: 11px; color: #94A3B8; background: #F0F2F5; padding: 1px 5px; border-radius: 10px; }
+  .tree-node.active .tree-count { background: #DBEAFE; color: #2F80FF; }
+
+  /* ASSET GRID AREA */
+  .grid-page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .grid-page-title { font-size: 16px; font-weight: 700; color: #0F172A; flex: 1; }
+  .grid-page-title span { color: #94A3B8; font-weight: 400; font-size: 14px; }
+  .grid-sort-select {
+    border: 1px solid #E2E8F0; border-radius: 6px; padding: 6px 10px;
+    font-size: 12.5px; color: #475569; background: #FFFFFF; cursor: pointer;
+    outline: none;
+  }
+  .view-toggle { display: flex; gap: 2px; }
+  .view-btn {
+    padding: 6px 8px; border: 1px solid #E2E8F0; background: #FFFFFF;
+    cursor: pointer; color: #94A3B8; font-size: 13px;
+  }
+  .view-btn:first-child { border-radius: 6px 0 0 6px; }
+  .view-btn:last-child { border-radius: 0 6px 6px 0; }
+  .view-btn.active { background: #EFF6FF; color: #2F80FF; border-color: #2F80FF; }
+  .btn-primary {
+    background: #2F80FF; color: #FFFFFF; border: none; border-radius: 6px;
+    padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: #1a6fe0; }
+  .btn-outline {
+    background: #FFFFFF; color: #0F172A; border: 1px solid #E2E8F0; border-radius: 6px;
+    padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-outline:hover { border-color: #94A3B8; }
+
+  .filter-chips-row { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-chip {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid #E2E8F0; border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; color: #475569; background: #FFFFFF; cursor: pointer;
+  }
+  .filter-chip-x { color: #94A3B8; font-size: 11px; font-weight: 700; }
+  .filter-chip-x:hover { color: #FF4D4F; }
+  .clear-all-btn { font-size: 12px; color: #2F80FF; cursor: pointer; text-decoration: none; }
+  .clear-all-btn:hover { text-decoration: underline; }
+
+  /* ASSET CARDS GRID */
+  .assets-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;
+  }
+  .asset-card {
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 14px; cursor: pointer; position: relative; overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .asset-card:hover { border-color: #2F80FF; border-width: 1px; box-shadow: 0 2px 12px rgba(47,128,255,0.08); }
+  .asset-card:hover .asset-insert-btn { opacity: 1; }
+  .asset-title { font-size: 13px; font-weight: 700; color: #0F172A; margin-bottom: 6px; line-height: 1.35; }
+  .asset-cat-pill {
+    display: inline-block; background: #F0F2F5; color: #94A3B8;
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px;
+  }
+  .asset-preview {
+    font-size: 12px; color: #475569; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; margin-bottom: 10px;
+  }
+  .asset-footer {
+    border-top: 1px solid #F0F2F5; padding-top: 8px;
+    font-size: 11px; color: #94A3B8; display: flex; flex-wrap: wrap; gap: 6px;
+    align-items: center;
+  }
+  .asset-footer-dot { width: 2px; height: 2px; border-radius: 50%; background: #E2E8F0; }
+  .quality-badge {
+    margin-left: auto; font-size: 11px; font-weight: 700; color: #00C48C;
+  }
+  .asset-insert-btn {
+    position: absolute; bottom: 10px; right: 10px; opacity: 0;
+    background: #2F80FF; color: #FFFFFF; border: none; border-radius: 5px;
+    padding: 4px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .pagination-row { text-align: center; font-size: 13px; color: #94A3B8; padding: 8px 0 4px; }
+  .pagination-row a { color: #2F80FF; cursor: pointer; text-decoration: none; }
+  .pagination-row a:hover { text-decoration: underline; }
+
+  /* PREVIEW PANEL */
+  .preview-header { padding: 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-title { font-size: 14px; font-weight: 700; color: #0F172A; line-height: 1.35; margin-bottom: 8px; }
+  .preview-meta { font-size: 11.5px; color: #94A3B8; line-height: 1.6; }
+  .preview-meta-line { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  .quality-bar-wrap { padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+  .quality-bar-label { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .quality-bar-label span:first-child { font-size: 11.5px; color: #475569; font-weight: 500; }
+  .quality-bar-label span:last-child { font-size: 11.5px; font-weight: 700; color: #00C48C; }
+  .quality-bar-track {
+    height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;
+  }
+  .quality-bar-fill { height: 100%; background: #2F80FF; border-radius: 2px; }
+
+  .preview-content { padding: 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-content-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .preview-content-text { font-size: 12.5px; color: #475569; line-height: 1.65; }
+
+  .preview-actions { padding: 16px; border-bottom: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 8px; }
+  .btn-full { width: 100%; text-align: center; padding: 9px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+  .btn-full.primary { background: #2F80FF; color: #FFFFFF; border: none; }
+  .btn-full.primary:hover { background: #1a6fe0; }
+  .btn-full.outline { background: #FFFFFF; color: #0F172A; border: 1px solid #E2E8F0; }
+  .btn-full.outline:hover { border-color: #94A3B8; }
+  .text-link { text-align: center; font-size: 12.5px; color: #2F80FF; cursor: pointer; text-decoration: none; }
+  .text-link:hover { text-decoration: underline; }
+
+  .preview-usage { padding: 16px; }
+  .preview-usage-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .usage-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid #F0F2F5; }
+  .usage-item:last-child { border-bottom: none; }
+  .usage-proposal { font-size: 12px; color: #0F172A; font-weight: 500; line-height: 1.3; }
+  .usage-date { font-size: 11px; color: #94A3B8; white-space: nowrap; margin-left: 8px; }
+
+  /* FOOTER */
+  .app-footer {
+    margin-left: 220px; background: #0B1220; border-top: 1px solid #263447;
+    padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand { color: #9AA4B2; font-size: 12px; }
+  .footer-brand strong { color: #FFFFFF; }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a { color: #9AA4B2; font-size: 12px; text-decoration: none; }
+  .footer-links a:hover { color: #FFFFFF; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-logo">Avero <span>GovTool</span></div>
+  <nav class="header-nav">
+    <a href="#">Dashboard</a>
+    <a href="#">Proposals</a>
+    <a href="#" class="active">Content Library</a>
+    <a href="#">Compliance</a>
+    <a href="#">Past Performance</a>
+    <a href="#">Reports</a>
+  </nav>
+  <div class="header-right">
+    <div class="header-icon-btn" title="Notifications">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="header-icon-btn" title="Search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="header-avatar">GC</div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-section-label">Workspace</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    Dashboard
+  </a>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+    Proposals
+  </a>
+  <a class="sidebar-nav-item active" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+    Content Library
+  </a>
+
+  <div class="sidebar-section-label" style="margin-top:8px;">Compliance</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+    Compliance Matrix
+  </a>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    Past Performance
+  </a>
+
+  <div class="sidebar-section-label" style="margin-top:8px;">Settings</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M20 12h2M2 12h2M12 20v2M12 2v2"/></svg></span>
+    Settings
+  </a>
+</aside>
+
+<!-- MAIN -->
+<div class="app-main">
+
+  <!-- CATEGORY TREE -->
+  <div class="zone-tree">
+    <div class="tree-header">
+      <span class="tree-header-title">Content Library</span>
+      <span class="tree-search-icon">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+    </div>
+    <div class="tree-search-wrap">
+      <input class="tree-search-input" type="text" placeholder="Search library...">
+    </div>
+    <div class="tree-nodes">
+
+      <div class="tree-node level-0">
+        <span class="tree-arrow">&#9660;</span>
+        All Content
+        <span class="tree-count">847</span>
+      </div>
+
+      <div class="tree-node level-1" style="font-weight:600; color:#0F172A;">
+        <span class="tree-arrow">&#9660;</span>
+        Technical
+        <span class="tree-count">234</span>
+      </div>
+      <div class="tree-node level-2 active">
+        <span class="tree-arrow">&#9656;</span>
+        Methodology
+        <span class="tree-count">89</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Past Performance
+        <span class="tree-count">67</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Innovation
+        <span class="tree-count">45</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Equipment &amp; Resources
+        <span class="tree-count">33</span>
+      </div>
+
+      <div class="tree-node level-1" style="font-weight:600; color:#0F172A;">
+        <span class="tree-arrow">&#9660;</span>
+        Management
+        <span class="tree-count">198</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Project Management
+        <span class="tree-count">87</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Key Personnel Bios
+        <span class="tree-count">54</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Org Charts
+        <span class="tree-count">32</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Subcontracting Plans
+        <span class="tree-count">25</span>
+      </div>
+
+      <div class="tree-node level-1" style="font-weight:600; color:#0F172A;">
+        <span class="tree-arrow">&#9660;</span>
+        Safety
+        <span class="tree-count">145</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Safety Plans
+        <span class="tree-count">67</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        OSHA Compliance
+        <span class="tree-count">45</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Incident Records
+        <span class="tree-count">33</span>
+      </div>
+
+      <div class="tree-node level-1" style="font-weight:600; color:#0F172A;">
+        <span class="tree-arrow">&#9660;</span>
+        Quality Control
+        <span class="tree-count">134</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        QC Plans
+        <span class="tree-count">67</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Inspection Procedures
+        <span class="tree-count">34</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Non-Conformance
+        <span class="tree-count">33</span>
+      </div>
+
+      <div class="tree-node level-1" style="font-weight:600; color:#0F172A;">
+        <span class="tree-arrow">&#9660;</span>
+        Boilerplate
+        <span class="tree-count">136</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Cover Letters
+        <span class="tree-count">45</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Executive Summaries
+        <span class="tree-count">34</span>
+      </div>
+      <div class="tree-node level-2">
+        <span class="tree-arrow">&#9656;</span>
+        Capability Statements
+        <span class="tree-count">57</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ASSET GRID -->
+  <div class="zone-grid">
+
+    <div class="grid-page-header">
+      <div class="grid-page-title">
+        Technical / Methodology <span>· 89 assets</span>
+      </div>
+      <select class="grid-sort-select">
+        <option>Sort: Recently Used</option>
+        <option>Sort: Quality Score</option>
+        <option>Sort: Usage Count</option>
+        <option>Sort: Alphabetical</option>
+      </select>
+      <div class="view-toggle">
+        <button class="view-btn active" title="Grid view">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button class="view-btn" title="List view">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+      <button class="btn-primary">+ New Asset</button>
+    </div>
+
+    <div class="filter-chips-row">
+      <div class="filter-chip">NAICS 236220 <span class="filter-chip-x">&#10005;</span></div>
+      <div class="filter-chip">Updated: 2026 <span class="filter-chip-x">&#10005;</span></div>
+      <a class="clear-all-btn">Clear all</a>
+    </div>
+
+    <div class="assets-grid">
+
+      <!-- Card 1 — selected / active -->
+      <div class="asset-card" style="border-color:#2F80FF; box-shadow: 0 2px 12px rgba(47,128,255,0.10);">
+        <div class="asset-title">Construction Methodology — Phased Approach</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">Our phased construction methodology ensures coordinated sequencing of site work, structural, mechanical, and finishing operations to minimize schedule risk and maximize quality at each milestone gate review.</div>
+        <div class="asset-footer">
+          Used in 14 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 18
+          <span class="quality-badge">94/100</span>
+        </div>
+        <button class="asset-insert-btn" style="opacity:1;">Insert</button>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="asset-card">
+        <div class="asset-title">Design-Build Project Management Framework</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">The integrated design-build framework aligns design deliverables with construction sequencing, enabling concurrent engineering and reducing owner risk through single-point accountability.</div>
+        <div class="asset-footer">
+          Used in 9 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 12
+          <span class="quality-badge">88/100</span>
+        </div>
+        <button class="asset-insert-btn">Insert</button>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="asset-card">
+        <div class="asset-title">Lean Construction Principles Statement</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">Lean construction principles drive our project delivery model, emphasizing pull planning, last planner system adoption, and continuous workflow optimization to eliminate waste and compress schedules.</div>
+        <div class="asset-footer">
+          Used in 6 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 9
+          <span class="quality-badge">91/100</span>
+        </div>
+        <button class="asset-insert-btn">Insert</button>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="asset-card">
+        <div class="asset-title">Federal Construction Compliance Statement</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">All federal construction activities are executed in strict compliance with FAR/DFARS requirements, applicable UFC standards, and agency-specific design criteria guides, with documented QC oversight at every phase.</div>
+        <div class="asset-footer">
+          Used in 22 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 21
+          <span class="quality-badge">96/100</span>
+        </div>
+        <button class="asset-insert-btn">Insert</button>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="asset-card">
+        <div class="asset-title">Safety-First Project Execution Approach</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">Safety integration begins at project inception with a Site-Specific Safety and Health Plan, mandatory pre-task safety analysis, and daily toolbox talks that reinforce zero-incident culture across all trades.</div>
+        <div class="asset-footer">
+          Used in 11 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 14
+          <span class="quality-badge">89/100</span>
+        </div>
+        <button class="asset-insert-btn">Insert</button>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="asset-card">
+        <div class="asset-title">Schedule Management &amp; Critical Path Method</div>
+        <div class="asset-cat-pill">Technical / Methodology</div>
+        <div class="asset-preview">CPM scheduling using Primavera P6 or MS Project establishes a logic-driven baseline that identifies float, enables look-ahead planning, and provides the foundation for monthly schedule status reporting to the owner.</div>
+        <div class="asset-footer">
+          Used in 7 proposals
+          <span class="asset-footer-dot"></span>
+          Last used Apr 7
+          <span class="quality-badge">87/100</span>
+        </div>
+        <button class="asset-insert-btn">Insert</button>
+      </div>
+
+    </div>
+
+    <div class="pagination-row">
+      Showing 6 of 89 &mdash; <a>Load more</a>
+    </div>
+
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="zone-preview">
+
+    <div class="preview-header">
+      <div class="preview-title">Construction Methodology — Phased Approach</div>
+      <div class="preview-meta">
+        <div class="preview-meta-line">Category: Technical / Methodology</div>
+        <div class="preview-meta-line" style="margin-top:3px;">Quality Score: <strong style="color:#00C48C;">94 / 100</strong> &nbsp;&middot;&nbsp; Used in 14 proposals</div>
+      </div>
+    </div>
+
+    <div class="quality-bar-wrap">
+      <div class="quality-bar-label">
+        <span>Quality Score</span>
+        <span>94 / 100</span>
+      </div>
+      <div class="quality-bar-track">
+        <div class="quality-bar-fill" style="width:94%;"></div>
+      </div>
+    </div>
+
+    <div class="preview-content">
+      <div class="preview-content-label">Content Preview</div>
+      <div class="preview-content-text">
+        Our phased construction methodology establishes a disciplined, sequential framework for delivering federal construction projects on schedule and within budget. Phase 1 encompasses mobilization, site preparation, utility protection, and subcontractor coordination meetings to align all parties before breaking ground. Phase 2 transitions into structural work, with milestone gate reviews confirming design-to-construction conformance and proactive identification of long-lead procurement items. Phase 3 covers interior build-out, MEP rough-in, and systems commissioning with parallel quality control inspections at each trade interface. The final phase prioritizes punch-list closure, owner training, O&amp;M documentation delivery, and a formal turnover meeting within the contractually required substantial completion window.
+      </div>
+    </div>
+
+    <div class="preview-actions">
+      <button class="btn-full primary">Insert into Editor</button>
+      <button class="btn-full outline">Edit Asset</button>
+      <a class="text-link">View Usage History</a>
+    </div>
+
+    <div class="preview-usage">
+      <div class="preview-usage-label">Usage History</div>
+      <div class="usage-item">
+        <div class="usage-proposal">USACE Levee Repair Phase II — WOSB Set-Aside</div>
+        <div class="usage-date">Apr 18, 2026</div>
+      </div>
+      <div class="usage-item">
+        <div class="usage-proposal">VA Medical Center Renovation — Full &amp; Open</div>
+        <div class="usage-date">Mar 30, 2026</div>
+      </div>
+      <div class="usage-item">
+        <div class="usage-proposal">NAVFAC Facility Upgrade — HUBZone</div>
+        <div class="usage-date">Mar 11, 2026</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="footer-brand"><strong>Avero GovTool</strong> &nbsp;&mdash;&nbsp; Content Library</div>
+  <div class="footer-links">
+    <a href="#">Help</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics — Avero GovTool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  /* ── Reset + Shell ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #F0F2F5; color: #0F172A; min-height: 100vh; }
+
+  /* ── Brand Tokens ── */
+  :root {
+    --navy:    #0B1220;
+    --blue:    #2F80FF;
+    --success: #00C48C;
+    --error:   #FF4D4F;
+    --warning: #F59E0B;
+    --body:    #F0F2F5;
+    --card:    #FFFFFF;
+    --text-1:  #0F172A;
+    --text-2:  #475569;
+    --text-3:  #94A3B8;
+    --border:  #E2E8F0;
+    --viz-1:   #2F80FF;
+    --viz-2:   #7B61FF;
+    --viz-3:   #00C2FF;
+    --viz-4:   #00A3A3;
+  }
+
+  /* ── App Shell (exact spec) ── */
+  .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .app-header {
+    position: sticky; top: 0; z-index: 200;
+    height: 52px; background: var(--navy);
+    display: flex; align-items: center; padding: 0 20px; gap: 12px;
+  }
+
+  .body-row { display: flex; flex: 1; }
+
+  .sidebar {
+    width: 220px; position: sticky; top: 52px;
+    height: calc(100vh - 52px); background: var(--navy);
+    overflow-y: auto; flex-shrink: 0;
+  }
+
+  .main-content { flex: 1; padding: 28px; overflow: visible; }
+
+  .app-footer { background: var(--navy); height: 44px; }
+
+  /* ── Header internals ── */
+  .header-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .brand-monogram {
+    width: 28px; height: 28px; background: var(--blue);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.5px; flex-shrink: 0;
+  }
+  .brand-wordmark { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+  .header-spacer { flex: 1; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .header-icon-btn {
+    width: 32px; height: 32px; border-radius: 6px; border: none;
+    background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .header-icon-btn:hover { background: rgba(255,255,255,0.13); }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+
+  /* ── Sidebar internals ── */
+  .sidebar-section-label {
+    padding: 20px 16px 6px;
+    font-size: 10px; font-weight: 600;
+    color: rgba(255,255,255,0.28); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .sidebar-nav { padding: 4px 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 10px; border-radius: 6px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55);
+    cursor: pointer; text-decoration: none; transition: background 0.12s, color 0.12s;
+    margin-bottom: 1px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+  .nav-item.active { background: rgba(47,128,255,0.18); color: #fff; font-weight: 600; }
+  .nav-item.active svg { color: var(--blue); }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.8; }
+  .nav-item.active svg { opacity: 1; }
+
+  /* ── Page header ── */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .page-title-block {}
+  .page-title { font-size: 20px; font-weight: 800; color: var(--text-1); letter-spacing: -0.4px; }
+  .page-subtitle { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+  .date-picker-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card); color: var(--text-1);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: border-color 0.15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .date-picker-btn:hover { border-color: #CBD5E1; }
+  .date-picker-btn svg { color: var(--text-3); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--text-2);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ── KPI Row ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; }
+  .kpi-label { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .kpi-value { font-size: 32px; font-weight: 900; color: var(--text-1); letter-spacing: -1px; line-height: 1; }
+  .kpi-sub { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+  .delta-green { color: var(--success); font-weight: 600; }
+  .delta-red   { color: var(--error);   font-weight: 600; }
+
+  /* ── Two-col row ── */
+  .two-col { display: grid; gap: 16px; margin-bottom: 20px; }
+  .two-col-6040 { grid-template-columns: 60fr 40fr; }
+  .two-col-5050 { grid-template-columns: 1fr 1fr; }
+
+  /* ── Bar chart (agency) ── */
+  .agency-bar-chart { display: flex; flex-direction: column; gap: 11px; }
+  .agency-row { display: flex; align-items: center; gap: 10px; }
+  .agency-label { font-size: 12px; font-weight: 500; color: var(--text-2); width: 78px; flex-shrink: 0; text-align: right; }
+  .agency-track { flex: 1; height: 8px; background: #EEF2F7; border-radius: 99px; overflow: hidden; }
+  .agency-fill  { height: 100%; background: var(--blue); border-radius: 99px; transition: width 0.4s ease; }
+  .agency-pct   { font-size: 12px; font-weight: 600; color: var(--text-1); width: 44px; flex-shrink: 0; }
+  .agency-count { font-size: 11px; color: var(--text-3); width: 58px; flex-shrink: 0; }
+
+  /* ── Donut chart ── */
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .donut-svg-wrap { position: relative; width: 160px; height: 160px; }
+  .donut-svg-wrap svg { width: 160px; height: 160px; transform: rotate(-90deg); }
+  .donut-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .donut-center-val { font-size: 22px; font-weight: 900; color: var(--text-1); line-height: 1; }
+  .donut-center-lbl { font-size: 10px; color: var(--text-3); font-weight: 500; margin-top: 2px; }
+  .donut-legend { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-name { flex: 1; font-weight: 500; color: var(--text-2); }
+  .legend-pct  { font-weight: 700; color: var(--text-1); }
+  .legend-cnt  { color: var(--text-3); font-size: 11px; }
+
+  /* ── Line chart ── */
+  .line-chart-wrap { width: 100%; }
+  .line-chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .line-chart-legend { display: flex; gap: 16px; }
+  .lc-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); }
+  .lc-legend-line { width: 20px; height: 3px; border-radius: 2px; }
+  .chart-area { position: relative; width: 100%; }
+  .chart-svg { width: 100%; overflow: visible; display: block; }
+  .chart-axis-x {
+    display: flex; justify-content: space-between;
+    padding: 6px 40px 0 48px;
+    font-size: 10px; color: var(--text-3); font-weight: 500;
+  }
+  .chart-y-labels-left {
+    position: absolute; left: 0; top: 0; bottom: 28px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-size: 10px; color: var(--text-3); text-align: right; width: 40px;
+    padding-right: 6px; pointer-events: none;
+  }
+  .chart-y-labels-right {
+    position: absolute; right: 0; top: 0; bottom: 28px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-size: 10px; color: var(--text-3); text-align: left; width: 36px;
+    padding-left: 6px; pointer-events: none;
+  }
+
+  /* ── NAICS table ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0 12px 10px 0; border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .data-table td {
+    padding: 11px 12px 11px 0; border-bottom: 1px solid var(--border);
+    color: var(--text-2); vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td.val-strong { font-weight: 600; color: var(--text-1); }
+  .mini-bar-wrap { display: flex; align-items: center; gap: 7px; }
+  .mini-track { width: 52px; height: 5px; background: #EEF2F7; border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+  .mini-fill  { height: 100%; background: var(--blue); border-radius: 99px; }
+  .mini-pct   { font-size: 12px; font-weight: 600; color: var(--text-1); }
+
+  /* ── Team table ── */
+  .team-wr-green { color: var(--success); font-weight: 600; }
+  .team-wr-red   { color: var(--error);   font-weight: 600; }
+  .team-wr-mid   { color: var(--text-2);  font-weight: 600; }
+
+  /* ── Score pill ── */
+  .score-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 12px; font-weight: 700;
+    background: #EEF2F7; color: var(--text-1);
+  }
+
+  /* ── Insight cards (row 5) ── */
+  .insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .insight-card {
+    background: var(--card); border-radius: 10px;
+    border: 1px solid var(--border); padding: 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .insight-icon-row { display: flex; align-items: center; gap: 8px; }
+  .insight-icon-wrap {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: rgba(47,128,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .insight-icon-wrap.warn { background: rgba(245,158,11,0.10); }
+  .insight-badge { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .insight-text { font-size: 13px; font-weight: 600; color: var(--text-1); line-height: 1.45; }
+  .insight-meta { font-size: 11px; color: var(--text-3); border-top: 1px solid var(--border); padding-top: 10px; }
+
+  /* ── Footer ── */
+  .footer-inner {
+    height: 44px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.32);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Divider ── */
+  .section-divider { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ═══════════════════════════════════════ HEADER ══ -->
+  <header class="app-header">
+    <a class="header-brand" href="#">
+      <div class="brand-monogram">A</div>
+      <span class="brand-wordmark">Avero GovTool</span>
+    </a>
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <!-- Bell icon -->
+      <button class="header-icon-btn" aria-label="Notifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+      <div class="avatar">GC</div>
+    </div>
+  </header>
+
+  <div class="body-row">
+
+    <!-- ═══════════════════════════════════ SIDEBAR ══ -->
+    <nav class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-section-label">Menu</div>
+      <div class="sidebar-nav">
+
+        <a class="nav-item" href="#">
+          <!-- Dashboard / grid icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          Dashboard
+        </a>
+
+        <a class="nav-item" href="#">
+          <!-- Pipeline / flow icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          Pipeline
+        </a>
+
+        <a class="nav-item" href="#">
+          <!-- Opportunities / search icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Opportunities
+        </a>
+
+        <a class="nav-item" href="#">
+          <!-- Proposals / file icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Proposals
+        </a>
+
+        <a class="nav-item" href="#">
+          <!-- Library / book icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          Library
+        </a>
+
+        <a class="nav-item active" href="#" aria-current="page">
+          <!-- Analytics / bar chart icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#2F80FF;">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+          </svg>
+          Analytics
+        </a>
+
+        <a class="nav-item" href="#">
+          <!-- Settings / gear icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Settings
+        </a>
+
+      </div>
+    </nav>
+
+    <!-- ═══════════════════════════════ MAIN CONTENT ══ -->
+    <main class="main-content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-title-block">
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">FY 2026 &middot; 23 proposals &middot; $18.4M pipeline value</p>
+        </div>
+        <button class="date-picker-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          FY 2026 (Oct 2025 – Present)
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- ── Row 1: KPI Cards ── -->
+      <div class="kpi-grid">
+        <!-- Win Rate -->
+        <div class="kpi-card">
+          <div class="kpi-label">Win Rate</div>
+          <div class="kpi-value">68%</div>
+          <div class="kpi-sub"><span class="delta-green">&#8593; 12%</span> vs FY 2025</div>
+        </div>
+        <!-- Proposals Won -->
+        <div class="kpi-card">
+          <div class="kpi-label">Proposals Won</div>
+          <div class="kpi-value">15</div>
+          <div class="kpi-sub">of 22 Submitted</div>
+        </div>
+        <!-- Total Contract Value -->
+        <div class="kpi-card">
+          <div class="kpi-label">Total Contract Value</div>
+          <div class="kpi-value">$12.6M</div>
+          <div class="kpi-sub">Won value, FY 2026</div>
+        </div>
+        <!-- Avg Time to Submit -->
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Time to Submit</div>
+          <div class="kpi-value">31<span style="font-size:18px;font-weight:600;color:var(--text-2);"> days</span></div>
+          <div class="kpi-sub"><span class="delta-green">&#8595; 4 days</span> vs FY 2025</div>
+        </div>
+      </div>
+
+      <!-- ── Row 2: Charts ── -->
+      <div class="two-col two-col-6040">
+
+        <!-- Win Rate by Agency (bar chart) -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+            </svg>
+            Win Rate by Agency
+          </div>
+          <div class="agency-bar-chart">
+            <!-- USACE 82% -->
+            <div class="agency-row">
+              <span class="agency-label">USACE</span>
+              <div class="agency-track"><div class="agency-fill" style="width:82%"></div></div>
+              <span class="agency-pct">82%</span>
+              <span class="agency-count">9 of 11</span>
+            </div>
+            <!-- HHS 75% -->
+            <div class="agency-row">
+              <span class="agency-label">HHS</span>
+              <div class="agency-track"><div class="agency-fill" style="width:75%"></div></div>
+              <span class="agency-pct">75%</span>
+              <span class="agency-count">3 of 4</span>
+            </div>
+            <!-- DoD/DISA 71% -->
+            <div class="agency-row">
+              <span class="agency-label">DoD / DISA</span>
+              <div class="agency-track"><div class="agency-fill" style="width:71%"></div></div>
+              <span class="agency-pct">71%</span>
+              <span class="agency-count">5 of 7</span>
+            </div>
+            <!-- VA 67% -->
+            <div class="agency-row">
+              <span class="agency-label">VA</span>
+              <div class="agency-track"><div class="agency-fill" style="width:67%"></div></div>
+              <span class="agency-pct">67%</span>
+              <span class="agency-count">2 of 3</span>
+            </div>
+            <!-- GSA 58% -->
+            <div class="agency-row">
+              <span class="agency-label">GSA</span>
+              <div class="agency-track"><div class="agency-fill" style="width:58%"></div></div>
+              <span class="agency-pct">58%</span>
+              <span class="agency-count">7 of 12</span>
+            </div>
+            <!-- DHS/CBP 50% -->
+            <div class="agency-row">
+              <span class="agency-label">DHS / CBP</span>
+              <div class="agency-track"><div class="agency-fill" style="width:50%"></div></div>
+              <span class="agency-pct">50%</span>
+              <span class="agency-count">2 of 4</span>
+            </div>
+            <!-- EPA 44% -->
+            <div class="agency-row">
+              <span class="agency-label">EPA</span>
+              <div class="agency-track"><div class="agency-fill" style="width:44%"></div></div>
+              <span class="agency-pct">44%</span>
+              <span class="agency-count">4 of 9</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Win Rate by Set-Aside (donut) -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Win Rate by Set-Aside
+          </div>
+          <div class="donut-wrap">
+            <!--
+              Donut: r=60, circumference=376.99
+              strokeDashoffset positions each arc segment.
+              Segment lengths (% of circumference):
+                Unrestricted 58% → 218.6 px
+                SDVOSB       77% → 290.3 px  (weighted proportional to count for visual)
+              We use actual win-rate as visual proportion of donut sectors,
+              normalized so total is 100% of ring.
+              Approach: show 4 arcs each representing the SET-ASIDE percentage
+              as a fraction of total sum (58+77+71+63 = 269).
+              Unrestricted:  58/269 = 21.56% → 81.3
+              SDVOSB:        77/269 = 28.62% → 107.9
+              8(a):          71/269 = 26.39% → 99.5
+              HUBZone:       63/269 = 23.42% → 88.3
+            -->
+            <div class="donut-svg-wrap">
+              <svg viewBox="0 0 160 160">
+                <!-- background ring -->
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#EEF2F7" stroke-width="18"/>
+                <!-- gap = 4px between segments; total c = 376.99 -->
+                <!-- Segment 1: Unrestricted #2F80FF — 81.3 px, starts at 0 -->
+                <circle cx="80" cy="80" r="60" fill="none"
+                  stroke="#2F80FF" stroke-width="18"
+                  stroke-dasharray="79.3 297.69"
+                  stroke-dashoffset="0"/>
+                <!-- Segment 2: SDVOSB #7B61FF — 107.9 px, offset = -(79.3+2)=-81.3 → dashoffset=376.99-81.3=295.69-->
+                <circle cx="80" cy="80" r="60" fill="none"
+                  stroke="#7B61FF" stroke-width="18"
+                  stroke-dasharray="105.9 271.09"
+                  stroke-dashoffset="295.69"/>
+                <!-- Segment 3: 8(a) #00C2FF — 99.5 px, offset = -(81.3+107.9+2)=-191.2 → dashoffset=376.99-191.2=185.79 -->
+                <circle cx="80" cy="80" r="60" fill="none"
+                  stroke="#00C2FF" stroke-width="18"
+                  stroke-dasharray="97.5 279.49"
+                  stroke-dashoffset="185.79"/>
+                <!-- Segment 4: HUBZone #00A3A3 — 88.3 px, offset = -(191.2+99.5+2)=-292.7 → dashoffset=376.99-292.7=84.29 -->
+                <circle cx="80" cy="80" r="60" fill="none"
+                  stroke="#00A3A3" stroke-width="18"
+                  stroke-dasharray="86.3 290.69"
+                  stroke-dashoffset="84.29"/>
+              </svg>
+              <div class="donut-center">
+                <div class="donut-center-val">68%</div>
+                <div class="donut-center-lbl">Overall</div>
+              </div>
+            </div>
+
+            <div class="donut-legend">
+              <div class="legend-row">
+                <span class="legend-dot" style="background:#2F80FF;"></span>
+                <span class="legend-name">Unrestricted</span>
+                <span class="legend-pct">58%</span>
+                <span class="legend-cnt">&nbsp;7/12</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-dot" style="background:#7B61FF;"></span>
+                <span class="legend-name">SDVOSB</span>
+                <span class="legend-pct">77%</span>
+                <span class="legend-cnt">&nbsp;7/9</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-dot" style="background:#00C2FF;"></span>
+                <span class="legend-name">8(a)</span>
+                <span class="legend-pct">71%</span>
+                <span class="legend-cnt">&nbsp;5/7</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-dot" style="background:#00A3A3;"></span>
+                <span class="legend-name">HUBZone</span>
+                <span class="legend-pct">63%</span>
+                <span class="legend-cnt">&nbsp;5/8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /two-col row 2 -->
+
+      <!-- ── Row 3: Pipeline Trend Chart ── -->
+      <div class="card section-divider" style="margin-bottom:20px;">
+        <div class="line-chart-wrap">
+          <div class="line-chart-header">
+            <div>
+              <div class="card-title" style="margin-bottom:2px;">Pipeline Value &amp; Win Rate — Rolling 12 Months</div>
+              <div style="font-size:12px;color:var(--text-3);">May 2025 – Apr 2026</div>
+            </div>
+            <div class="line-chart-legend">
+              <div class="lc-legend-item">
+                <div class="lc-legend-line" style="background:var(--viz-1);"></div>
+                Pipeline Value ($M)
+              </div>
+              <div class="lc-legend-item">
+                <div class="lc-legend-line" style="background:var(--viz-2);"></div>
+                Win Rate (%)
+              </div>
+            </div>
+          </div>
+
+          <!--
+            SVG coordinate system:
+            viewBox: 0 0 900 240
+            Plot area: x 52..860, y 16..196 (height 180, width 808)
+            12 data points → spacing = 808/11 = 73.45px
+
+            Pipeline ($M): 8.2, 9.1, 8.8, 10.4, 9.7, 11.2, 12.1, 13.4, 14.2, 15.8, 17.1, 18.4
+            Scale: min=8, max=20 → range 12. y = 196 - ((v-8)/12)*180
+              8.2→ 196-3=193   9.1→196-16.5=179.5  8.8→196-12=184   10.4→196-36=160
+              9.7→196-25.5=170.5  11.2→196-48=148   12.1→196-61.5=134.5  13.4→196-81=115
+              14.2→196-93=103  15.8→196-117=79   17.1→196-136.5=59.5  18.4→196-156=40
+
+            Win Rate (%): 54,57,55,60,58,62,65,66,64,68,70,68
+            Scale: min=48, max=76 → range 28. y = 196 - ((v-48)/28)*180
+              54→196-38.57=157.4  57→196-57.86=138.1  55→196-45=151  60→196-77.1=118.9
+              58→196-64.3=131.7   62→196-90=106   65→196-109.3=86.7  66→196-115.7=80.3
+              64→196-103=93   68→196-129=67   70→196-141.4=54.6  68→196-129=67
+
+            X coords: 52, 125.45, 198.9, 272.35, 345.8, 419.25, 492.7, 566.15, 639.6, 713.05, 786.5, 860
+          -->
+          <div class="chart-area" style="padding-left:52px;padding-right:40px;">
+            <svg class="chart-svg" viewBox="0 0 912 230" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid lines -->
+              <line x1="52" y1="16"  x2="860" y2="16"  stroke="#E2E8F0" stroke-width="1"/>
+              <line x1="52" y1="61"  x2="860" y2="61"  stroke="#E2E8F0" stroke-width="1"/>
+              <line x1="52" y1="106" x2="860" y2="106" stroke="#E2E8F0" stroke-width="1"/>
+              <line x1="52" y1="151" x2="860" y2="151" stroke="#E2E8F0" stroke-width="1"/>
+              <line x1="52" y1="196" x2="860" y2="196" stroke="#E2E8F0" stroke-width="1"/>
+
+              <!-- Left Y-axis labels ($M) -->
+              <text x="46" y="19"  text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">20</text>
+              <text x="46" y="64"  text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">17</text>
+              <text x="46" y="109" text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">14</text>
+              <text x="46" y="154" text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">11</text>
+              <text x="46" y="199" text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">8</text>
+              <text x="46" y="215" text-anchor="end" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif" font-weight="600">$M</text>
+
+              <!-- Right Y-axis labels (%) -->
+              <text x="866" y="19"  text-anchor="start" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">76%</text>
+              <text x="866" y="64"  text-anchor="start" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">69%</text>
+              <text x="866" y="109" text-anchor="start" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">62%</text>
+              <text x="866" y="154" text-anchor="start" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">55%</text>
+              <text x="866" y="199" text-anchor="start" font-size="10" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">48%</text>
+
+              <!-- Area fill under pipeline line -->
+              <defs>
+                <linearGradient id="pipelineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="#2F80FF" stop-opacity="0.12"/>
+                  <stop offset="100%" stop-color="#2F80FF" stop-opacity="0.01"/>
+                </linearGradient>
+              </defs>
+              <polygon
+                points="52,196 52,193 125.45,179.5 198.9,184 272.35,160 345.8,170.5 419.25,148 492.7,134.5 566.15,115 639.6,103 713.05,79 786.5,59.5 860,40 860,196"
+                fill="url(#pipelineGrad)"/>
+
+              <!-- Pipeline polyline (blue) -->
+              <polyline
+                points="52,193 125.45,179.5 198.9,184 272.35,160 345.8,170.5 419.25,148 492.7,134.5 566.15,115 639.6,103 713.05,79 786.5,59.5 860,40"
+                fill="none" stroke="#2F80FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+              <!-- Win Rate polyline (violet) -->
+              <polyline
+                points="52,157.4 125.45,138.1 198.9,151 272.35,118.9 345.8,131.7 419.25,106 492.7,86.7 566.15,80.3 639.6,93 713.05,67 786.5,54.6 860,67"
+                fill="none" stroke="#7B61FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5,3"/>
+
+              <!-- Data point dots — Pipeline -->
+              <circle cx="52"    cy="193"   r="3" fill="#2F80FF"/>
+              <circle cx="125.45" cy="179.5" r="3" fill="#2F80FF"/>
+              <circle cx="198.9" cy="184"   r="3" fill="#2F80FF"/>
+              <circle cx="272.35" cy="160"  r="3" fill="#2F80FF"/>
+              <circle cx="345.8" cy="170.5" r="3" fill="#2F80FF"/>
+              <circle cx="419.25" cy="148"  r="3" fill="#2F80FF"/>
+              <circle cx="492.7" cy="134.5" r="3" fill="#2F80FF"/>
+              <circle cx="566.15" cy="115"  r="3" fill="#2F80FF"/>
+              <circle cx="639.6" cy="103"   r="3" fill="#2F80FF"/>
+              <circle cx="713.05" cy="79"   r="3" fill="#2F80FF"/>
+              <circle cx="786.5" cy="59.5"  r="3" fill="#2F80FF"/>
+              <circle cx="860"   cy="40"    r="3" fill="#2F80FF"/>
+
+              <!-- Data point dots — Win Rate -->
+              <circle cx="52"    cy="157.4" r="2.5" fill="#7B61FF"/>
+              <circle cx="125.45" cy="138.1" r="2.5" fill="#7B61FF"/>
+              <circle cx="198.9" cy="151"   r="2.5" fill="#7B61FF"/>
+              <circle cx="272.35" cy="118.9" r="2.5" fill="#7B61FF"/>
+              <circle cx="345.8" cy="131.7" r="2.5" fill="#7B61FF"/>
+              <circle cx="419.25" cy="106"  r="2.5" fill="#7B61FF"/>
+              <circle cx="492.7" cy="86.7"  r="2.5" fill="#7B61FF"/>
+              <circle cx="566.15" cy="80.3" r="2.5" fill="#7B61FF"/>
+              <circle cx="639.6" cy="93"    r="2.5" fill="#7B61FF"/>
+              <circle cx="713.05" cy="67"   r="2.5" fill="#7B61FF"/>
+              <circle cx="786.5" cy="54.6"  r="2.5" fill="#7B61FF"/>
+              <circle cx="860"   cy="67"    r="2.5" fill="#7B61FF"/>
+
+              <!-- X-axis labels -->
+              <text x="52"    y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">May 25</text>
+              <text x="125.45" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Jun 25</text>
+              <text x="198.9" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Jul 25</text>
+              <text x="272.35" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Aug 25</text>
+              <text x="345.8" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Sep 25</text>
+              <text x="419.25" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Oct 25</text>
+              <text x="492.7" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Nov 25</text>
+              <text x="566.15" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Dec 25</text>
+              <text x="639.6" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Jan 26</text>
+              <text x="713.05" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Feb 26</text>
+              <text x="786.5" y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Mar 26</text>
+              <text x="860"   y="214" text-anchor="middle" font-size="9.5" fill="#94A3B8" font-family="Inter,system-ui,sans-serif">Apr 26</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Row 4: NAICS + Team ── -->
+      <div class="two-col two-col-5050">
+
+        <!-- NAICS Performance -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            NAICS Performance
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>NAICS</th>
+                <th>Description</th>
+                <th style="text-align:right;">Props</th>
+                <th>Win Rate</th>
+                <th style="text-align:right;">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="val-strong" style="white-space:nowrap;">541511</td>
+                <td>Custom Computer Programming</td>
+                <td style="text-align:right;">8</td>
+                <td>
+                  <div class="mini-bar-wrap">
+                    <div class="mini-track"><div class="mini-fill" style="width:75%"></div></div>
+                    <span class="mini-pct">75%</span>
+                  </div>
+                </td>
+                <td style="text-align:right;" class="val-strong">$4.2M</td>
+              </tr>
+              <tr>
+                <td class="val-strong">541512</td>
+                <td>Computer Systems Design</td>
+                <td style="text-align:right;">6</td>
+                <td>
+                  <div class="mini-bar-wrap">
+                    <div class="mini-track"><div class="mini-fill" style="width:67%"></div></div>
+                    <span class="mini-pct">67%</span>
+                  </div>
+                </td>
+                <td style="text-align:right;" class="val-strong">$3.1M</td>
+              </tr>
+              <tr>
+                <td class="val-strong">541519</td>
+                <td>Other IT Services</td>
+                <td style="text-align:right;">5</td>
+                <td>
+                  <div class="mini-bar-wrap">
+                    <div class="mini-track"><div class="mini-fill" style="width:80%"></div></div>
+                    <span class="mini-pct">80%</span>
+                  </div>
+                </td>
+                <td style="text-align:right;" class="val-strong">$2.8M</td>
+              </tr>
+              <tr>
+                <td class="val-strong">561110</td>
+                <td>Facilities Management</td>
+                <td style="text-align:right;">4</td>
+                <td>
+                  <div class="mini-bar-wrap">
+                    <div class="mini-track"><div class="mini-fill" style="width:50%"></div></div>
+                    <span class="mini-pct">50%</span>
+                  </div>
+                </td>
+                <td style="text-align:right;" class="val-strong">$1.9M</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Team Performance
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Team Member</th>
+                <th style="text-align:right;">Props Led</th>
+                <th style="text-align:right;">Win Rate</th>
+                <th style="text-align:right;">Avg Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Sarah Chen: 75% green -->
+              <tr>
+                <td class="val-strong">Sarah Chen</td>
+                <td style="text-align:right;">8</td>
+                <td style="text-align:right;"><span class="team-wr-green">75%</span></td>
+                <td style="text-align:right;"><span class="score-pill">81/100</span></td>
+              </tr>
+              <!-- Marcus Williams: 83% green -->
+              <tr>
+                <td class="val-strong">Marcus Williams</td>
+                <td style="text-align:right;">6</td>
+                <td style="text-align:right;"><span class="team-wr-green">83%</span></td>
+                <td style="text-align:right;"><span class="score-pill">85/100</span></td>
+              </tr>
+              <!-- James Okafor: 60% < 60 → red (exactly 60 = not <60, use mid) -->
+              <tr>
+                <td class="val-strong">James Okafor</td>
+                <td style="text-align:right;">5</td>
+                <td style="text-align:right;"><span class="team-wr-red">60%</span></td>
+                <td style="text-align:right;"><span class="score-pill">74/100</span></td>
+              </tr>
+              <!-- Maria Lopez: 75% green -->
+              <tr>
+                <td class="val-strong">Maria Lopez</td>
+                <td style="text-align:right;">4</td>
+                <td style="text-align:right;"><span class="team-wr-green">75%</span></td>
+                <td style="text-align:right;"><span class="score-pill">79/100</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div><!-- /two-col row 4 -->
+
+      <!-- ── Row 5: Proposal Learning Insights ── -->
+      <div class="card" style="margin-bottom:20px; padding-bottom:22px;">
+        <div style="margin-bottom:16px;">
+          <div class="card-title" style="margin-bottom:2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+            </svg>
+            Proposal Learning Insights — AI-Identified Patterns
+          </div>
+          <div style="font-size:12px;color:var(--text-3);padding-left:20px;">Based on 22 proposals across FY 2026</div>
+        </div>
+        <div class="insight-row">
+
+          <!-- Insight 1 -->
+          <div class="insight-card">
+            <div class="insight-icon-row">
+              <div class="insight-icon-wrap">
+                <!-- Up-trend arrow -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                </svg>
+              </div>
+              <span class="insight-badge">Past Performance</span>
+            </div>
+            <p class="insight-text">Past Performance match above 70% correlates with 89% win rate</p>
+            <div class="insight-meta">15 proposals analyzed</div>
+          </div>
+
+          <!-- Insight 2 -->
+          <div class="insight-card">
+            <div class="insight-icon-row">
+              <div class="insight-icon-wrap">
+                <!-- Clock / early submit icon -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <span class="insight-badge">Deadline Discipline</span>
+            </div>
+            <p class="insight-text">Proposals submitted 5+ days early win at 2.1&times; rate</p>
+            <div class="insight-meta">Deadline discipline: 12 of 15 wins</div>
+          </div>
+
+          <!-- Insight 3 -->
+          <div class="insight-card">
+            <div class="insight-icon-row">
+              <div class="insight-icon-wrap warn">
+                <!-- Warning triangle -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <span class="insight-badge" style="color:var(--warning);">Compliance Risk</span>
+            </div>
+            <p class="insight-text">Compliance score below 85 = 0% wins in FY 2026</p>
+            <div class="insight-meta" style="color:var(--warning);font-weight:600;">Action: 3 active proposals at risk</div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /body-row -->
+
+  <!-- ═══════════════════════════════════════ FOOTER ══ -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      &copy; 2026 Avero &middot; Powered by AI
+    </div>
+  </footer>
+
+</div><!-- /app-shell -->
+</body>
+</html>

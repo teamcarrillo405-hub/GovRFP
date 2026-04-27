@@ -3,19 +3,37 @@
 import { useState, useTransition } from 'react'
 import { createProposalFromOpportunity } from '@/app/(dashboard)/proposals/new/actions'
 
+type Opp = {
+  id: string
+  title?: string
+  agency?: string
+  agency_name?: string
+  solicitation_number?: string
+  naics_code?: string
+  set_aside?: string
+  set_aside_description?: string
+  due_date?: string
+  response_deadline?: string
+  place_of_performance_state?: string
+  pop_state?: string
+  sam_url?: string
+  ui_link?: string
+}
+
 interface Props {
   opportunity: Record<string, unknown>
 }
 
-export function OpportunityProposalPanel({ opportunity }: Props) {
+export function OpportunityProposalPanel({ opportunity: raw }: Props) {
+  const opp = raw as Opp
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const agency = (opportunity.agency ?? opportunity.agency_name ?? 'Unknown Agency') as string
-  const setAside = (opportunity.set_aside ?? opportunity.set_aside_description ?? null) as string | null
-  const deadline = (opportunity.due_date ?? opportunity.response_deadline ?? null) as string | null
-  const state = (opportunity.place_of_performance_state ?? opportunity.pop_state ?? null) as string | null
-  const samUrl = (opportunity.sam_url ?? opportunity.ui_link ?? null) as string | null
+  const agency = opp.agency ?? opp.agency_name ?? 'Unknown Agency'
+  const setAside = opp.set_aside ?? opp.set_aside_description ?? null
+  const deadline = opp.due_date ?? opp.response_deadline ?? null
+  const state = opp.place_of_performance_state ?? opp.pop_state ?? null
+  const samUrl = opp.sam_url ?? opp.ui_link ?? null
 
   const fmtDate = (iso: string | null) => {
     if (!iso) return '—'
@@ -27,7 +45,7 @@ export function OpportunityProposalPanel({ opportunity }: Props) {
     setError(null)
     startTransition(async () => {
       try {
-        await createProposalFromOpportunity(opportunity.id as string)
+        await createProposalFromOpportunity(opp.id)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to create proposal')
       }
@@ -44,23 +62,23 @@ export function OpportunityProposalPanel({ opportunity }: Props) {
         <div className="px-5 py-4 space-y-3">
           <div>
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Opportunity Title</div>
-            <div className="text-sm font-semibold text-gray-900">{opportunity.title as string}</div>
+            <div className="text-sm font-semibold text-gray-900">{opp.title ?? ''}</div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Agency</div>
               <div className="text-sm text-gray-900">{agency}</div>
             </div>
-            {opportunity.solicitation_number && (
+            {opp.solicitation_number && (
               <div>
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Solicitation #</div>
-                <div className="text-sm text-gray-900">{opportunity.solicitation_number as string}</div>
+                <div className="text-sm text-gray-900">{opp.solicitation_number}</div>
               </div>
             )}
-            {opportunity.naics_code && (
+            {opp.naics_code && (
               <div>
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">NAICS</div>
-                <div className="text-sm text-gray-900">{opportunity.naics_code as string}</div>
+                <div className="text-sm text-gray-900">{opp.naics_code}</div>
               </div>
             )}
             {setAside && (

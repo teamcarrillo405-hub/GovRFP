@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avero GovTool — Dashboard</title>
+<style>
+  /* ── AVERO DESIGN TOKENS ── */
+  :root {
+    --navy:      #0B1220;
+    --slate:     #1A2433;
+    --mid:       #1E2B3C;
+    --blue:      #2F80FF;
+    --violet:    #7B61FF;
+    --cyan:      #00C2FF;
+    --teal:      #00A3A3;
+    --success:   #00C48C;
+    --error:     #FF4D4F;
+    --warning:   #F59E0B;
+    --softgray:  #9AA4B2;
+    --navborder: #263447;
+    --body-bg:   #F0F2F5;
+    --card-bg:   #FFFFFF;
+    --text-1:    #0F172A;
+    --text-2:    #475569;
+    --text-3:    #94A3B8;
+    --border:    #E2E8F0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    background: var(--body-bg);
+    color: var(--text-1);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── FULL SHELL ── */
+  .shell {
+    display: grid;
+    grid-template-rows: 52px 1fr 44px;
+    grid-template-columns: 220px 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar main"
+      "footer footer";
+    min-height: 640px;
+    height: 640px;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    grid-area: header;
+    background: var(--navy);
+    border-bottom: 1px solid var(--navborder);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    z-index: 100;
+  }
+
+  /* Logo lockup */
+  .logo-lockup {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .logo-svg {
+    width: 26px;
+    height: 26px;
+  }
+  .logo-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .logo-name em {
+    font-style: normal;
+    color: var(--blue);
+  }
+  .logo-product {
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid var(--navborder);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--softgray);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Header nav */
+  .header-nav {
+    display: flex;
+    gap: 2px;
+    margin-left: 28px;
+  }
+  .header-nav a {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--softgray);
+    padding: 5px 11px;
+    border-radius: 5px;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color .12s, background .12s;
+  }
+  .header-nav a.active {
+    background: var(--mid);
+    color: #fff;
+  }
+  .header-nav a:hover:not(.active) { color: #fff; }
+
+  /* Header right */
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .notif-btn {
+    position: relative;
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--navborder);
+    background: var(--mid);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .notif-badge {
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 14px; height: 14px;
+    background: var(--error);
+    border-radius: 50%;
+    font-size: 8px;
+    font-weight: 800;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--navy);
+  }
+  .user-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 6px;
+    border: 1px solid var(--navborder);
+    background: var(--mid);
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    letter-spacing: .02em;
+  }
+  .user-name { font-size: 12px; font-weight: 600; color: #fff; }
+
+  /* ── SIDEBAR ── */
+  aside {
+    grid-area: sidebar;
+    background: var(--navy);
+    border-right: 1px solid var(--navborder);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0 16px;
+  }
+  aside::-webkit-scrollbar { width: 0; }
+
+  .nav-group { margin-bottom: 4px; }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--navborder);
+    padding: 10px 18px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--softgray);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: color .12s, background .12s, border-color .12s;
+    text-decoration: none;
+    position: relative;
+  }
+  .nav-item.active {
+    color: #ffffff;
+    background: var(--mid);
+    border-left-color: var(--blue);
+    font-weight: 600;
+  }
+  .nav-item:hover:not(.active) {
+    color: #fff;
+    background: rgba(255,255,255,.03);
+  }
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: .75;
+  }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: var(--blue);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+  }
+  .nav-badge.urgent { background: var(--error); }
+
+  /* ── MAIN ── */
+  main {
+    grid-area: main;
+    padding: 22px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  main::-webkit-scrollbar { width: 5px; }
+  main::-webkit-scrollbar-track { background: transparent; }
+  main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* Page title row */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .page-title {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+  }
+  .page-sub {
+    font-size: 12.5px;
+    color: var(--text-2);
+    margin-top: 3px;
+  }
+  .page-date {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    background: linear-gradient(120deg, var(--navy) 0%, #0f1e35 100%);
+    border: 1px solid var(--navborder);
+    border-left: 3px solid var(--blue);
+    border-radius: 8px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .alert-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: rgba(47,128,255,.15);
+    border: 1px solid rgba(47,128,255,.3);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .alert-text strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    display: block;
+  }
+  .alert-text span {
+    font-size: 11.5px;
+    color: var(--softgray);
+    margin-top: 1px;
+    display: block;
+  }
+  .alert-cta {
+    margin-left: auto;
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    border: none;
+    letter-spacing: 0.01em;
+  }
+  .alert-cta:hover { background: #1a6ee8; }
+
+  /* ── KPI GRID ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    border-radius: 8px 8px 0 0;
+  }
+  .kpi-card.blue::before { background: var(--blue); }
+  .kpi-card.green::before { background: var(--success); }
+  .kpi-card.violet::before { background: var(--violet); }
+  .kpi-card.red::before { background: var(--error); }
+
+  .kpi-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 11.5px;
+    color: var(--text-3);
+    margin-top: 5px;
+  }
+  .kpi-change {
+    position: absolute;
+    top: 16px; right: 14px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .kpi-change.up { background: #dcfce7; color: #15803d; }
+  .kpi-change.warn { background: #ffedd5; color: #c2410c; }
+  .kpi-change.info { background: #dbeafe; color: #1e40af; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .live-indicator {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 5px var(--success);
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  .section-link {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .section-link:hover { text-decoration: underline; }
+
+  /* ── PROPOSAL CARDS ── */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .prop-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 15px;
+  }
+  .prop-card.go     { border-left-color: var(--success); }
+  .prop-card.caution{ border-left-color: var(--warning); }
+  .prop-card.urgent { border-left-color: var(--error); }
+  .prop-card.sub    { border-left-color: var(--blue); }
+
+  .prop-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .prop-agency {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin-bottom: 9px;
+  }
+  .prop-tags {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .tag-go      { background: #dcfce7; color: #15803d; }
+  .tag-caution { background: #fef9c3; color: #92400e; }
+  .tag-urgent  { background: #fee2e2; color: #991b1b; }
+  .tag-blue    { background: #dbeafe; color: #1e40af; }
+  .tag-gray    { background: #f1f5f9; color: #475569; }
+
+  .prop-score-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 9px;
+  }
+  .score-track {
+    flex: 1;
+    height: 4px;
+    background: #f1f5f9;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .score-fill { height: 100%; border-radius: 99px; }
+  .score-num {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-1);
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: right;
+  }
+
+  /* ── BOTTOM GRID ── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 12px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  /* TASKS */
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8fafc;
+  }
+  .task-row:last-child { border-bottom: none; }
+  .task-status {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .task-body { flex: 1; min-width: 0; }
+  .task-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .task-context {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 1px;
+  }
+  .task-due {
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    padding-left: 8px;
+    margin-top: 3px;
+  }
+  .due-critical { color: var(--error); }
+  .due-warn     { color: var(--warning); }
+  .due-ok       { color: var(--text-3); }
+
+  /* RIGHT COLUMN STACK */
+  .right-col { display: flex; flex-direction: column; gap: 12px; }
+
+  /* MINI CHART */
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 44px;
+    margin: 10px 0 4px;
+  }
+  .bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: opacity .12s;
+  }
+  .bar:hover { opacity: .75; cursor: pointer; }
+  .chart-x {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .chart-x span {
+    font-size: 9.5px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+
+  /* ACTIVITY FEED */
+  .feed-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f8fafc;
+  }
+  .feed-row:last-child { border-bottom: none; }
+  .feed-avatar {
+    width: 26px; height: 26px;
+    border-radius: 5px;
+    background: var(--navy);
+    color: var(--blue);
+    font-size: 9px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: .04em;
+  }
+  .feed-avatar.ai {
+    background: rgba(0,196,140,.12);
+    color: var(--success);
+    border: 1px solid rgba(0,196,140,.25);
+  }
+  .feed-text {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-1);
+    line-height: 1.4;
+  }
+  .feed-text strong { color: var(--blue); font-weight: 700; }
+  .feed-time {
+    font-size: 10.5px;
+    color: var(--text-3);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    grid-area: footer;
+    background: var(--navy);
+    border-top: 1px solid var(--navborder);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+  .footer-brand {
+    font-size: 11px;
+    color: var(--softgray);
+    font-weight: 500;
+    letter-spacing: .02em;
+  }
+  .footer-brand strong { color: var(--blue); font-weight: 700; }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a {
+    font-size: 11px;
+    color: var(--softgray);
+    text-decoration: none;
+  }
+  .footer-links a:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ══════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════ -->
+  <header>
+    <div class="logo-lockup">
+      <!-- Avero geometric logo mark (A-triangle + forward play on O) -->
+      <svg class="logo-svg" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="13,2 24,22 2,22" fill="none" stroke="#2F80FF" stroke-width="2.2" stroke-linejoin="round"/>
+        <line x1="13" y1="10" x2="13" y2="22" stroke="#2F80FF" stroke-width="1.5"/>
+        <circle cx="21" cy="6" r="4" fill="none" stroke="#fff" stroke-width="1.4"/>
+        <polygon points="19.8,6 22.2,6 21,7.8" fill="#2F80FF"/>
+      </svg>
+      <span class="logo-name">AV<em>E</em>RO</span>
+      <span class="logo-product">GovTool</span>
+    </div>
+
+    <nav class="header-nav">
+      <a href="#" class="active">Dashboard</a>
+      <a href="#">Proposals</a>
+      <a href="#">Opportunities</a>
+      <a href="#">Past Performance</a>
+      <a href="#">Analytics</a>
+    </nav>
+
+    <div class="header-right">
+      <div class="notif-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA4B2" stroke-width="2" stroke-linecap="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="notif-badge">3</div>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar">GC</div>
+        <span class="user-name">George C.</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════ -->
+  <aside>
+    <div class="nav-group">
+      <div class="nav-label">Workspace</div>
+
+      <a class="nav-item active" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </span>
+        Dashboard
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </span>
+        Proposals
+        <span class="nav-badge">8</span>
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        Opportunities
+        <span class="nav-badge urgent">3</span>
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        Pipeline
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Content</div>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </span>
+        Past Performance
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </span>
+        Content Library
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="4" height="10"/><rect x="10" y="7" width="4" height="14"/>
+            <rect x="17" y="4" width="4" height="17"/>
+          </svg>
+        </span>
+        Analytics
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Team</div>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        Team
+      </a>
+
+      <a class="nav-item" href="#">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          </svg>
+        </span>
+        Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════ -->
+  <main>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Command Center</div>
+        <div class="page-sub">8 proposals active · 2 deadlines this week · $2.4M pipeline value</div>
+      </div>
+      <div class="page-date">Friday, April 25, 2026</div>
+    </div>
+
+    <!-- Opportunity alert -->
+    <div class="alert-banner">
+      <div class="alert-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <div class="alert-text">
+        <strong>3 new opportunities match your profile — USACE · NAVFAC · HUD</strong>
+        <span>All match NAICS 236220 + WOSB set-aside · 2 close within 30 days · 1 recompete incumbent identified</span>
+      </div>
+      <button class="alert-cta">Review Matches</button>
+    </div>
+
+    <!-- KPI Metrics -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-label">Active Proposals</div>
+        <div class="kpi-change info">8 total</div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-sub">4 Go · 1 Caution · 3 Submitted</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Win Rate · 90 Days</div>
+        <div class="kpi-change up">↑ +8%</div>
+        <div class="kpi-value">67%</div>
+        <div class="kpi-sub">6 won of 9 submitted</div>
+      </div>
+      <div class="kpi-card violet">
+        <div class="kpi-label">Pipeline Value</div>
+        <div class="kpi-change up">Qualified</div>
+        <div class="kpi-value">$2.4M</div>
+        <div class="kpi-sub">$1.8M in Go status</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Due This Week</div>
+        <div class="kpi-change warn">2 urgent</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">USACE tomorrow · HUD Friday</div>
+      </div>
+    </div>
+
+    <!-- Active Proposals -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">
+          <span class="live-indicator"></span>
+          Active Proposals
+        </div>
+        <a class="section-link" href="#">View all proposals</a>
+      </div>
+      <div class="prop-grid">
+        <div class="prop-card urgent">
+          <div class="prop-name">USACE Levee Repair — Design-Build Phase II</div>
+          <div class="prop-agency">Army Corps of Engineers · NAICS 237990 · $4.2M ceiling</div>
+          <div class="prop-tags">
+            <span class="tag tag-urgent">Due Tomorrow</span>
+            <span class="tag tag-caution">Caution · 61</span>
+            <span class="tag tag-gray">2 sections incomplete</span>
+          </div>
+          <div class="prop-score-row">
+            <div class="score-track"><div class="score-fill" style="width:61%;background:var(--warning)"></div></div>
+            <div class="score-num">61 / 100</div>
+          </div>
+        </div>
+        <div class="prop-card go">
+          <div class="prop-name">HUD Community Development Block Grant — Infrastructure</div>
+          <div class="prop-agency">Dept. of Housing · NAICS 236220 · WOSB Set-Aside</div>
+          <div class="prop-tags">
+            <span class="tag tag-go">Go · 82</span>
+            <span class="tag tag-blue">Due May 3</span>
+            <span class="tag tag-gray">Red Team complete</span>
+          </div>
+          <div class="prop-score-row">
+            <div class="score-track"><div class="score-fill" style="width:82%;background:var(--success)"></div></div>
+            <div class="score-num">82 / 100</div>
+          </div>
+        </div>
+        <div class="prop-card sub">
+          <div class="prop-name">NAVFAC Pacific Construction Services IDIQ</div>
+          <div class="prop-agency">Navy Facilities Command · NAICS 236220 · Submitted Apr 18</div>
+          <div class="prop-tags">
+            <span class="tag tag-blue">Submitted</span>
+            <span class="tag tag-gray">Awaiting Award Decision</span>
+          </div>
+          <div class="prop-score-row">
+            <div class="score-track"><div class="score-fill" style="width:78%;background:var(--blue)"></div></div>
+            <div class="score-num">78 / 100</div>
+          </div>
+        </div>
+        <div class="prop-card go">
+          <div class="prop-name">VA Medical Center Renovation — Blanket Purchase Agreement</div>
+          <div class="prop-agency">Dept. of Veterans Affairs · NAICS 236220 · Due May 10</div>
+          <div class="prop-tags">
+            <span class="tag tag-go">Go · 88</span>
+            <span class="tag tag-blue">Due May 10</span>
+          </div>
+          <div class="prop-score-row">
+            <div class="score-track"><div class="score-fill" style="width:88%;background:var(--success)"></div></div>
+            <div class="score-num">88 / 100</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom grid -->
+    <div class="bottom-grid">
+
+      <!-- Tasks -->
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title">My Tasks This Week</div>
+          <a class="section-link" href="#">View all</a>
+        </div>
+        <div class="task-row">
+          <div class="task-status" style="background:var(--error)"></div>
+          <div class="task-body">
+            <div class="task-name">Finalize Technical Approach — Section 2</div>
+            <div class="task-context">USACE Levee Repair · Compliance gap: 2 requirements uncovered</div>
+          </div>
+          <div class="task-due due-critical">Today</div>
+        </div>
+        <div class="task-row">
+          <div class="task-status" style="background:var(--warning)"></div>
+          <div class="task-body">
+            <div class="task-name">Upload Signed Safety Plan — Attachment C</div>
+            <div class="task-context">HUD Grant · Required before submission</div>
+          </div>
+          <div class="task-due due-warn">Wed</div>
+        </div>
+        <div class="task-row">
+          <div class="task-status" style="background:var(--blue)"></div>
+          <div class="task-body">
+            <div class="task-name">Resolve Red Team Comments — 3 open threads</div>
+            <div class="task-context">VA BPA · Section 3 · Maria R. waiting for response</div>
+          </div>
+          <div class="task-due due-ok">Thu</div>
+        </div>
+        <div class="task-row">
+          <div class="task-status" style="background:var(--blue)"></div>
+          <div class="task-body">
+            <div class="task-name">Add Key Personnel Resumes — PM + QC Manager</div>
+            <div class="task-context">HUD Grant · Required for Section 4 Staffing Plan</div>
+          </div>
+          <div class="task-due due-ok">Fri</div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+
+        <!-- Win rate mini chart -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Win Rate · 12 Weeks</div>
+            <span style="font-size:11px;font-weight:700;color:var(--success);">67% avg</span>
+          </div>
+          <div class="chart-bars">
+            <div class="bar" style="height:55%;background:var(--blue);opacity:.55"></div>
+            <div class="bar" style="height:67%;background:var(--blue);opacity:.6"></div>
+            <div class="bar" style="height:40%;background:var(--error);opacity:.7"></div>
+            <div class="bar" style="height:80%;background:var(--blue);opacity:.7"></div>
+            <div class="bar" style="height:60%;background:var(--blue);opacity:.75"></div>
+            <div class="bar" style="height:55%;background:var(--blue);opacity:.7"></div>
+            <div class="bar" style="height:75%;background:var(--blue);opacity:.8"></div>
+            <div class="bar" style="height:100%;background:var(--success)"></div>
+          </div>
+          <div class="chart-x">
+            <span>Mar 3</span><span>Mar 24</span><span>Apr 14</span><span>Apr 25</span>
+          </div>
+        </div>
+
+        <!-- Activity feed -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Team Activity</div>
+          </div>
+          <div class="feed-row">
+            <div class="feed-avatar">MR</div>
+            <div class="feed-text"><strong>Maria R.</strong> edited Technical Approach — USACE Levee (Section 2)</div>
+            <div class="feed-time">4m</div>
+          </div>
+          <div class="feed-row">
+            <div class="feed-avatar">JC</div>
+            <div class="feed-text"><strong>Jorge C.</strong> added comment thread on Section 3 — HUD Grant</div>
+            <div class="feed-time">22m</div>
+          </div>
+          <div class="feed-row">
+            <div class="feed-avatar ai">QW</div>
+            <div class="feed-text"><strong>Quality Watchdog</strong> approved VA BPA — Win Score 88 / 100 · Go</div>
+            <div class="feed-time">1h</div>
+          </div>
+          <div class="feed-row">
+            <div class="feed-avatar">GC</div>
+            <div class="feed-text"><strong>George C.</strong> marked NAVFAC IDIQ as Submitted · $780K</div>
+            <div class="feed-time">3h</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer>
+    <div class="footer-brand">© 2026 <strong>Avero</strong> · GovTool · We Build AI That Moves Your Business Forward.</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Support</a>
+      <a href="#">Status</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

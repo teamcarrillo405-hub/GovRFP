@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avero GovTool — Command Center</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Chrome (dark surfaces) */
+    --chrome-bg:       #0B1220;
+    --chrome-active:   #1E2B3C;
+    --chrome-border:   #263447;
+    --chrome-text:     #9AA4B2;
+
+    /* Interactive */
+    --blue:            #2F80FF;
+
+    /* Semantic text */
+    --green:           #00C48C;
+    --red:             #FF4D4F;
+    --amber:           #F59E0B;
+
+    /* Light surfaces */
+    --page-bg:         #F0F2F5;
+    --card-bg:         #FFFFFF;
+    --text-primary:    #0F172A;
+    --text-secondary:  #475569;
+    --text-muted:      #94A3B8;
+    --card-border:     #E2E8F0;
+    --row-divider:     #F8FAFC;
+
+    --sidebar-w: 220px;
+    --header-h:  52px;
+    --footer-h:  44px;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--page-bg);
+  }
+
+  /* ── LAYOUT ──────────────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: var(--header-h) 1fr var(--footer-h);
+    grid-template-areas:
+      "header  header"
+      "sidebar main"
+      "footer  footer";
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ──────────────────────────────────── */
+  .header {
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-h);
+    background: var(--chrome-bg);
+    border-bottom: 1px solid var(--chrome-border);
+    display: flex;
+    align-items: center;
+    padding: 0 18px 0 0;
+    gap: 0;
+  }
+
+  .header-logo {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 16px;
+    border-right: 1px solid var(--chrome-border);
+    height: 100%;
+  }
+
+  .logo-svg { flex-shrink: 0; }
+
+  .logo-wordmark {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .logo-avero {
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #fff;
+  }
+  .logo-govtool {
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 20px;
+    height: 100%;
+    flex: 1;
+  }
+
+  .hnav-item {
+    padding: 6px 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--chrome-text);
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.12s;
+  }
+  .hnav-item:hover { color: #fff; }
+  .hnav-item.active {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--chrome-text);
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+    border: none;
+  }
+  .icon-btn:hover { background: var(--chrome-active); color: #fff; }
+
+  .notif-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    border: 1.5px solid var(--chrome-bg);
+  }
+
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+    background: var(--chrome-active);
+    border: 1px solid var(--chrome-border);
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────── */
+  .sidebar {
+    grid-area: sidebar;
+    position: sticky;
+    top: var(--header-h);
+    height: calc(100vh - var(--header-h) - var(--footer-h));
+    overflow-y: auto;
+    background: var(--chrome-bg);
+    border-right: 1px solid var(--chrome-border);
+    padding: 12px 0 16px;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--chrome-border); border-radius: 2px; }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--chrome-border);
+    padding: 12px 16px 5px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--chrome-text);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.1s, color 0.1s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: var(--chrome-active);
+    color: #fff;
+    font-weight: 600;
+    border-left: 2px solid var(--blue);
+    padding-left: 14px;
+  }
+  .nav-item svg { flex-shrink: 0; }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    line-height: 1.5;
+  }
+  .nav-badge.blue { background: var(--blue); color: #fff; }
+  .nav-badge.red  { background: var(--red);  color: #fff; }
+
+  /* ── MAIN ────────────────────────────────────── */
+  .main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 24px 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── PAGE HEADER ─────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .page-title { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+  .page-subtitle { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+  .page-actions { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+  }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #1a6fe8; }
+
+  /* ── PIPELINE STRIP ──────────────────────────── */
+  .pipeline-strip {
+    display: flex;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+  .pipeline-seg {
+    flex: 1;
+    padding: 14px 18px;
+    position: relative;
+  }
+  .pipeline-seg + .pipeline-seg {
+    border-left: 1px solid var(--card-border);
+  }
+  .pipeline-seg-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+  .pipeline-seg-count {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .pipeline-seg-value {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+  }
+  .pipeline-seg-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--blue);
+    opacity: 0.5;
+  }
+
+  /* ── NOTICE CARD ─────────────────────────────── */
+  .notice-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .notice-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(47, 128, 255, 0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--blue);
+  }
+  .notice-body { flex: 1; }
+  .notice-heading { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .notice-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .notice-actions { display: flex; gap: 8px; }
+
+  /* ── KPI ROW ─────────────────────────────────── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 16px 18px 14px;
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .kpi-detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+  .kpi-delta {
+    display: inline;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .kpi-delta.green { color: var(--green); }
+  .kpi-delta.red   { color: var(--red); }
+
+  /* ── PROPOSALS GRID ──────────────────────────── */
+  .section-heading {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+  }
+
+  .proposals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 10px;
+  }
+
+  .proposal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-left: 2px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 16px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .proposal-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .proposal-meta {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .tags-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .tag-go    { background: rgba(0, 196, 140, 0.08); color: var(--green); }
+  .tag-caution { background: rgba(245, 158, 11, 0.10); color: var(--amber); }
+  .tag-due   { background: rgba(47, 128, 255, 0.08); color: var(--blue); }
+  .tag-gray  { background: var(--row-divider); color: var(--text-muted); }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .score-track {
+    flex: 1;
+    height: 4px;
+    background: var(--card-border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+  .score-num {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* ── BOTTOM TWO-COL ──────────────────────────── */
+  .bottom-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+  .card-head {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-head-sub {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  /* tasks */
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--row-divider);
+  }
+  .task-row:last-child { border-bottom: none; }
+
+  .task-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--card-border);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .task-body { flex: 1; }
+  .task-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+  .task-ctx  { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+  .task-due  {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-top: 3px;
+  }
+  .task-due.red    { color: var(--red); }
+  .task-due.amber  { color: var(--amber); }
+  .task-due.gray   { color: var(--text-muted); }
+
+  /* chart */
+  .chart-wrap {
+    padding: 14px 16px 12px;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 64px;
+  }
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .chart-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+  }
+  .chart-week {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 5px;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--row-divider);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* activity feed */
+  .feed-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--row-divider);
+  }
+  .feed-row:last-child { border-bottom: none; }
+  .feed-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--chrome-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--blue);
+    flex-shrink: 0;
+    border: 1px solid var(--chrome-border);
+  }
+  .feed-body { flex: 1; }
+  .feed-text {
+    font-size: 12px;
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+  .feed-actor { font-weight: 700; color: var(--blue); }
+  .feed-ctx   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .feed-time  {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .watchdog-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--chrome-bg);
+    border: 1px solid var(--chrome-border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── FOOTER ──────────────────────────────────── */
+  .footer {
+    grid-area: footer;
+    height: var(--footer-h);
+    background: var(--chrome-bg);
+    border-top: 1px solid var(--chrome-border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+  }
+  .footer-left {
+    font-size: 11.5px;
+    color: var(--chrome-text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .footer-sep { color: var(--chrome-border); }
+  .footer-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .footer-link {
+    font-size: 11.5px;
+    color: var(--chrome-text);
+    cursor: pointer;
+  }
+  .footer-link:hover { color: #fff; }
+  .footer-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--chrome-text);
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-logo">
+      <!-- Avero Logo SVG -->
+      <svg class="logo-svg" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- A triangle base -->
+        <polygon points="14,3 26,24 2,24" fill="#1E2B3C" stroke="#263447" stroke-width="1"/>
+        <!-- Blue peak accent -->
+        <polygon points="14,3 20,14 8,14" fill="#2F80FF"/>
+        <!-- O with play arrow — right side -->
+      </svg>
+      <div class="logo-wordmark">
+        <span class="logo-avero">AVERO</span>
+        <span class="logo-govtool">GovTool</span>
+      </div>
+    </div>
+
+    <nav class="header-nav">
+      <div class="hnav-item active">Dashboard</div>
+      <div class="hnav-item">Proposals</div>
+      <div class="hnav-item">Opportunities</div>
+      <div class="hnav-item">Past Performance</div>
+      <div class="hnav-item">Analytics</div>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" title="Search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn" title="Notifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <div class="user-chip">
+        <div class="user-avatar">GC</div>
+        <span class="user-name">G. Carrillo</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="nav-section-label">Workspace</div>
+
+    <div class="nav-item active">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Proposals
+      <span class="nav-badge blue">8</span>
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Opportunities
+      <span class="nav-badge blue">14</span>
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Pipeline
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="2 3 22 3 22 13 2 13"/><polygon points="2 11 22 11 22 21 2 21"/></svg>
+      Past Performance
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Content Library
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/><line x1="15" y1="9" x2="15" y2="21"/></svg>
+      Compliance Matrix
+      <span class="nav-badge red">2</span>
+    </div>
+
+    <div class="nav-section-label">Intelligence</div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Teaming
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Competitor Intel
+    </div>
+
+    <div class="nav-section-label">Account</div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A9.81 9.81 0 0 1 22 12a9.81 9.81 0 0 1-2.93 7.07M4.93 4.93A9.81 9.81 0 0 0 2 12a9.81 9.81 0 0 0 2.93 7.07"/></svg>
+      Settings
+    </div>
+
+    <div class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Help
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- 1. PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Command Center</div>
+        <div class="page-subtitle">Thursday, April 24, 2026 &nbsp;·&nbsp; 8 active proposals &nbsp;·&nbsp; $2.4M pipeline &nbsp;·&nbsp; 2 deadlines this week</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          New Proposal
+        </button>
+        <button class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+          Import Opportunity
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. PIPELINE STRIP -->
+    <div class="pipeline-strip">
+      <div class="pipeline-seg">
+        <div class="pipeline-seg-label">Identified</div>
+        <div class="pipeline-seg-count">23</div>
+        <div class="pipeline-seg-value">$6.1M total value</div>
+        <div class="pipeline-seg-bar" style="width: 100%;"></div>
+      </div>
+      <div class="pipeline-seg">
+        <div class="pipeline-seg-label">Qualifying</div>
+        <div class="pipeline-seg-count">11</div>
+        <div class="pipeline-seg-value">$3.8M total value</div>
+        <div class="pipeline-seg-bar" style="width: 78%;"></div>
+      </div>
+      <div class="pipeline-seg">
+        <div class="pipeline-seg-label">Drafting</div>
+        <div class="pipeline-seg-count">5</div>
+        <div class="pipeline-seg-value">$1.6M total value</div>
+        <div class="pipeline-seg-bar" style="width: 48%;"></div>
+      </div>
+      <div class="pipeline-seg">
+        <div class="pipeline-seg-label">Submitted</div>
+        <div class="pipeline-seg-count">3</div>
+        <div class="pipeline-seg-value">$820K total value</div>
+        <div class="pipeline-seg-bar" style="width: 28%;"></div>
+      </div>
+    </div>
+
+    <!-- 3. OPPORTUNITY MATCH NOTICE -->
+    <div class="notice-card">
+      <div class="notice-icon-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="notice-body">
+        <div class="notice-heading">7 new SAM.gov opportunities match your registered NAICS codes</div>
+        <div class="notice-sub">Filtered from 312 posted this week — 3 flagged high-confidence by AI scoring (86–91%). Review before Monday close.</div>
+      </div>
+      <div class="notice-actions">
+        <button class="btn btn-outline" style="font-size:12px; padding:6px 12px;">Dismiss</button>
+        <button class="btn btn-primary" style="font-size:12px; padding:6px 12px;">Review Matches</button>
+      </div>
+    </div>
+
+    <!-- 4. KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Active Proposals</div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-detail">4 Go &nbsp;·&nbsp; 1 Caution &nbsp;·&nbsp; 3 Submitted</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Win Rate — 90 Days</div>
+        <div class="kpi-value">67%</div>
+        <div class="kpi-detail">6 won of 9 submitted &nbsp;<span class="kpi-delta green">+8% vs prior period</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pipeline Value</div>
+        <div class="kpi-value">$2.4M</div>
+        <div class="kpi-detail">$1.8M in Go status &nbsp;·&nbsp; $620K qualifying</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Deadlines This Week</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-detail">USACE tomorrow &nbsp;·&nbsp; HUD Friday &nbsp;<span class="kpi-delta red">action required</span></div>
+      </div>
+    </div>
+
+    <!-- 5. ACTIVE PROPOSALS -->
+    <div>
+      <div class="section-heading">
+        Active Proposals
+        <span class="section-link">View all 8 &rarr;</span>
+      </div>
+      <div class="proposals-grid">
+
+        <!-- Card 1 -->
+        <div class="proposal-card">
+          <div class="proposal-name">USACE — Levee Infrastructure Rehabilitation, Sacramento District</div>
+          <div class="proposal-meta">U.S. Army Corps of Engineers &nbsp;·&nbsp; NAICS 237990 &nbsp;·&nbsp; FFP Task Order &nbsp;·&nbsp; $480K est. value</div>
+          <div class="tags-row">
+            <span class="tag tag-go">Go</span>
+            <span class="tag tag-due">Due Tomorrow</span>
+            <span class="tag tag-gray">8(a) Set-Aside</span>
+            <span class="tag tag-gray">Sole Source</span>
+          </div>
+          <div class="score-row">
+            <div class="score-track"><div class="score-fill" style="width:88%;"></div></div>
+            <span class="score-num">88 / 100</span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="proposal-card">
+          <div class="proposal-name">HUD — Community Development Block Grant Administration Support</div>
+          <div class="proposal-meta">Dept. of Housing &amp; Urban Development &nbsp;·&nbsp; NAICS 541611 &nbsp;·&nbsp; IDIQ Base + 4 options &nbsp;·&nbsp; $320K est. value</div>
+          <div class="tags-row">
+            <span class="tag tag-go">Go</span>
+            <span class="tag tag-due">Due Friday</span>
+            <span class="tag tag-gray">Full &amp; Open</span>
+          </div>
+          <div class="score-row">
+            <div class="score-track"><div class="score-fill" style="width:82%;"></div></div>
+            <span class="score-num">82 / 100</span>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="proposal-card">
+          <div class="proposal-name">FEMA — Emergency Operations Center Renovation, Region IX</div>
+          <div class="proposal-meta">Federal Emergency Management Agency &nbsp;·&nbsp; NAICS 236220 &nbsp;·&nbsp; Firm Fixed Price &nbsp;·&nbsp; $740K est. value</div>
+          <div class="tags-row">
+            <span class="tag tag-caution">Caution</span>
+            <span class="tag tag-due">Due May 9</span>
+            <span class="tag tag-gray">SB Set-Aside</span>
+            <span class="tag tag-gray">SCA Wages Apply</span>
+          </div>
+          <div class="score-row">
+            <div class="score-track"><div class="score-fill" style="width:64%;"></div></div>
+            <span class="score-num">64 / 100</span>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="proposal-card">
+          <div class="proposal-name">GSA — Federal Building Mechanical Systems Upgrade, Portfolio 7</div>
+          <div class="proposal-meta">General Services Administration &nbsp;·&nbsp; NAICS 238220 &nbsp;·&nbsp; Multiple Award IDIQ &nbsp;·&nbsp; $1.1M est. value</div>
+          <div class="tags-row">
+            <span class="tag tag-go">Go</span>
+            <span class="tag tag-due">Due May 14</span>
+            <span class="tag tag-gray">Prevailing Wage</span>
+            <span class="tag tag-gray">Teaming Required</span>
+          </div>
+          <div class="score-row">
+            <div class="score-track"><div class="score-fill" style="width:91%;"></div></div>
+            <span class="score-num">91 / 100</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 6. BOTTOM TWO-COL -->
+    <div class="bottom-cols">
+
+      <!-- LEFT: My Tasks This Week -->
+      <div class="card">
+        <div class="card-head">
+          My Tasks This Week
+          <span class="card-head-sub">5 open</span>
+        </div>
+
+        <div class="task-row">
+          <div class="task-dot"></div>
+          <div class="task-body">
+            <div class="task-name">Finalize Technical Approach narrative</div>
+            <div class="task-ctx">USACE — Levee Infrastructure Rehabilitation</div>
+          </div>
+          <div class="task-due red">Today</div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-dot"></div>
+          <div class="task-body">
+            <div class="task-name">Upload past performance CPARs to vault</div>
+            <div class="task-ctx">HUD — CDBG Administration Support</div>
+          </div>
+          <div class="task-due red">Today</div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-dot"></div>
+          <div class="task-body">
+            <div class="task-name">Review price-to-win analysis with PM</div>
+            <div class="task-ctx">FEMA — EOC Renovation, Region IX</div>
+          </div>
+          <div class="task-due amber">Wednesday</div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-dot"></div>
+          <div class="task-body">
+            <div class="task-name">Confirm teaming agreement signatures</div>
+            <div class="task-ctx">GSA — Mechanical Systems Upgrade</div>
+          </div>
+          <div class="task-due amber">Wednesday</div>
+        </div>
+
+        <div class="task-row">
+          <div class="task-dot"></div>
+          <div class="task-body">
+            <div class="task-name">Export compliance matrix for legal review</div>
+            <div class="task-ctx">HUD — CDBG Administration Support</div>
+          </div>
+          <div class="task-due gray">Friday, May 1</div>
+        </div>
+      </div>
+
+      <!-- RIGHT col: Chart + Feed stacked -->
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <!-- Win Rate Chart -->
+        <div class="card">
+          <div class="card-head">
+            Win Rate — Last 12 Weeks
+            <span class="card-head-sub">Submitted proposals</span>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-bars">
+              <!-- 12 bars: W=win(blue), L=loss(gray). Heights reflect proportion -->
+              <!-- Wk1: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W13</div>
+              </div>
+              <!-- Wk2: L -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:24px; background:var(--card-border);"></div>
+                <div class="chart-week">W14</div>
+              </div>
+              <!-- Wk3: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W15</div>
+              </div>
+              <!-- Wk4: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W16</div>
+              </div>
+              <!-- Wk5: L -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:24px; background:var(--card-border);"></div>
+                <div class="chart-week">W17</div>
+              </div>
+              <!-- Wk6: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W18</div>
+              </div>
+              <!-- Wk7: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W19</div>
+              </div>
+              <!-- Wk8: L -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:24px; background:var(--card-border);"></div>
+                <div class="chart-week">W20</div>
+              </div>
+              <!-- Wk9: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W21</div>
+              </div>
+              <!-- Wk10: W -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue);"></div>
+                <div class="chart-week">W22</div>
+              </div>
+              <!-- Wk11: L -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:24px; background:var(--card-border);"></div>
+                <div class="chart-week">W23</div>
+              </div>
+              <!-- Wk12: W (current) -->
+              <div class="chart-col">
+                <div class="chart-bar" style="height:48px; background:var(--blue); opacity:0.5;"></div>
+                <div class="chart-week">W24</div>
+              </div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:var(--blue);"></div>
+                Win
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch" style="background:var(--card-border);"></div>
+                Loss
+              </div>
+              <span style="margin-left:auto; font-size:11.5px; color:var(--text-muted);">8 wins / 12 submitted &nbsp;·&nbsp; 67%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Activity Feed -->
+        <div class="card">
+          <div class="card-head">
+            Team Activity
+            <div class="watchdog-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Quality Watchdog
+            </div>
+          </div>
+
+          <div class="feed-row">
+            <div class="feed-avatar">MR</div>
+            <div class="feed-body">
+              <div class="feed-text"><span class="feed-actor">M. Reyes</span> uploaded 3 past performance references</div>
+              <div class="feed-ctx">USACE — Levee Infrastructure Rehabilitation</div>
+            </div>
+            <div class="feed-time">9:41 AM</div>
+          </div>
+
+          <div class="feed-row">
+            <div class="feed-avatar">QW</div>
+            <div class="feed-body">
+              <div class="feed-text"><span class="feed-actor">Quality Watchdog</span> flagged compliance gap in Section L</div>
+              <div class="feed-ctx">FEMA — EOC Renovation &nbsp;·&nbsp; 2 items need resolution</div>
+            </div>
+            <div class="feed-time">8:57 AM</div>
+          </div>
+
+          <div class="feed-row">
+            <div class="feed-avatar">KL</div>
+            <div class="feed-body">
+              <div class="feed-text"><span class="feed-actor">K. Lopez</span> approved the price volume for submission</div>
+              <div class="feed-ctx">HUD — CDBG Administration Support</div>
+            </div>
+            <div class="feed-time">8:22 AM</div>
+          </div>
+
+          <div class="feed-row">
+            <div class="feed-avatar">GC</div>
+            <div class="feed-body">
+              <div class="feed-text"><span class="feed-actor">G. Carrillo</span> created proposal from SAM.gov import</div>
+              <div class="feed-ctx">GSA — Mechanical Systems Upgrade &nbsp;·&nbsp; AI score 91</div>
+            </div>
+            <div class="feed-time">Yesterday</div>
+          </div>
+
+        </div>
+
+      </div><!-- /right col -->
+    </div><!-- /bottom cols -->
+
+  </main>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-left">
+      <svg width="12" height="12" viewBox="0 0 28 28" fill="none"><polygon points="14,3 26,24 2,24" fill="#1E2B3C"/><polygon points="14,3 20,14 8,14" fill="#2F80FF"/></svg>
+      <span>Avero GovTool</span>
+      <span class="footer-sep">&middot;</span>
+      <span>v4.2.1</span>
+      <span class="footer-sep">&middot;</span>
+      <span>HCC Construction Group</span>
+    </div>
+    <div class="footer-right">
+      <span class="footer-link">Support</span>
+      <span class="footer-link">Privacy</span>
+      <span class="footer-link">Terms</span>
+      <div class="footer-status">
+        <div class="status-dot"></div>
+        All systems operational
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /layout -->
+</body>
+</html>

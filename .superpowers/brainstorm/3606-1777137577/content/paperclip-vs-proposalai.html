@@ -1,0 +1,297 @@
+<style>
+  body { font-family: 'Inter', -apple-system, sans-serif; }
+
+  /* ── Side-by-side frames ── */
+  .compare-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .frame { border-radius: 12px; overflow: hidden; border: 2px solid #e5e7eb; }
+  .frame.dark { border-color: #263447; }
+  .frame-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; padding: 8px 14px; }
+  .frame-label.dark-label { background: #0B1220; color: #9AA4B2; }
+  .frame-label.light-label { background: #f9fafb; color: #6b7280; }
+
+  /* ── Paperclip mock ── */
+  .pc-shell { background: #0B1220; padding: 14px; }
+  .pc-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .pc-metric { background: #1A2433; border: 1px solid #263447; border-radius: 8px; padding: 10px 12px; }
+  .pc-metric-icon { width: 24px; height: 24px; border-radius: 6px; background: #2F80FF22; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; font-size: 13px; }
+  .pc-metric-val { font-size: 20px; font-weight: 800; color: #fff; line-height: 1; }
+  .pc-metric-label { font-size: 10px; color: #9AA4B2; margin-top: 3px; }
+  .pc-metric-sub { font-size: 10px; color: #6B85A6; margin-top: 2px; }
+  .pc-live-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #9AA4B2; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .pc-agent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .pc-agent { background: #0e1929; border: 1px solid rgba(6,182,212,0.25); border-radius: 8px; padding: 8px 10px; }
+  .pc-agent-top { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .pc-ping { width: 6px; height: 6px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 6px #22d3ee; flex-shrink: 0; }
+  .pc-agent-name { font-size: 11px; font-weight: 600; color: #e2e8f0; }
+  .pc-agent-task { font-size: 10px; color: #6B85A6; padding: 4px 6px; background: #1A2433; border: 1px solid #263447; border-radius: 5px; }
+  .pc-activity { background: #1A2433; border: 1px solid #263447; border-radius: 8px; padding: 10px; }
+  .pc-act-row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid #263447; }
+  .pc-act-row:last-child { border-bottom: none; }
+  .pc-act-dot { width: 6px; height: 6px; border-radius: 50%; background: #2F80FF; margin-top: 4px; flex-shrink: 0; }
+  .pc-act-text { font-size: 10px; color: #9AA4B2; line-height: 1.4; }
+  .pc-act-time { font-size: 10px; color: #6B85A6; margin-left: auto; flex-shrink: 0; }
+  .pc-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .pc-chart-card { background: #1A2433; border: 1px solid #263447; border-radius: 8px; padding: 10px; }
+  .pc-chart-title { font-size: 10px; color: #9AA4B2; margin-bottom: 6px; }
+  .mini-bars { display: flex; align-items: flex-end; gap: 2px; height: 36px; }
+  .mini-bar { flex: 1; border-radius: 2px 2px 0 0; }
+
+  /* ── ProposalAI proposed mock ── */
+  .pa-shell { background: #ffffff; padding: 14px; }
+  .pa-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+  .pa-greeting { font-size: 15px; font-weight: 800; color: #111; }
+  .pa-greeting span { color: #ff7b20; }
+  .pa-date { font-size: 11px; color: #9ca3af; }
+  .pa-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .pa-metric { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #fff; }
+  .pa-metric-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px; }
+  .pa-metric-val { font-size: 22px; font-weight: 900; color: #111; line-height: 1; }
+  .pa-metric-label { font-size: 10px; color: #6b7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .pa-metric-trend { font-size: 10px; margin-top: 4px; }
+  .trend-up { color: #16a34a; }
+  .trend-warn { color: #ea580c; }
+  .pa-live-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #6b7280; letter-spacing: 0.07em; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 5px #22c55e; display: inline-block; }
+  .pa-proposals { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .pa-prop { border: 1px solid #e5e7eb; border-left: 3px solid #FDFF66; border-radius: 8px; padding: 8px 10px; background: #fff; }
+  .pa-prop.red { border-left-color: #ef4444; }
+  .pa-prop.green { border-left-color: #22c55e; }
+  .pa-prop.orange { border-left-color: #f97316; }
+  .pa-prop-name { font-size: 11px; font-weight: 700; color: #111; }
+  .pa-prop-agency { font-size: 10px; color: #6b7280; }
+  .pa-prop-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+  .pa-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .badge-go { background: #dcfce7; color: #15803d; }
+  .badge-warn { background: #ffedd5; color: #c2410c; }
+  .badge-due { background: #fef9c3; color: #a16207; }
+  .badge-won { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .pa-score { font-size: 10px; color: #6b7280; margin-left: auto; font-weight: 700; }
+  .pa-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pa-section { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; }
+  .pa-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #6b7280; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .pa-task-row { display: flex; gap: 6px; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid #f9fafb; }
+  .pa-task-row:last-child { border-bottom: none; }
+  .pa-task-dot { width: 6px; height: 6px; border-radius: 50%; background: #FDFF66; border: 1px solid #d4d600; margin-top: 4px; flex-shrink: 0; }
+  .pa-task-dot.red { background: #ef4444; border-color: #dc2626; }
+  .pa-task-dot.orange { background: #f97316; border-color: #ea580c; }
+  .pa-task-text { font-size: 10px; color: #374151; line-height: 1.4; }
+  .pa-task-time { font-size: 10px; color: #9ca3af; margin-left: auto; flex-shrink: 0; }
+  .pa-chart-wrap { display: flex; align-items: flex-end; gap: 2px; height: 40px; margin-top: 6px; }
+  .pa-bar { flex: 1; border-radius: 2px 2px 0 0; }
+
+  /* ── Verdict section ── */
+  .verdict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .verdict-card { border-radius: 10px; padding: 16px; }
+  .verdict-card.borrow { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .verdict-card.skip { background: #fef2f2; border: 1px solid #fecaca; }
+  .verdict-card.adapt { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .verdict-card.build { background: #fefce8; border: 1px solid #fef08a; }
+  .verdict-card h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; }
+  .verdict-card.borrow h4 { color: #15803d; }
+  .verdict-card.skip h4 { color: #dc2626; }
+  .verdict-card.adapt h4 { color: #1d4ed8; }
+  .verdict-card.build h4 { color: #a16207; }
+  .verdict-item { font-size: 12px; color: #374151; margin: 4px 0; padding-left: 14px; position: relative; line-height: 1.5; }
+  .verdict-item::before { content: '→'; position: absolute; left: 0; font-size: 10px; color: #9ca3af; }
+</style>
+
+<h2>Paperclip Dashboard — Should We Use It?</h2>
+<p class="subtitle">Side-by-side analysis: Paperclip's design system vs. a ProposalAI-native mission control</p>
+
+<div class="compare-wrap">
+  <!-- PAPERCLIP MOCK -->
+  <div class="frame dark">
+    <div class="frame-label dark-label">Paperclip — Current (Dark, Midnight Navy, 0px radius)</div>
+    <div class="pc-shell">
+      <!-- Metrics -->
+      <div class="pc-metrics">
+        <div class="pc-metric">
+          <div class="pc-metric-icon">🤖</div>
+          <div class="pc-metric-val">12</div>
+          <div class="pc-metric-label">Agents Enabled</div>
+          <div class="pc-metric-sub">3 running · 1 error</div>
+        </div>
+        <div class="pc-metric">
+          <div class="pc-metric-icon">⚡</div>
+          <div class="pc-metric-val">47</div>
+          <div class="pc-metric-label">Tasks In Progress</div>
+          <div class="pc-metric-sub">5 blocked</div>
+        </div>
+        <div class="pc-metric">
+          <div class="pc-metric-icon">💰</div>
+          <div class="pc-metric-val">$1.2k</div>
+          <div class="pc-metric-label">Month Spend</div>
+          <div class="pc-metric-sub">48% of budget</div>
+        </div>
+        <div class="pc-metric">
+          <div class="pc-metric-icon">🔔</div>
+          <div class="pc-metric-val">3</div>
+          <div class="pc-metric-label">Pending Approvals</div>
+          <div class="pc-metric-sub">Budget overrides</div>
+        </div>
+      </div>
+      <!-- Live Agents -->
+      <div class="pc-live-label">Live Agent Runs</div>
+      <div class="pc-agent-grid">
+        <div class="pc-agent">
+          <div class="pc-agent-top"><div class="pc-ping"></div><div class="pc-agent-name">Marketing Agent</div></div>
+          <div class="pc-agent-task">Drafting Q2 social campaign brief…</div>
+        </div>
+        <div class="pc-agent">
+          <div class="pc-agent-top"><div class="pc-ping"></div><div class="pc-agent-name">Research Agent</div></div>
+          <div class="pc-agent-task">Analyzing competitor pricing data…</div>
+        </div>
+      </div>
+      <!-- Charts -->
+      <div class="pc-charts">
+        <div class="pc-chart-card">
+          <div class="pc-chart-title">Run Activity · 14 days</div>
+          <div class="mini-bars">
+            <div class="mini-bar" style="height:60%;background:#22c55e;"></div>
+            <div class="mini-bar" style="height:40%;background:#22c55e;"></div>
+            <div class="mini-bar" style="height:80%;background:#22c55e;"></div>
+            <div class="mini-bar" style="height:55%;background:#ef4444;"></div>
+            <div class="mini-bar" style="height:90%;background:#22c55e;"></div>
+            <div class="mini-bar" style="height:70%;background:#22c55e;"></div>
+            <div class="mini-bar" style="height:100%;background:#22c55e;"></div>
+          </div>
+        </div>
+        <div class="pc-chart-card">
+          <div class="pc-chart-title">Activity Feed</div>
+          <div class="pc-act-row"><div class="pc-act-dot"></div><div class="pc-act-text">Marketing Agent completed task #142</div><div class="pc-act-time">2m</div></div>
+          <div class="pc-act-row"><div class="pc-act-dot" style="background:#ef4444"></div><div class="pc-act-text">Budget exceeded: $120 overage flagged</div><div class="pc-act-time">8m</div></div>
+          <div class="pc-act-row"><div class="pc-act-dot" style="background:#eab308"></div><div class="pc-act-text">New task assigned to Research Agent</div><div class="pc-act-time">15m</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSALAI PROPOSED -->
+  <div class="frame">
+    <div class="frame-label light-label">ProposalAI Proposed — Mission Control (Light, HCC Brand)</div>
+    <div class="pa-shell">
+      <div class="pa-top">
+        <div>
+          <div class="pa-greeting">Good morning, <span>George</span> 👋</div>
+          <div class="pa-date">Friday, April 25 · 3 proposals active · 2 deadlines this week</div>
+        </div>
+      </div>
+      <!-- Metrics -->
+      <div class="pa-metrics">
+        <div class="pa-metric">
+          <div class="pa-metric-icon" style="background:#fef9c3;">📄</div>
+          <div class="pa-metric-val">8</div>
+          <div class="pa-metric-label">Active Proposals</div>
+          <div class="pa-metric-trend trend-warn">2 due within 7 days</div>
+        </div>
+        <div class="pa-metric">
+          <div class="pa-metric-icon" style="background:#dcfce7;">🏆</div>
+          <div class="pa-metric-val">67%</div>
+          <div class="pa-metric-label">Win Rate (90d)</div>
+          <div class="pa-metric-trend trend-up">↑ +8% vs last quarter</div>
+        </div>
+        <div class="pa-metric">
+          <div class="pa-metric-icon" style="background:#ffe4cc;">⚡</div>
+          <div class="pa-metric-val">$2.4M</div>
+          <div class="pa-metric-label">Pipeline Value</div>
+          <div class="pa-metric-trend trend-up">4 Go / 1 Caution</div>
+        </div>
+        <div class="pa-metric">
+          <div class="pa-metric-icon" style="background:#fee2e2;">🎯</div>
+          <div class="pa-metric-val">24</div>
+          <div class="pa-metric-label">New Opps (7d)</div>
+          <div class="pa-metric-trend trend-up">3 match your profile</div>
+        </div>
+      </div>
+      <!-- Live Proposals -->
+      <div class="pa-live-label"><span class="live-dot"></span> Active Proposals</div>
+      <div class="pa-proposals">
+        <div class="pa-prop green">
+          <div class="pa-prop-name">HUD Community Dev Block Grant</div>
+          <div class="pa-prop-agency">Dept. of Housing · NAICS 236220</div>
+          <div class="pa-prop-meta">
+            <span class="pa-badge badge-go">Go</span>
+            <span class="pa-badge badge-due">Due May 3</span>
+            <span class="pa-score">82/100</span>
+          </div>
+        </div>
+        <div class="pa-prop red">
+          <div class="pa-prop-name">USACE Levee Repair Design-Build</div>
+          <div class="pa-prop-agency">Army Corps of Engineers</div>
+          <div class="pa-prop-meta">
+            <span class="pa-badge badge-warn">Due Tomorrow</span>
+            <span class="pa-score">61/100</span>
+          </div>
+        </div>
+      </div>
+      <!-- 2 col bottom -->
+      <div class="pa-2col">
+        <div class="pa-section">
+          <div class="pa-section-title">My Tasks This Week</div>
+          <div class="pa-task-row"><div class="pa-task-dot red"></div><div class="pa-task-text">Finalize Technical Approach — USACE</div><div class="pa-task-time">today</div></div>
+          <div class="pa-task-row"><div class="pa-task-dot orange"></div><div class="pa-task-text">Upload Safety Plan — HUD Grant</div><div class="pa-task-time">Wed</div></div>
+          <div class="pa-task-row"><div class="pa-task-dot"></div><div class="pa-task-text">Review Red Team comments — VA</div><div class="pa-task-time">Thu</div></div>
+        </div>
+        <div class="pa-section">
+          <div class="pa-section-title">Win Rate · 12 weeks</div>
+          <div class="pa-chart-wrap">
+            <div class="pa-bar" style="height:50%;background:#FDFF66;border:1px solid #d4d600;"></div>
+            <div class="pa-bar" style="height:75%;background:#FDFF66;border:1px solid #d4d600;"></div>
+            <div class="pa-bar" style="height:60%;background:#FDFF66;border:1px solid #d4d600;"></div>
+            <div class="pa-bar" style="height:100%;background:#22c55e;"></div>
+            <div class="pa-bar" style="height:85%;background:#FDFF66;border:1px solid #d4d600;"></div>
+            <div class="pa-bar" style="height:67%;background:#FDFF66;border:1px solid #d4d600;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VERDICT -->
+<div class="section-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin:24px 0 12px;">My Recommendation — What to Borrow, What to Build</div>
+
+<div class="verdict-grid">
+  <div class="verdict-card borrow">
+    <h4>✅ Borrow Directly from Paperclip</h4>
+    <div class="verdict-item">MetricCard pattern (4-up KPI grid with icon + value + sub-label)</div>
+    <div class="verdict-item">Mini stacked bar charts (no Recharts needed — pure CSS/flexbox)</div>
+    <div class="verdict-item">Activity feed animation (blur-in + slide, 15s polling)</div>
+    <div class="verdict-item">Live "active cards" concept → map to Active Proposals</div>
+    <div class="verdict-item">Responsive grid breakpoints (4col → 2col → 1col)</div>
+  </div>
+
+  <div class="verdict-card skip">
+    <h4>❌ Don't Port to ProposalAI</h4>
+    <div class="verdict-item">Dark theme — HCC Yellow brand is built for light; dark would require full rebrand</div>
+    <div class="verdict-item">Zero border radius (--radius: 0px) — too harsh for proposal/document workflows</div>
+    <div class="verdict-item">Agent run cards — ProposalAI isn't an agent runner; map analogy breaks</div>
+    <div class="verdict-item">Paperclip sidebar nav structure — too wide for a proposal-centric app</div>
+    <div class="verdict-item">React Router v7 — ProposalAI is Next.js App Router; can't reuse routing</div>
+  </div>
+
+  <div class="verdict-card adapt">
+    <h4>🔄 Adapt the Pattern, Not the Code</h4>
+    <div class="verdict-item">Layout: sidebar + main + optional right panel (same structure, different content)</div>
+    <div class="verdict-item">Color system: swap #2F80FF → #FDFF66, #0B1220 → #fff, keep semantic tokens</div>
+    <div class="verdict-item">Live cards: "Active Agents" → "Active Proposals" with win score + deadline pulse</div>
+    <div class="verdict-item">Activity feed: "Agent ran task" → "Team member edited section / commented"</div>
+    <div class="verdict-item">Budget KPI → Pipeline Value; Run Count → Proposal Count</div>
+  </div>
+
+  <div class="verdict-card build">
+    <h4>🏗️ Build Fresh for ProposalAI</h4>
+    <div class="verdict-item">Go/No-Go verdict widget (unique to ProposalAI — no Paperclip equivalent)</div>
+    <div class="verdict-item">Deadline countdown cards with urgency color (Paperclip has no deadlines)</div>
+    <div class="verdict-item">Opportunity matches widget ("3 new opps match your profile today")</div>
+    <div class="verdict-item">Win rate trend chart (proposal-specific analytics Paperclip doesn't need)</div>
+    <div class="verdict-item">My Tasks this week (SME assignment feed unique to proposal workflows)</div>
+  </div>
+</div>
+
+<div style="background:#0a0a0a;color:#fff;border-radius:10px;padding:16px 20px;margin-top:16px;">
+  <div style="font-size:13px;font-weight:800;margin-bottom:6px;">Bottom Line</div>
+  <div style="font-size:12px;color:#9ca3af;line-height:1.7;">
+    Paperclip's dashboard is <strong style="color:#FDFF66">excellent architecture</strong> — borrow the <em>pattern</em> (4-up KPIs, live cards, activity feed, mini charts), not the code or theme. ProposalAI should stay <strong style="color:#FDFF66">light + HCC Yellow</strong> — your brand is distinctive and construction contractors expect professional, clean tools. The biggest lift is building the proposal-specific widgets (Go/No-Go, deadline urgency, opportunity matches) that Paperclip has no equivalent for.
+  </div>
+</div>

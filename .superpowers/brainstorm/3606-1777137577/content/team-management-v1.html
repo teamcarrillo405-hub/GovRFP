@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Management — Avero GovTool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #F0F2F5; color: #0F172A; min-height: 100vh; }
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+    .app-header { position: sticky; top: 0; z-index: 200; height: 52px; background: #0B1220; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+    .body-row { display: flex; flex: 1; }
+    .sidebar { width: 220px; position: sticky; top: 52px; height: calc(100vh - 52px); background: #0B1220; overflow-y: auto; flex-shrink: 0; }
+    .main-content { flex: 1; padding: 28px; overflow: visible; }
+    .app-footer { background: #0B1220; height: 44px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <!-- A monogram -->
+    <div style="width:28px;height:28px;background:#2F80FF;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span style="color:#fff;font-size:13px;font-weight:800;letter-spacing:-0.5px;">A</span>
+    </div>
+    <!-- Wordmark -->
+    <span style="color:#fff;font-size:14px;font-weight:700;letter-spacing:-0.3px;">Avero <span style="color:#94A3B8;font-weight:500;">GovTool</span></span>
+
+    <!-- Divider -->
+    <div style="width:1px;height:20px;background:#1E2D45;margin-left:4px;"></div>
+
+    <!-- Search bar -->
+    <div style="flex:1;max-width:360px;margin-left:8px;position:relative;">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Search proposals, contracts, team..." style="width:100%;background:#1E2D45;border:1px solid #2A3A52;border-radius:6px;padding:6px 12px 6px 32px;font-size:12px;color:#94A3B8;outline:none;font-family:inherit;" />
+    </div>
+
+    <div style="flex:1;"></div>
+
+    <!-- Notifications -->
+    <button style="background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;position:relative;display:flex;align-items:center;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span style="position:absolute;top:4px;right:4px;width:6px;height:6px;background:#2F80FF;border-radius:50%;"></span>
+    </button>
+
+    <!-- GC Avatar -->
+    <div style="width:30px;height:30px;border-radius:50%;background:#2F80FF;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:4px;">
+      <span style="color:#fff;font-size:11px;font-weight:700;">GC</span>
+    </div>
+  </header>
+
+  <div class="body-row">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div style="padding:16px 12px 8px;">
+        <span style="font-size:10px;font-weight:700;color:#475569;letter-spacing:0.08em;text-transform:uppercase;">Main Menu</span>
+      </div>
+
+      <!-- Nav items -->
+      <div style="padding:0 8px;">
+
+        <!-- Dashboard -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          Dashboard
+        </a>
+
+        <!-- Pipeline -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Pipeline
+        </a>
+
+        <!-- Opportunities -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Opportunities
+        </a>
+
+        <!-- Proposals -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Proposals
+        </a>
+
+        <!-- Library -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          Library
+        </a>
+
+        <!-- Analytics -->
+        <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;text-decoration:none;color:#94A3B8;font-size:13px;font-weight:500;margin-bottom:2px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          Analytics
+        </a>
+
+        <!-- Divider -->
+        <div style="height:1px;background:#1E2D45;margin:10px 4px;"></div>
+        <div style="padding:4px 12px 6px;">
+          <span style="font-size:10px;font-weight:700;color:#475569;letter-spacing:0.08em;text-transform:uppercase;">Account</span>
+        </div>
+
+        <!-- Settings ACTIVE -->
+        <div style="margin-bottom:2px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;color:#fff;font-size:13px;font-weight:600;background:rgba(47,128,255,0.12);cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span style="color:#2F80FF;">Settings</span>
+            <svg style="margin-left:auto;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <!-- Settings sub-items -->
+          <div style="margin-left:16px;margin-top:2px;border-left:1px solid #1E2D45;padding-left:12px;">
+            <a href="#" style="display:block;padding:6px 8px;font-size:12px;font-weight:500;color:#94A3B8;text-decoration:none;border-radius:4px;margin-bottom:1px;">General</a>
+            <a href="#" style="display:block;padding:6px 8px;font-size:12px;font-weight:600;color:#fff;text-decoration:none;border-radius:4px;background:rgba(47,128,255,0.08);margin-bottom:1px;">Team</a>
+            <a href="#" style="display:block;padding:6px 8px;font-size:12px;font-weight:500;color:#94A3B8;text-decoration:none;border-radius:4px;margin-bottom:1px;">Integrations</a>
+            <a href="#" style="display:block;padding:6px 8px;font-size:12px;font-weight:500;color:#94A3B8;text-decoration:none;border-radius:4px;">Billing</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- User info at bottom -->
+      <div style="padding:12px;margin-top:auto;border-top:1px solid #1E2D45;position:absolute;bottom:0;left:0;right:0;background:#0B1220;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2F80FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="color:#fff;font-size:10px;font-weight:700;">GC</span>
+          </div>
+          <div style="overflow:hidden;">
+            <div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">George Carrillo</div>
+            <div style="font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Admin</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Page Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <!-- Breadcrumb -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <span style="font-size:11px;color:#94A3B8;font-weight:500;">Settings</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <span style="font-size:11px;color:#475569;font-weight:600;">Team</span>
+          </div>
+          <h1 style="font-size:20px;font-weight:800;color:#0F172A;letter-spacing:-0.4px;line-height:1;">Team</h1>
+          <p style="font-size:13px;color:#475569;font-weight:500;margin-top:4px;">7 members &middot; 3 pending invitations</p>
+        </div>
+
+        <!-- Invite Member CTA -->
+        <button style="display:flex;align-items:center;gap:7px;background:#2F80FF;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:-0.1px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Invite Member
+        </button>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;align-items:center;gap:0;border-bottom:1px solid #E2E8F0;margin-bottom:24px;">
+        <!-- Members TAB (active) -->
+        <button style="padding:10px 18px;font-size:13px;font-weight:600;color:#0F172A;background:none;border:none;cursor:pointer;border-bottom:2px solid #2F80FF;margin-bottom:-1px;font-family:inherit;">Members</button>
+        <!-- Pending Invitations -->
+        <button style="padding:10px 18px;font-size:13px;font-weight:500;color:#94A3B8;background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;display:flex;align-items:center;gap:6px;">
+          Pending Invitations
+          <span style="background:#2F80FF;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;">3</span>
+        </button>
+        <!-- Roles & Permissions -->
+        <button style="padding:10px 18px;font-size:13px;font-weight:500;color:#94A3B8;background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;">Roles &amp; Permissions</button>
+      </div>
+
+      <!-- MEMBERS TABLE CARD -->
+      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:20px;">
+
+        <!-- Table toolbar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #E2E8F0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <!-- Search -->
+            <div style="position:relative;">
+              <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" placeholder="Search members..." style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:6px 12px 6px 28px;font-size:12px;color:#0F172A;outline:none;font-family:inherit;width:220px;" />
+            </div>
+            <!-- Filter -->
+            <button style="display:flex;align-items:center;gap:6px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;color:#475569;cursor:pointer;font-family:inherit;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filter
+            </button>
+          </div>
+          <span style="font-size:12px;color:#94A3B8;font-weight:500;">7 members</span>
+        </div>
+
+        <!-- Table header -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:10px 20px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;">
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Name</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Role</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Proposals</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Win Rate</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Last Active</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Status</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;"></span>
+        </div>
+
+        <!-- ROW TEMPLATE macro as inline HTML below -->
+
+        <!-- Row 1: George Carrillo -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">GC</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">George Carrillo</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">g.carrillo@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(47,128,255,0.10);color:#2F80FF;">Admin</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">12 proposals</div>
+          <div style="font-size:12px;font-weight:600;color:#00C48C;">72%</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Today</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 2: Sarah Chen -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">SC</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">Sarah Chen</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">s.chen@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Capture Manager</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">8 proposals</div>
+          <div style="font-size:12px;font-weight:600;color:#00C48C;">75%</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Today</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 3: Marcus Williams -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">MW</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">Marcus Williams</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">m.williams@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Proposal Writer</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">6 proposals</div>
+          <div style="font-size:12px;font-weight:600;color:#00C48C;">83%</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Yesterday</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 4: James Okafor -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">JO</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">James Okafor</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">j.okafor@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Technical Writer</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">5 proposals</div>
+          <div style="font-size:12px;font-weight:600;color:#FF4D4F;">60%</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 22</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 5: Maria Lopez -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">ML</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">Maria Lopez</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">m.lopez@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Pricing Analyst</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">4 proposals</div>
+          <div style="font-size:12px;font-weight:600;color:#00C48C;">75%</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 21</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 6: David Kim -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">DK</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A;line-height:1.2;">David Kim</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">d.kim@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Compliance Reviewer</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#475569;">3 proposals</div>
+          <div style="font-size:12px;font-weight:500;color:#475569;">&mdash;</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 18</div>
+          <div style="font-size:10.5px;font-weight:700;color:#00C48C;">Active</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+        <!-- Row 7: Lisa Turner -->
+        <div style="display:grid;grid-template-columns:2.8fr 1.4fr 1fr 0.9fr 1fr 0.8fr 80px;gap:0;padding:14px 20px;align-items:center;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:11px;font-weight:700;color:#475569;">LT</span>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#94A3B8;line-height:1.2;">Lisa Turner</div>
+              <div style="font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px;">l.turner@avero.io</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#94A3B8;">Red Team Lead</span>
+          </div>
+          <div style="font-size:13px;font-weight:500;color:#94A3B8;">2 proposals</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">&mdash;</div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Mar 30</div>
+          <div style="font-size:10.5px;font-weight:700;color:#94A3B8;">Inactive</div>
+          <div style="text-align:right;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:600;color:#94A3B8;cursor:pointer;font-family:inherit;">Edit</button>
+          </div>
+        </div>
+
+      </div><!-- /MEMBERS TABLE CARD -->
+
+      <!-- PENDING INVITATIONS CARD -->
+      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:20px;">
+
+        <!-- Card header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #E2E8F0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <span style="font-size:13px;font-weight:700;color:#0F172A;">Pending Invitations</span>
+            <span style="background:#2F80FF;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">3</span>
+          </div>
+          <button style="display:flex;align-items:center;gap:6px;background:none;border:1px solid #E2E8F0;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
+            </svg>
+            Resend All
+          </button>
+        </div>
+
+        <!-- Invitation rows header -->
+        <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1fr auto;gap:0;padding:9px 20px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;">
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Email</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Role</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Invited</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;"></span>
+        </div>
+
+        <!-- Inv Row 1 -->
+        <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1fr auto;gap:0;padding:13px 20px;align-items:center;border-bottom:1px solid #F8FAFC;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;border:1.5px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:#0F172A;">alex.johnson@contractor.com</div>
+              <div style="font-size:10px;font-weight:500;color:#F59E0B;margin-top:1px;">Awaiting acceptance</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Proposal Writer</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 22</div>
+          <div style="display:flex;gap:6px;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
+              </svg>
+              Resend
+            </button>
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#FF4D4F;cursor:pointer;font-family:inherit;">Revoke</button>
+          </div>
+        </div>
+
+        <!-- Inv Row 2 -->
+        <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1fr auto;gap:0;padding:13px 20px;align-items:center;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;border:1.5px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:#0F172A;">rachel.smith@teaming.gov</div>
+              <div style="font-size:10px;font-weight:500;color:#F59E0B;margin-top:1px;">Awaiting acceptance</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Compliance Reviewer</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 20</div>
+          <div style="display:flex;gap:6px;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
+              </svg>
+              Resend
+            </button>
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#FF4D4F;cursor:pointer;font-family:inherit;">Revoke</button>
+          </div>
+        </div>
+
+        <!-- Inv Row 3 -->
+        <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1fr auto;gap:0;padding:13px 20px;align-items:center;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;border:1.5px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:#0F172A;">mike.torres@sbdc.org</div>
+              <div style="font-size:10px;font-weight:500;color:#F59E0B;margin-top:1px;">Awaiting acceptance</div>
+            </div>
+          </div>
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Technical Writer</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#94A3B8;">Apr 15</div>
+          <div style="display:flex;gap:6px;">
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
+              </svg>
+              Resend
+            </button>
+            <button style="background:none;border:1px solid #E2E8F0;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;color:#FF4D4F;cursor:pointer;font-family:inherit;">Revoke</button>
+          </div>
+        </div>
+
+      </div><!-- /PENDING INVITATIONS -->
+
+      <!-- ROLES & PERMISSIONS CARD -->
+      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:60px;">
+
+        <!-- Card header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #E2E8F0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span style="font-size:13px;font-weight:700;color:#0F172A;">Roles &amp; Permissions</span>
+          </div>
+          <span style="font-size:11px;font-weight:500;color:#94A3B8;">Reference only — contact support to modify roles</span>
+        </div>
+
+        <!-- Roles table header -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:9px 20px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;">
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Role</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Access Level</span>
+          <span style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Description</span>
+        </div>
+
+        <!-- Admin -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:13px 20px;align-items:start;border-bottom:1px solid #F8FAFC;">
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(47,128,255,0.10);color:#2F80FF;">Admin</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:12px;font-weight:600;color:#0F172A;">Full Access</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#475569;line-height:1.5;">Complete control over all settings, members, billing, integrations, proposals, and analytics. Can manage roles and permissions.</div>
+        </div>
+
+        <!-- Capture Manager -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:13px 20px;align-items:start;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Capture Manager</span>
+          </div>
+          <div>
+            <span style="font-size:12px;font-weight:600;color:#0F172A;">Pipeline + Proposals</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#475569;line-height:1.5;">Full access to pipeline and proposal management. Can create, edit, and submit proposals. Read access to analytics and library.</div>
+        </div>
+
+        <!-- Proposal Writer -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:13px 20px;align-items:start;border-bottom:1px solid #F8FAFC;">
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Proposal Writer</span>
+          </div>
+          <div>
+            <span style="font-size:12px;font-weight:600;color:#0F172A;">Proposals Only</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#475569;line-height:1.5;">Can create and edit proposal sections assigned to them. Access to content library for reference. Cannot submit or delete proposals.</div>
+        </div>
+
+        <!-- Compliance Reviewer -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:13px 20px;align-items:start;border-bottom:1px solid #F8FAFC;background:#F8FAFC;">
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Compliance Reviewer</span>
+          </div>
+          <div>
+            <span style="font-size:12px;font-weight:600;color:#0F172A;">Read + Comment</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#475569;line-height:1.5;">Read-only access to all proposals with ability to leave compliance comments and flag sections. Cannot edit or create proposals.</div>
+        </div>
+
+        <!-- Pricing Analyst -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 2.5fr;gap:0;padding:13px 20px;align-items:start;">
+          <div>
+            <span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(71,85,105,0.08);color:#475569;">Pricing Analyst</span>
+          </div>
+          <div>
+            <span style="font-size:12px;font-weight:600;color:#0F172A;">Analytics + Pricing</span>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#475569;line-height:1.5;">Access to pricing modules, analytics dashboard, and cost volume sections. Can generate pricing reports and review competitive analysis.</div>
+        </div>
+
+      </div><!-- /ROLES & PERMISSIONS -->
+
+    </main>
+  </div><!-- /body-row -->
+
+  <!-- FOOTER -->
+  <footer class="app-footer" style="display:flex;align-items:center;justify-content:center;">
+    <span style="font-size:11px;font-weight:500;color:#475569;">&copy; 2026 Avero &middot; Powered by AI</span>
+  </footer>
+
+</div><!-- /app-shell -->
+</body>
+</html>

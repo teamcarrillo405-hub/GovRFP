@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Past Performance Library — Avero GovTool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F0F2F5; color: #0F172A; font-size: 14px; }
+
+  /* HEADER */
+  .app-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 56px; background: #0B1220; display: flex; align-items: center;
+    padding: 0 20px; gap: 32px; border-bottom: 1px solid #263447;
+  }
+  .app-logo { color: #FFFFFF; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; }
+  .app-logo span { color: #2F80FF; }
+  .header-nav { display: flex; gap: 4px; flex: 1; }
+  .header-nav a {
+    color: #9AA4B2; font-size: 13px; font-weight: 500; text-decoration: none;
+    padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+  }
+  .header-nav a:hover { color: #FFFFFF; background: #1E2B3C; }
+  .header-nav a.active { color: #FFFFFF; background: #1E2B3C; }
+  .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .header-icon-btn {
+    width: 34px; height: 34px; background: #1E2B3C; border: 1px solid #263447;
+    border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; color: #9AA4B2;
+  }
+  .header-icon-btn:hover { color: #FFFFFF; }
+  .header-avatar {
+    width: 34px; height: 34px; background: #2F80FF; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+
+  /* LAYOUT */
+  .app-body { display: flex; padding-top: 56px; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .app-sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0; width: 220px;
+    background: #0B1220; border-right: 1px solid #263447; overflow-y: auto;
+    padding: 16px 0;
+  }
+  .sidebar-section-label {
+    color: #9AA4B2; font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; padding: 0 16px 8px; margin-top: 8px;
+  }
+  .sidebar-nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    color: #9AA4B2; font-size: 13px; font-weight: 500; cursor: pointer;
+    text-decoration: none; border-left: 2px solid transparent;
+  }
+  .sidebar-nav-item:hover { color: #FFFFFF; background: #1E2B3C; }
+  .sidebar-nav-item.active { color: #FFFFFF; background: #1E2B3C; border-left-color: #2F80FF; }
+  .sidebar-icon { width: 16px; text-align: center; }
+
+  /* MAIN */
+  .app-main { margin-left: 220px; flex: 1; padding: 28px 28px 24px; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 16px; }
+  .page-title { font-size: 20px; font-weight: 700; color: #0F172A; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: #475569; }
+  .page-subtitle strong { color: #0F172A; }
+  .page-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-outline {
+    background: #FFFFFF; color: #0F172A; border: 1px solid #E2E8F0; border-radius: 6px;
+    padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  }
+  .btn-outline:hover { border-color: #94A3B8; }
+  .btn-primary {
+    background: #2F80FF; color: #FFFFFF; border: none; border-radius: 6px;
+    padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .btn-primary:hover { background: #1a6fe0; }
+
+  /* SEARCH BAR */
+  .search-bar-wrap { position: relative; margin-bottom: 14px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94A3B8; }
+  .search-input {
+    width: 100%; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 10px 12px 10px 38px; font-size: 13px; color: #0F172A;
+    background: #FFFFFF; outline: none;
+  }
+  .search-input::placeholder { color: #94A3B8; }
+  .search-input:focus { border-color: #2F80FF; }
+
+  /* FILTER PILLS ROW */
+  .filter-pills-row { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-pill {
+    border: 1px solid #E2E8F0; border-radius: 20px; padding: 5px 12px;
+    font-size: 12px; color: #475569; background: #FFFFFF; cursor: pointer;
+    font-weight: 500; display: flex; align-items: center; gap: 4px;
+  }
+  .filter-pill:hover { border-color: #2F80FF; color: #2F80FF; }
+  .filter-pill svg { color: #94A3B8; }
+  .filter-clear { font-size: 12px; color: #94A3B8; cursor: pointer; margin-left: 4px; }
+  .filter-clear:hover { color: #FF4D4F; }
+
+  /* TWO COLUMN LAYOUT */
+  .two-col { display: flex; gap: 16px; align-items: flex-start; }
+  .col-records { flex: 1; min-width: 0; }
+  .col-preview { width: 320px; min-width: 320px; position: sticky; top: 84px; }
+
+  /* RECORD CARDS */
+  .record-card {
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .record-card:hover { border-color: #94A3B8; }
+  .record-card.selected { border-color: #2F80FF; box-shadow: 0 2px 10px rgba(47,128,255,0.10); }
+
+  .record-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 5px; flex-wrap: wrap; }
+  .record-name { font-size: 13px; font-weight: 700; color: #0F172A; flex: 1; min-width: 0; }
+  .record-value { font-size: 12.5px; font-weight: 700; color: #0F172A; white-space: nowrap; }
+  .cpars-outstanding { font-size: 12px; font-weight: 600; color: #00C48C; white-space: nowrap; }
+  .cpars-exceptional { font-size: 12px; font-weight: 600; color: #00C48C; white-space: nowrap; }
+  .cpars-satisfactory { font-size: 12px; font-weight: 600; color: #94A3B8; white-space: nowrap; }
+  .cpars-marginal { font-size: 12px; font-weight: 600; color: #FF4D4F; white-space: nowrap; }
+  .record-year { font-size: 12px; color: #94A3B8; white-space: nowrap; }
+
+  .record-detail { font-size: 12px; color: #475569; margin-bottom: 7px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .record-detail-sep { color: #E2E8F0; }
+
+  .record-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .record-used { font-size: 11.5px; color: #94A3B8; }
+  .record-match { font-size: 12px; font-weight: 700; color: #2F80FF; }
+  .record-action-link { font-size: 12px; color: #94A3B8; cursor: pointer; text-decoration: none; margin-left: auto; }
+  .record-action-link:hover { color: #2F80FF; }
+  .record-edit-link { font-size: 12px; color: #94A3B8; cursor: pointer; text-decoration: none; }
+  .record-edit-link:hover { color: #0F172A; }
+
+  /* PREVIEW PANEL */
+  .preview-card {
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px;
+    overflow: hidden;
+  }
+  .preview-card-header { padding: 16px; border-bottom: 1px solid #E2E8F0; background: #FAFBFC; }
+  .preview-card-title { font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 4px; }
+  .preview-cpars { display: inline-block; margin-bottom: 8px; }
+  .preview-fields { padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-field { margin-bottom: 10px; }
+  .preview-field-label { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .preview-field-value { font-size: 12.5px; color: #0F172A; }
+  .preview-field-value.muted { color: #475569; }
+
+  .preview-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+
+  .preview-scope { padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-scope-label { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .preview-scope-text { font-size: 12.5px; color: #475569; line-height: 1.65; }
+
+  .preview-accs { padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-accs-label { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .preview-acc-item { display: flex; gap: 8px; font-size: 12px; color: #0F172A; line-height: 1.5; margin-bottom: 5px; }
+  .preview-acc-item::before { content: "\2022"; color: #2F80FF; font-size: 14px; flex-shrink: 0; line-height: 1.3; }
+
+  .preview-challenge { padding: 14px 16px; border-bottom: 1px solid #E2E8F0; }
+  .preview-challenge-label { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .preview-challenge-text { font-size: 12.5px; color: #475569; line-height: 1.65; }
+
+  .preview-actions { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .btn-full { width: 100%; text-align: center; padding: 9px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+  .btn-full.primary { background: #2F80FF; color: #FFFFFF; border: none; }
+  .btn-full.primary:hover { background: #1a6fe0; }
+  .btn-full.outline { background: #FFFFFF; color: #0F172A; border: 1px solid #E2E8F0; }
+  .btn-full.outline:hover { border-color: #94A3B8; }
+
+  /* FOOTER */
+  .app-footer {
+    margin-left: 220px; background: #0B1220; border-top: 1px solid #263447;
+    padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand { color: #9AA4B2; font-size: 12px; }
+  .footer-brand strong { color: #FFFFFF; }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a { color: #9AA4B2; font-size: 12px; text-decoration: none; }
+  .footer-links a:hover { color: #FFFFFF; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-logo">Avero <span>GovTool</span></div>
+  <nav class="header-nav">
+    <a href="#">Dashboard</a>
+    <a href="#">Proposals</a>
+    <a href="#">Content Library</a>
+    <a href="#">Compliance</a>
+    <a href="#" class="active">Past Performance</a>
+    <a href="#">Reports</a>
+  </nav>
+  <div class="header-right">
+    <div class="header-icon-btn" title="Notifications">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="header-icon-btn" title="Search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="header-avatar">GC</div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="sidebar-section-label">Workspace</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    Dashboard
+  </a>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+    Proposals
+  </a>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+    Content Library
+  </a>
+
+  <div class="sidebar-section-label" style="margin-top:8px;">Compliance</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+    Compliance Matrix
+  </a>
+  <a class="sidebar-nav-item active" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    Past Performance
+  </a>
+
+  <div class="sidebar-section-label" style="margin-top:8px;">Settings</div>
+  <a class="sidebar-nav-item" href="#">
+    <span class="sidebar-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M20 12h2M2 12h2M12 20v2M12 2v2"/></svg></span>
+    Settings
+  </a>
+</aside>
+
+<!-- MAIN -->
+<div class="app-body">
+<main class="app-main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Past Performance Library</div>
+      <div class="page-subtitle">
+        34 records &nbsp;&middot;&nbsp;
+        <strong>$47.2M</strong> total contract value &nbsp;&middot;&nbsp;
+        Used in <strong>89</strong> proposals this year
+      </div>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn-outline">Import from USASpending</button>
+      <button class="btn-primary">+ Add Record</button>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="search-bar-wrap">
+    <span class="search-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input class="search-input" type="text" placeholder="Search by project name, agency, challenge type...">
+  </div>
+
+  <!-- FILTER PILLS -->
+  <div class="filter-pills-row">
+    <div class="filter-pill">
+      NAICS
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-pill">
+      Agency
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-pill">
+      Year
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-pill">
+      Set-Aside
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-pill">
+      CPARS Rating
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="filter-pill">
+      Outcome
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <span class="filter-clear">Clear</span>
+  </div>
+
+  <!-- TWO COLUMN LAYOUT -->
+  <div class="two-col">
+
+    <!-- RECORD LIST -->
+    <div class="col-records">
+
+      <!-- Record 1 — selected -->
+      <div class="record-card selected">
+        <div class="record-header">
+          <div class="record-name">USACE Levee Repair Phase I</div>
+          <div class="record-value">$3.2M</div>
+          <div class="cpars-outstanding">CPARS: Outstanding</div>
+          <div class="record-year">2023</div>
+        </div>
+        <div class="record-detail">
+          <span>Army Corps of Engineers</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 237990</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>WOSB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>18 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 12 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Record 2 -->
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-name">VA Medical Center Renovation</div>
+          <div class="record-value">$1.8M</div>
+          <div class="cpars-exceptional">CPARS: Exceptional</div>
+          <div class="record-year">2024</div>
+        </div>
+        <div class="record-detail">
+          <span>Dept of Veterans Affairs</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 236220</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>WOSB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>14 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 8 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Record 3 -->
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-name">HUD Community Infrastructure</div>
+          <div class="record-value">$2.4M</div>
+          <div class="cpars-satisfactory">CPARS: Satisfactory</div>
+          <div class="record-year">2022</div>
+        </div>
+        <div class="record-detail">
+          <span>Dept of Housing</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 236220</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>SB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>24 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 5 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Record 4 -->
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-name">NAVFAC Facility Construction</div>
+          <div class="record-value">$4.1M</div>
+          <div class="cpars-outstanding">CPARS: Outstanding</div>
+          <div class="record-year">2024</div>
+        </div>
+        <div class="record-detail">
+          <span>Navy Facilities Command</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 236220</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>WOSB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>20 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 9 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Record 5 -->
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-name">FEMA Disaster Recovery Construction</div>
+          <div class="record-value">$5.6M</div>
+          <div class="cpars-outstanding">CPARS: Outstanding</div>
+          <div class="record-year">2023</div>
+        </div>
+        <div class="record-detail">
+          <span>FEMA</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 236220</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>SB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>28 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 14 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Record 6 -->
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-name">DOT Bridge Rehabilitation</div>
+          <div class="record-value">$2.9M</div>
+          <div class="cpars-exceptional">CPARS: Exceptional</div>
+          <div class="record-year">2023</div>
+        </div>
+        <div class="record-detail">
+          <span>Dept of Transportation</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>NAICS 237310</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>WOSB</span>
+          <span class="record-detail-sep">&middot;</span>
+          <span>16 months</span>
+        </div>
+        <div class="record-footer">
+          <span class="record-used">Used in 6 proposals</span>
+          <a class="record-edit-link">Edit</a>
+          <a class="record-action-link" style="margin-left:auto;">Insert &rarr;</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DETAIL PREVIEW PANEL -->
+    <div class="col-preview">
+      <div class="preview-card">
+
+        <div class="preview-card-header">
+          <div class="preview-card-title">USACE Levee Repair Phase I</div>
+          <span class="preview-cpars cpars-outstanding">Outstanding</span>
+        </div>
+
+        <div class="preview-fields-grid">
+          <div class="preview-field">
+            <div class="preview-field-label">Contract Number</div>
+            <div class="preview-field-value" style="font-family:monospace; font-size:11.5px;">W912EQ-23-C-0047</div>
+          </div>
+          <div class="preview-field">
+            <div class="preview-field-label">Dollar Value</div>
+            <div class="preview-field-value">$3,218,400</div>
+          </div>
+          <div class="preview-field">
+            <div class="preview-field-label">Period of Performance</div>
+            <div class="preview-field-value muted">Mar 2022 – Sep 2023</div>
+          </div>
+          <div class="preview-field">
+            <div class="preview-field-label">NAICS Code</div>
+            <div class="preview-field-value muted">237990</div>
+          </div>
+          <div class="preview-field">
+            <div class="preview-field-label">Contracting Agency</div>
+            <div class="preview-field-value muted">USACE — Vicksburg District</div>
+          </div>
+          <div class="preview-field">
+            <div class="preview-field-label">Set-Aside</div>
+            <div class="preview-field-value muted">WOSB</div>
+          </div>
+        </div>
+
+        <div class="preview-fields" style="padding-top:8px; padding-bottom:8px; border-bottom: 1px solid #E2E8F0;">
+          <div class="preview-field">
+            <div class="preview-field-label">Customer PM Contact</div>
+            <div class="preview-field-value muted">James T. Holloway, PE &nbsp;&middot;&nbsp; jthollow@usace.army.mil &nbsp;&middot;&nbsp; (601) 634-5501</div>
+          </div>
+        </div>
+
+        <div class="preview-scope">
+          <div class="preview-scope-label">Scope Summary</div>
+          <div class="preview-scope-text">
+            This contract required full reconstruction of 1.4 miles of earthen levee along the Mississippi River corridor, including subgrade stabilization, riprap armoring, and installation of a new flood-control closure structure. Work was performed under continuous coordination with USACE quality assurance representatives and required strict adherence to EM 1110-2-1913 design standards. The project involved mobilization of heavy civil equipment, dewatering operations, and environmental mitigation measures to protect adjacent wetlands. All work was completed on schedule and within budget, with zero lost-time incidents over the 18-month performance period.
+          </div>
+        </div>
+
+        <div class="preview-accs">
+          <div class="preview-accs-label">Key Accomplishments</div>
+          <div class="preview-acc-item">Delivered all 7 contract milestones on or ahead of schedule, earning a schedule performance index of 1.07 at project closeout.</div>
+          <div class="preview-acc-item">Achieved zero OSHA recordable incidents over 42,000 total labor hours, sustaining a 5-year company-wide EMR of 0.67.</div>
+          <div class="preview-acc-item">Implemented value engineering proposal that reduced structural riprap quantities by 8%, saving the government $127,000 with no reduction in scope.</div>
+        </div>
+
+        <div class="preview-challenge">
+          <div class="preview-challenge-label">Challenges Overcome</div>
+          <div class="preview-challenge-text">
+            Unexpected subsurface anomalies at Sta. 42+00 required rapid geotechnical re-evaluation and a design modification coordinated with USACE engineers within 10 days to avoid schedule impact. The team proactively pre-positioned additional select fill material to maintain continuous earthwork operations while the modification was reviewed and approved.
+          </div>
+        </div>
+
+        <div class="preview-actions">
+          <button class="btn-full primary">Insert into Proposal</button>
+          <button class="btn-full outline">Edit Record</button>
+          <button class="btn-full outline">Generate Tailored Narrative</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="footer-brand"><strong>Avero GovTool</strong> &nbsp;&mdash;&nbsp; Past Performance Library</div>
+  <div class="footer-links">
+    <a href="#">Help</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+  </div>
+</footer>
+
+</body>
+</html>

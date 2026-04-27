@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avero GovTool — Command Center</title>
+<style>
+/* ─────────────────────────────────────────
+   AVERO DESIGN TOKENS
+   Corporate 100 — One accent, semantic only
+───────────────────────────────────────── */
+:root {
+  /* Chrome */
+  --navy:       #0B1220;
+  --slate:      #1A2433;
+  --mid:        #1E2B3C;
+  --navborder:  #263447;
+  --softgray:   #9AA4B2;
+
+  /* Primary accent — used for interactive elements ONLY */
+  --blue:       #2F80FF;
+  --blue-light: rgba(47,128,255,.08);
+  --blue-mid:   rgba(47,128,255,.15);
+
+  /* Semantic — used ONLY for status, never decoration */
+  --success:    #00C48C;
+  --success-bg: rgba(0,196,140,.08);
+  --error:      #FF4D4F;
+  --error-bg:   rgba(255,77,79,.08);
+  --warning:    #F59E0B;
+  --warning-bg: rgba(245,158,11,.08);
+
+  /* Data viz (charts only) */
+  --chart-2: #7B61FF;
+  --chart-3: #00C2FF;
+
+  /* Light surface */
+  --body:    #F0F2F5;
+  --card:    #FFFFFF;
+  --text-1:  #0F172A;
+  --text-2:  #475569;
+  --text-3:  #94A3B8;
+  --border:  #E2E8F0;
+  --divider: #F1F5F9;
+
+  /* Type scale */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-1);
+  background: var(--body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────
+   APP SHELL — sticky header + sidebar + scroll
+───────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────
+   HEADER — dark navy, sticky
+───────────────────────────────────────── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  height: 52px;
+  background: var(--navy);
+  border-bottom: 1px solid var(--navborder);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+.logo-wordmark {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.logo-wordmark .accent { color: var(--blue); }
+.logo-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--navborder);
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+.logo-product {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--softgray);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Top nav */
+.top-nav {
+  display: flex;
+  gap: 1px;
+  margin-left: 28px;
+}
+.top-nav-item {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--softgray);
+  padding: 6px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: color .1s, background .1s;
+  white-space: nowrap;
+}
+.top-nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+.top-nav-item.active { color: #fff; background: var(--mid); }
+
+/* Header right */
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.icon-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--navborder);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .1s;
+}
+.icon-btn:hover { background: var(--mid); }
+.badge-dot {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 14px; height: 14px;
+  background: var(--error);
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 800;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--navy);
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--navborder);
+  background: transparent;
+  cursor: pointer;
+  transition: background .1s;
+}
+.user-chip:hover { background: var(--mid); }
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-chip span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────
+   BODY ROW — sidebar + main
+───────────────────────────────────────── */
+.body-row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ─────────────────────────────────────────
+   SIDEBAR — dark, sticky alongside scroll
+───────────────────────────────────────── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--navy);
+  border-right: 1px solid var(--navborder);
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+.sidebar::-webkit-scrollbar { width: 0; }
+
+.nav-section { margin-bottom: 6px; }
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--navborder);
+  padding: 10px 20px 5px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--softgray);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .1s, background .1s, border-color .1s;
+  position: relative;
+}
+.nav-link:hover:not(.active) {
+  color: #fff;
+  background: rgba(255,255,255,.03);
+}
+.nav-link.active {
+  color: #fff;
+  font-weight: 600;
+  background: var(--mid);
+  border-left-color: var(--blue);
+}
+.nav-link svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-count.alert { background: var(--error); }
+
+/* ─────────────────────────────────────────
+   MAIN CONTENT — scrolls naturally
+───────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  padding: 28px 28px 48px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─────────────────────────────────────────
+   PAGE HEADER
+───────────────────────────────────────── */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.page-title-block {}
+.page-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+.page-meta {
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-weight: 500;
+  text-align: right;
+}
+.page-meta strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────
+   ALERT / NOTICE BAR
+───────────────────────────────────────── */
+.notice {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.notice-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: var(--blue-light);
+  border: 1px solid rgba(47,128,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.notice-icon svg {
+  width: 16px; height: 16px;
+  stroke: var(--blue);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.notice-body { flex: 1; min-width: 0; }
+.notice-body strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+  display: block;
+}
+.notice-body span {
+  font-size: 11.5px;
+  color: var(--text-2);
+  margin-top: 2px;
+  display: block;
+}
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+  transition: background .1s;
+  font-family: var(--font);
+}
+.btn-primary:hover { background: #1a6ee8; }
+.btn-secondary {
+  background: transparent;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: var(--font);
+  transition: border-color .1s, background .1s;
+}
+.btn-secondary:hover { border-color: var(--blue); background: var(--blue-light); }
+
+/* ─────────────────────────────────────────
+   KPI METRICS — restrained, corporate
+───────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.kpi-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+.kpi-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-1);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.kpi-detail {
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.delta-up   { background: var(--success-bg); color: #047857; }
+.delta-warn { background: var(--warning-bg); color: #92400e; }
+.delta-info { background: var(--blue-light);  color: #1e40af; }
+.delta-alert { background: var(--error-bg);  color: #991b1b; }
+
+/* Blue accent line — active / key metric only */
+.kpi.primary { border-top: 2px solid var(--blue); }
+
+/* ─────────────────────────────────────────
+   SECTION HEADER
+───────────────────────────────────────── */
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sec-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 2px var(--success-bg);
+}
+.sec-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+}
+.sec-link:hover { text-decoration: underline; }
+
+/* ─────────────────────────────────────────
+   PROPOSAL CARDS
+───────────────────────────────────────── */
+.proposal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.proposal-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.proposal-card.go      { border-left-color: var(--success); }
+.proposal-card.caution { border-left-color: var(--warning); }
+.proposal-card.urgent  { border-left-color: var(--error); }
+.proposal-card.pending { border-left-color: var(--blue); }
+
+.proposal-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.proposal-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1.35;
+}
+.proposal-score-badge {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-1);
+  background: var(--body);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.proposal-meta {
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.proposal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+}
+.tag-go      { background: var(--success-bg); color: #047857; border: 1px solid rgba(0,196,140,.2); }
+.tag-caution { background: var(--warning-bg); color: #92400e; border: 1px solid rgba(245,158,11,.2); }
+.tag-urgent  { background: var(--error-bg);   color: #991b1b; border: 1px solid rgba(255,77,79,.2); }
+.tag-info    { background: var(--blue-light);  color: #1e40af; border: 1px solid rgba(47,128,255,.2); }
+.tag-neutral { background: var(--body); color: var(--text-2); border: 1px solid var(--border); }
+
+.score-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.score-track {
+  flex: 1;
+  height: 4px;
+  background: var(--body);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--blue);
+  transition: width .3s ease;
+}
+.score-fill.go      { background: var(--success); }
+.score-fill.caution { background: var(--warning); }
+.score-fill.urgent  { background: var(--error); }
+.score-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────
+   TWO-COLUMN BOTTOM SECTION
+───────────────────────────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 14px;
+}
+
+/* ─────────────────────────────────────────
+   CARD (generic panel)
+───────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.card + .card { margin-top: 14px; }
+
+/* ─────────────────────────────────────────
+   TASK LIST
+───────────────────────────────────────── */
+.task-list { display: flex; flex-direction: column; }
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.task-item:last-child { border-bottom: none; }
+.task-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.task-body { flex: 1; min-width: 0; }
+.task-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.task-ctx {
+  font-size: 11.5px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+.task-due {
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.due-critical { color: var(--error); }
+.due-warn     { color: var(--warning); }
+.due-ok       { color: var(--text-3); }
+
+/* ─────────────────────────────────────────
+   MINI BAR CHART
+───────────────────────────────────────── */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 56px;
+  margin: 12px 0 6px;
+}
+.bc-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: opacity .1s;
+  cursor: default;
+}
+.bc-bar:hover { opacity: .8; }
+.bc-axis {
+  display: flex;
+  justify-content: space-between;
+}
+.bc-label {
+  font-size: 9.5px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.chart-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────
+   ACTIVITY FEED
+───────────────────────────────────────── */
+.feed { display: flex; flex-direction: column; }
+.feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.feed-item:last-child { border-bottom: none; }
+.feed-avatar {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: var(--navy);
+  color: var(--blue);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--navborder);
+}
+.feed-avatar.system {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(0,196,140,.2);
+}
+.feed-body { flex: 1; min-width: 0; }
+.feed-text {
+  font-size: 12.5px;
+  color: var(--text-1);
+  line-height: 1.4;
+}
+.feed-text strong { color: var(--blue); font-weight: 700; }
+.feed-proposal {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.feed-time {
+  font-size: 11px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+/* ─────────────────────────────────────────
+   PIPELINE SUMMARY STRIP
+───────────────────────────────────────── */
+.pipeline-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pipeline-stage {
+  background: var(--card);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pipeline-stage-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+.pipeline-stage-count {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.pipeline-stage-val {
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+/* ─────────────────────────────────────────
+   FOOTER — dark navy
+───────────────────────────────────────── */
+.app-footer {
+  background: var(--navy);
+  border-top: 1px solid var(--navborder);
+  padding: 0 24px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.footer-copy {
+  font-size: 11px;
+  color: var(--softgray);
+  font-weight: 500;
+}
+.footer-copy strong { color: var(--blue); font-weight: 700; }
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+.footer-links a {
+  font-size: 11px;
+  color: var(--softgray);
+  text-decoration: none;
+  transition: color .1s;
+}
+.footer-links a:hover { color: #fff; }
+
+/* ─────────────────────────────────────────
+   UTILITY
+───────────────────────────────────────── */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-3 { gap: 12px; }
+.ml-auto { margin-left: auto; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════ -->
+  <header class="app-header">
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <!-- A triangle -->
+          <polygon points="14,3 26,24 2,24" stroke="#2F80FF" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <!-- Center divider bar inside A -->
+          <line x1="8.5" y1="17" x2="19.5" y2="17" stroke="#2F80FF" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- O play symbol -->
+          <circle cx="22" cy="7" r="4.5" stroke="#fff" stroke-width="1.4" fill="none"/>
+          <polygon points="20.5,5.5 20.5,8.5 23.5,7" fill="#2F80FF"/>
+        </svg>
+      </div>
+      <span class="logo-wordmark">AV<span class="accent">E</span>RO</span>
+    </a>
+    <div class="logo-divider"></div>
+    <span class="logo-product">GovTool</span>
+
+    <nav class="top-nav">
+      <a class="top-nav-item active" href="#">Dashboard</a>
+      <a class="top-nav-item" href="#">Proposals</a>
+      <a class="top-nav-item" href="#">Opportunities</a>
+      <a class="top-nav-item" href="#">Past Performance</a>
+      <a class="top-nav-item" href="#">Analytics</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="icon-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" stroke="#9AA4B2" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="badge-dot">3</div>
+      </div>
+      <div class="icon-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" stroke="#9AA4B2" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <div class="user-chip">
+        <div class="avatar">GC</div>
+        <span>George C.</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       BODY ROW
+  ════════════════════════════════════════ -->
+  <div class="body-row">
+
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <aside class="sidebar">
+
+      <div class="nav-section">
+        <div class="nav-section-label">Workspace</div>
+        <a class="nav-link active" href="#">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          Command Center
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Proposals
+          <span class="nav-count">8</span>
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Opportunities
+          <span class="nav-count alert">3</span>
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Pipeline
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Content</div>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Past Performance
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Content Library
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          Compliance Matrix
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Intelligence</div>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="4" height="10"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="4" width="4" height="17"/></svg>
+          Analytics
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Teaming Partners
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Competitor Intel
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profile
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Settings
+        </a>
+        <a class="nav-link" href="#">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Help Center
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ══════════ MAIN ══════════ -->
+    <main class="main-content">
+
+      <!-- Page header -->
+      <div class="page-head">
+        <div class="page-title-block">
+          <div class="page-title">Command Center</div>
+          <div class="page-subtitle">Friday, April 25, 2026 · 8 active proposals · $2.4M pipeline · 2 deadlines this week</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn-secondary">+ New Proposal</button>
+          <button class="btn-primary">Import Opportunity</button>
+        </div>
+      </div>
+
+      <!-- Pipeline summary strip -->
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">Pipeline Overview</div>
+          <a class="sec-link" href="#">Open Pipeline Board</a>
+        </div>
+        <div class="pipeline-strip">
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-label">Identified</div>
+            <div class="pipeline-stage-count">14</div>
+            <div class="pipeline-stage-val">$8.2M potential</div>
+          </div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-label">Qualifying</div>
+            <div class="pipeline-stage-count">6</div>
+            <div class="pipeline-stage-val">$3.1M qualified</div>
+          </div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-label">Drafting</div>
+            <div class="pipeline-stage-count">5</div>
+            <div class="pipeline-stage-val">$2.4M in progress</div>
+          </div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-label">Submitted</div>
+            <div class="pipeline-stage-count">3</div>
+            <div class="pipeline-stage-val">$1.1M awaiting</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opportunity notice -->
+      <div class="notice">
+        <div class="notice-icon">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="notice-body">
+          <strong>3 new opportunities match your contractor profile</strong>
+          <span>USACE · NAVFAC · HUD — NAICS 236220, WOSB set-aside · 2 close within 30 days · 1 recompete with incumbent identified</span>
+        </div>
+        <button class="btn-secondary" style="margin-right:8px">Dismiss</button>
+        <button class="btn-primary">Review Matches</button>
+      </div>
+
+      <!-- KPI metrics -->
+      <div class="kpi-row">
+        <div class="kpi primary">
+          <div class="kpi-label">Active Proposals</div>
+          <div class="kpi-value">8
+            <span class="kpi-delta delta-info">in progress</span>
+          </div>
+          <div class="kpi-detail">4 Go &nbsp;·&nbsp; 1 Caution &nbsp;·&nbsp; 3 Submitted</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Win Rate · 90 Days</div>
+          <div class="kpi-value">67%
+            <span class="kpi-delta delta-up">+8% vs prior</span>
+          </div>
+          <div class="kpi-detail">6 won of 9 submitted proposals</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Pipeline Value</div>
+          <div class="kpi-value">$2.4M
+            <span class="kpi-delta delta-up">qualified</span>
+          </div>
+          <div class="kpi-detail">$1.8M in Go-status proposals</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Deadlines This Week</div>
+          <div class="kpi-value">2
+            <span class="kpi-delta delta-alert">action required</span>
+          </div>
+          <div class="kpi-detail">USACE tomorrow &nbsp;·&nbsp; HUD on Friday</div>
+        </div>
+      </div>
+
+      <!-- Active proposals -->
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">
+            <span class="pulse"></span>
+            Active Proposals
+          </div>
+          <a class="sec-link" href="#">View all proposals</a>
+        </div>
+        <div class="proposal-grid">
+
+          <div class="proposal-card urgent">
+            <div class="proposal-top">
+              <div class="proposal-name">USACE Levee Repair — Design-Build Phase II</div>
+              <div class="proposal-score-badge">61 / 100</div>
+            </div>
+            <div class="proposal-meta">
+              Army Corps of Engineers &nbsp;·&nbsp; NAICS 237990 &nbsp;·&nbsp; Contract ceiling $4.2M
+            </div>
+            <div class="proposal-tags">
+              <span class="tag tag-urgent">Due Tomorrow</span>
+              <span class="tag tag-caution">Caution Score</span>
+              <span class="tag tag-neutral">2 Sections Incomplete</span>
+              <span class="tag tag-neutral">Compliance: 84%</span>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-track">
+                <div class="score-fill caution" style="width:61%"></div>
+              </div>
+              <span class="score-pct">Win Score 61%</span>
+            </div>
+          </div>
+
+          <div class="proposal-card go">
+            <div class="proposal-top">
+              <div class="proposal-name">HUD Community Development Block Grant — Infrastructure</div>
+              <div class="proposal-score-badge">82 / 100</div>
+            </div>
+            <div class="proposal-meta">
+              Dept. of Housing &nbsp;·&nbsp; NAICS 236220 &nbsp;·&nbsp; WOSB Set-Aside &nbsp;·&nbsp; Due May 3
+            </div>
+            <div class="proposal-tags">
+              <span class="tag tag-go">Go</span>
+              <span class="tag tag-info">Due May 3</span>
+              <span class="tag tag-neutral">Red Team Complete</span>
+              <span class="tag tag-neutral">Color Team: Gold</span>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-track">
+                <div class="score-fill go" style="width:82%"></div>
+              </div>
+              <span class="score-pct">Win Score 82%</span>
+            </div>
+          </div>
+
+          <div class="proposal-card pending">
+            <div class="proposal-top">
+              <div class="proposal-name">NAVFAC Pacific Construction Services IDIQ</div>
+              <div class="proposal-score-badge">78 / 100</div>
+            </div>
+            <div class="proposal-meta">
+              Navy Facilities Command &nbsp;·&nbsp; NAICS 236220 &nbsp;·&nbsp; Submitted April 18, 2026
+            </div>
+            <div class="proposal-tags">
+              <span class="tag tag-info">Submitted</span>
+              <span class="tag tag-neutral">Awaiting Award Decision</span>
+              <span class="tag tag-neutral">$780K est. value</span>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-track">
+                <div class="score-fill" style="width:78%"></div>
+              </div>
+              <span class="score-pct">Final Score 78%</span>
+            </div>
+          </div>
+
+          <div class="proposal-card go">
+            <div class="proposal-top">
+              <div class="proposal-name">VA Medical Center Renovation — Blanket Purchase Agreement</div>
+              <div class="proposal-score-badge">88 / 100</div>
+            </div>
+            <div class="proposal-meta">
+              Dept. of Veterans Affairs &nbsp;·&nbsp; NAICS 236220 &nbsp;·&nbsp; Due May 10, 2026
+            </div>
+            <div class="proposal-tags">
+              <span class="tag tag-go">Go</span>
+              <span class="tag tag-info">Due May 10</span>
+              <span class="tag tag-neutral">Quality Watchdog: Approved</span>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-track">
+                <div class="score-fill go" style="width:88%"></div>
+              </div>
+              <span class="score-pct">Win Score 88%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Bottom two-col -->
+      <div class="two-col">
+
+        <!-- Left: Tasks -->
+        <div class="card">
+          <div class="sec-head">
+            <div class="sec-title">My Tasks This Week</div>
+            <a class="sec-link" href="#">View all tasks</a>
+          </div>
+          <div class="task-list">
+            <div class="task-item">
+              <div class="task-indicator" style="background:var(--error)"></div>
+              <div class="task-body">
+                <div class="task-name">Finalize Technical Approach — Section 2</div>
+                <div class="task-ctx">USACE Levee Repair &nbsp;·&nbsp; 2 compliance requirements uncovered &nbsp;·&nbsp; Blocking submission</div>
+              </div>
+              <div class="task-due due-critical">Today</div>
+            </div>
+            <div class="task-item">
+              <div class="task-indicator" style="background:var(--warning)"></div>
+              <div class="task-body">
+                <div class="task-name">Upload Signed Safety Plan — Attachment C</div>
+                <div class="task-ctx">HUD Grant &nbsp;·&nbsp; Required before submission portal accepts upload</div>
+              </div>
+              <div class="task-due due-warn">Wednesday</div>
+            </div>
+            <div class="task-item">
+              <div class="task-indicator" style="background:var(--blue)"></div>
+              <div class="task-body">
+                <div class="task-name">Resolve Red Team Comments — 3 open threads</div>
+                <div class="task-ctx">VA BPA · Section 3 &nbsp;·&nbsp; Maria R. awaiting your response</div>
+              </div>
+              <div class="task-due due-ok">Thursday</div>
+            </div>
+            <div class="task-item">
+              <div class="task-indicator" style="background:var(--blue)"></div>
+              <div class="task-body">
+                <div class="task-name">Add Key Personnel Resumes — PM + QC Manager</div>
+                <div class="task-ctx">HUD Grant &nbsp;·&nbsp; Section 4 Staffing Plan requires two resumes</div>
+              </div>
+              <div class="task-due due-ok">Friday</div>
+            </div>
+            <div class="task-item">
+              <div class="task-indicator" style="background:var(--text-3)"></div>
+              <div class="task-body">
+                <div class="task-name">Complete Q&A Session — 12 questions remaining</div>
+                <div class="task-ctx">DHS Border Infrastructure RFP &nbsp;·&nbsp; Qualifying stage</div>
+              </div>
+              <div class="task-due due-ok">Next week</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: chart + feed -->
+        <div>
+
+          <!-- Win Rate Chart -->
+          <div class="card">
+            <div class="sec-head">
+              <div class="sec-title">Win Rate &nbsp;·&nbsp; 12 Weeks</div>
+              <span style="font-size:11.5px;font-weight:700;color:var(--success)">67% avg</span>
+            </div>
+            <div class="bar-chart">
+              <div class="bc-bar" style="height:50%;background:var(--blue);opacity:.45"></div>
+              <div class="bc-bar" style="height:65%;background:var(--blue);opacity:.5"></div>
+              <div class="bc-bar" style="height:38%;background:var(--error);opacity:.6"></div>
+              <div class="bc-bar" style="height:72%;background:var(--blue);opacity:.6"></div>
+              <div class="bc-bar" style="height:58%;background:var(--blue);opacity:.65"></div>
+              <div class="bc-bar" style="height:68%;background:var(--blue);opacity:.7"></div>
+              <div class="bc-bar" style="height:80%;background:var(--blue);opacity:.75"></div>
+              <div class="bc-bar" style="height:100%;background:var(--success)"></div>
+              <div class="bc-bar" style="height:75%;background:var(--blue);opacity:.8"></div>
+              <div class="bc-bar" style="height:85%;background:var(--blue);opacity:.85"></div>
+              <div class="bc-bar" style="height:70%;background:var(--blue);opacity:.9"></div>
+              <div class="bc-bar" style="height:67%;background:var(--blue)"></div>
+            </div>
+            <div class="bc-axis">
+              <span class="bc-label">Feb 7</span>
+              <span class="bc-label">Mar 7</span>
+              <span class="bc-label">Apr 4</span>
+              <span class="bc-label">Apr 25</span>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Win</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--error)"></div>Loss</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>Best week</div>
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="card" style="margin-top:14px">
+            <div class="sec-head">
+              <div class="sec-title">Team Activity</div>
+              <a class="sec-link" href="#">Full log</a>
+            </div>
+            <div class="feed">
+              <div class="feed-item">
+                <div class="feed-avatar">MR</div>
+                <div class="feed-body">
+                  <div class="feed-text"><strong>Maria R.</strong> edited Technical Approach — Section 2</div>
+                  <div class="feed-proposal">USACE Levee Repair Phase II</div>
+                </div>
+                <div class="feed-time">4m ago</div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-avatar">JC</div>
+                <div class="feed-body">
+                  <div class="feed-text"><strong>Jorge C.</strong> opened comment thread on Section 3</div>
+                  <div class="feed-proposal">HUD Community Development Grant</div>
+                </div>
+                <div class="feed-time">22m ago</div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-avatar system">QW</div>
+                <div class="feed-body">
+                  <div class="feed-text"><strong>Quality Watchdog</strong> approved draft — Win Score 88 / 100 · Go verdict</div>
+                  <div class="feed-proposal">VA Medical Center Renovation BPA</div>
+                </div>
+                <div class="feed-time">1h ago</div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-avatar">GC</div>
+                <div class="feed-body">
+                  <div class="feed-text"><strong>George C.</strong> marked proposal as Submitted · $780K</div>
+                  <div class="feed-proposal">NAVFAC Pacific Construction Services IDIQ</div>
+                </div>
+                <div class="feed-time">3h ago</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /body-row -->
+
+  <!-- ════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════ -->
+  <footer class="app-footer">
+    <div class="footer-copy">© 2026 <strong>Avero</strong> · GovTool · We Build AI That Moves Your Business Forward.</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Support</a>
+      <a href="#">System Status</a>
+    </div>
+  </footer>
+
+</div><!-- /app-shell -->
+
+</body>
+</html>
