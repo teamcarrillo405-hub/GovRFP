@@ -176,19 +176,17 @@ export default async function EditorPage({ params }: Props) {
         <ExportButtons proposalId={id} />
       </div>
 
-      {/* Editor body */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 1, overflowY: 'auto', background: '#F0F2F5', display: 'flex', justifyContent: 'center', padding: '24px 20px' }}>
-          <div style={{ width: '100%', maxWidth: 860, background: '#fff', borderRadius: 8, border: '1px solid #E2E8F0', minHeight: '100%' }}>
-            <ProposalEditor
-              proposalId={id}
-              initialSections={sections}
-              requirements={requirements}
-              complianceMatrix={complianceMatrix}
-              rfpStructure={rfpStructure}
-              className="h-full"
-            />
-          </div>
+      {/* Editor body — full width, full height */}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+        <div style={{ flex: 1, overflowY: 'auto', background: '#fff' }}>
+          <ProposalEditor
+            proposalId={id}
+            initialSections={sections}
+            requirements={requirements}
+            complianceMatrix={complianceMatrix}
+            rfpStructure={rfpStructure}
+            className="h-full"
+          />
         </div>
       </div>
     </div>
