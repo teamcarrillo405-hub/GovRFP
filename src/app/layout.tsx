@@ -30,7 +30,7 @@ export default function RootLayout({
         {children}
         <Toaster position="bottom-right" richColors closeButton />
         <ChatWidget
-          accentColor="#FDFF66"
+          accentColor="#2F80FF"
           title="ProposalAI Assistant"
           subtitle="Ask about features, the workflow, or getting started"
           emptyText="Hi! Ask me anything about ProposalAI — how it works, the free trial, or writing proposals."
