@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { getProfile } from './actions'
 import { ProfileForm } from '@/components/profile/profile-form'
+import type { ProfileFormData } from '@/lib/validators/profile'
 
 export default async function ProfilePage() {
-  const profile = await getProfile()
+  const profile = await getProfile() as Partial<ProfileFormData> | null
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">

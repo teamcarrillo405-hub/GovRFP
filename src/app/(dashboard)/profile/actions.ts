@@ -74,7 +74,8 @@ export async function getProfile() {
   if (!user) return null
 
   const supabase = await createClient()
-  const { data } = await supabase
+  // Cast required: new columns from migration 00019 not yet in generated types
+  const { data } = await (supabase as any)
     .from('profiles')
     .select(
       'company_name, uei_cage, certifications, naics_codes, capability_statement, ' +
@@ -85,5 +86,5 @@ export async function getProfile() {
     .eq('id', user.id)
     .single()
 
-  return data
+  return data as Record<string, unknown> | null
 }

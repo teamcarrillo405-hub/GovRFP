@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getUser, createClient } from '@/lib/supabase/server'
 import { getProfile } from '@/app/(dashboard)/profile/actions'
 import { scoreOpportunity, matchLabel, type MatchBreakdown } from '@/lib/matching/opportunity-scorer'
+import type { ProfileFormData } from '@/lib/validators/profile'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -294,7 +295,7 @@ export default async function OpportunityDetailPage({
   if (!opportunity) notFound()
 
   // ── Live match score ────────────────────────────────────────────────────
-  const profile = await getProfile()
+  const profile = await getProfile() as Partial<ProfileFormData> | null
 
   let breakdown: MatchBreakdown | null = null
   if (profile) {

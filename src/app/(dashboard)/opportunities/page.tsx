@@ -3,23 +3,33 @@ import Link from 'next/link';
 import { Search, SlidersHorizontal, Calendar, Bookmark, ChevronRight, AlertTriangle } from 'lucide-react';
 import { getProfile } from '@/app/(dashboard)/profile/actions';
 import { scoreOpportunity, matchLabel } from '@/lib/matching/opportunity-scorer';
+import type { ProfileFormData } from '@/lib/validators/profile';
 
 export default async function OpportunitiesPage() {
   const supabase = await createClient();
   // 'opportunities' table does not exist yet — graceful empty state
   let opportunities: any[] = [];
   try {
-    const { data } = await supabase
-      .from('opportunities' as any)
-      .select('id, title, agency, naics_code, set_aside, due_date, estimated_value, match_score, solicitation_number, place_of_performance_state')
-      .order('due_date', { ascending: true })
-      .limit(20);
-    opportunities = data ?? [];
+    const { data } = await (supabase as any)
+      .from('opportunities')
+      // Select both legacy (GovRFP) and new (ProposalAI) column names
+      .select('id, title, agency, agency_name, naics_code, set_aside, set_aside_description, due_date, response_deadline, estimated_value, match_score, solicitation_number, place_of_performance_state, pop_state')
+      .eq('active', true)
+      .order('due_date', { ascending: true, nullsFirst: false })
+      .limit(50);
+    // Normalize: prefer new columns, fall back to legacy GovRFP columns
+    opportunities = (data ?? []).map((opp: any) => ({
+      ...opp,
+      agency: opp.agency ?? opp.agency_name ?? null,
+      set_aside: opp.set_aside ?? opp.set_aside_description ?? null,
+      due_date: opp.due_date ?? opp.response_deadline ?? null,
+      place_of_performance_state: opp.place_of_performance_state ?? opp.pop_state ?? null,
+    }));
   } catch {
     opportunities = [];
   }
 
-  const profile = await getProfile();
+  const profile = await getProfile() as Partial<ProfileFormData> | null;
 
   const profileIncomplete =
     !profile ||
