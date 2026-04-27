@@ -1,9 +1,12 @@
 'use client'
 
 import type { Editor } from '@tiptap/react'
+import { Lightbulb } from 'lucide-react'
 
 interface Props {
   editor: Editor | null
+  onSetView?: (view: string) => void
+  activeView?: string
 }
 
 function Separator() {
@@ -14,7 +17,7 @@ const btnBase =
   'p-1.5 rounded text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center'
 const btnActive = 'bg-gray-200 text-gray-900'
 
-export default function EditorToolbar({ editor }: Props) {
+export default function EditorToolbar({ editor, onSetView, activeView }: Props) {
   if (!editor) return null
 
   return (
@@ -148,6 +151,23 @@ export default function EditorToolbar({ editor }: Props) {
           <line x1="10" y1="6" x2="10" y2="14" />
         </svg>
       </button>
+
+      {onSetView && (
+        <>
+          <Separator />
+          {/* Writing Guidance */}
+          <button
+            type="button"
+            onClick={() => onSetView('writing-guidance')}
+            aria-label="Writing Guidance"
+            aria-pressed={activeView === 'writing-guidance'}
+            className={`${btnBase} ${activeView === 'writing-guidance' ? btnActive : ''}`}
+            style={activeView === 'writing-guidance' ? { color: '#2F80FF' } : undefined}
+          >
+            <Lightbulb size={15} aria-hidden="true" />
+          </button>
+        </>
+      )}
     </div>
   )
 }

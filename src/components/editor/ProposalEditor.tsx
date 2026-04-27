@@ -21,6 +21,7 @@ import PageLimitsPanel from './PageLimitsPanel'
 import ColorTeamPanel from './ColorTeamPanel'
 import ColorTeamBadge, { type ColorTeamStatus } from './ColorTeamBadge'
 import { CustomTemplateUpload } from './CustomTemplateUpload'
+import WritingGuidancePanel from './WritingGuidancePanel'
 import { markdownToBasicHtml } from '@/lib/editor/markdown-to-html'
 import { toast } from 'sonner'
 
@@ -36,6 +37,7 @@ type ToolView =
   | 'page-limits'
   | 'color-team'
   | 'custom-template'
+  | 'writing-guidance'
 
 type ActiveView = SectionName | ToolView
 
@@ -520,7 +522,8 @@ export default function ProposalEditor({
               { id: 'page-limits',     label: 'Page Limits' },
               { id: 'color-team',      label: 'Color Team' },
               { id: 'past-performance', label: 'Past Performance' },
-              { id: 'custom-template', label: 'Custom Template' },
+              { id: 'custom-template',   label: 'Custom Template' },
+              { id: 'writing-guidance', label: 'Writing Guidance' },
             ] as { id: ToolView; label: string }[]
           ).map(({ id, label }) => {
             const isActive = activeView === id
@@ -546,7 +549,11 @@ export default function ProposalEditor({
           <>
             {/* Toolbar */}
             <div className="shrink-0">
-              <EditorToolbar editor={editor ?? null} />
+              <EditorToolbar
+                editor={editor ?? null}
+                onSetView={(v) => setActiveView(v as ActiveView)}
+                activeView={activeView}
+              />
             </div>
 
             {/* Scrollable editor canvas */}
@@ -785,6 +792,16 @@ export default function ProposalEditor({
                   onSectionsExtracted={(extractedSections) => {
                     toast.success(`${extractedSections.length} sections extracted from template`)
                   }}
+                />
+              </div>
+            )}
+
+            {activeView === 'writing-guidance' && (
+              <div className="flex-1 overflow-hidden">
+                <WritingGuidancePanel
+                  sectionName={activeSection}
+                  sectionText={allSectionsText[activeSection] ?? ''}
+                  requirements={requirements}
                 />
               </div>
             )}
