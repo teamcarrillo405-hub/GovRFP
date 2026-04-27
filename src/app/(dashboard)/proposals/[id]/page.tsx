@@ -431,8 +431,37 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* ── DRAFT state — from SAM.gov opportunity, no file needed ── */}
+      {!isProcessing && !isReady && !isAnalyzed && proposal.status === 'draft' && !proposal.file_name && proposal.opportunity_id && (
+        <div className="space-y-4">
+          <div className="rounded-xl border-l-4 border-l-[#2F80FF] border border-gray-200 bg-white p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Ready to Draft</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Proposal created from SAM.gov. Go to the editor to start writing, or upload the RFP PDF from SAM.gov for deeper AI analysis.
+                </p>
+              </div>
+              <Link
+                href={`/proposals/${id}/editor`}
+                className="shrink-0 px-5 py-2.5 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
+              >
+                Start Writing
+              </Link>
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 className="text-sm font-semibold text-gray-700 mb-1">Optional: Upload RFP for AI Analysis</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Download the RFP PDF from SAM.gov and upload it here to extract requirements, generate a compliance matrix, and get a win score.
+            </p>
+            <FileUpload proposalId={id} />
+          </div>
+        </div>
+      )}
+
       {/* ── DRAFT state — no file yet ── */}
-      {!isProcessing && !isReady && !isAnalyzed && proposal.status === 'draft' && !proposal.file_name && (
+      {!isProcessing && !isReady && !isAnalyzed && proposal.status === 'draft' && !proposal.file_name && !proposal.opportunity_id && (
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h2 className="text-base font-bold text-gray-900 mb-1">Upload RFP Document</h2>
           <p className="text-sm text-gray-500 mb-6">
