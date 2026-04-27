@@ -2,7 +2,11 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { updateProfile } from '@/app/(dashboard)/profile/actions'
-import { CERTIFICATION_OPTIONS } from '@/lib/validators/profile'
+import {
+  CERTIFICATION_OPTIONS,
+  CONSTRUCTION_TYPE_OPTIONS,
+  US_STATES,
+} from '@/lib/validators/profile'
 import type { ProfileFormData } from '@/lib/validators/profile'
 
 interface ProfileFormProps {
@@ -113,6 +117,208 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         <p className="mt-1 text-xs text-gray-500">Enter comma-separated 6-digit NAICS codes.</p>
       </div>
 
+      {/* ── Business Capacity ─────────────────────────────────────────── */}
+      <fieldset className="rounded-lg border border-gray-200 p-4 space-y-4">
+        <legend className="px-1 text-sm font-semibold text-gray-900">Business Capacity</legend>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="annual_revenue_usd" className="block text-sm font-medium text-gray-700 mb-1">
+              Annual Revenue
+            </label>
+            <input
+              id="annual_revenue_usd"
+              name="annual_revenue_usd"
+              type="text"
+              defaultValue={initialData?.annual_revenue_usd != null ? String(initialData.annual_revenue_usd) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="$2,500,000"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="max_project_size_usd" className="block text-sm font-medium text-gray-700 mb-1">
+              Max Single Project Size
+            </label>
+            <input
+              id="max_project_size_usd"
+              name="max_project_size_usd"
+              type="text"
+              defaultValue={initialData?.max_project_size_usd != null ? String(initialData.max_project_size_usd) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="$1,000,000"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="bonding_single_usd" className="block text-sm font-medium text-gray-700 mb-1">
+              Single Project Bonding Limit
+            </label>
+            <input
+              id="bonding_single_usd"
+              name="bonding_single_usd"
+              type="text"
+              defaultValue={initialData?.bonding_single_usd != null ? String(initialData.bonding_single_usd) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="$5,000,000"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="bonding_aggregate_usd" className="block text-sm font-medium text-gray-700 mb-1">
+              Aggregate Bonding Limit
+            </label>
+            <input
+              id="bonding_aggregate_usd"
+              name="bonding_aggregate_usd"
+              type="text"
+              defaultValue={initialData?.bonding_aggregate_usd != null ? String(initialData.bonding_aggregate_usd) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="$10,000,000"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="surety_company" className="block text-sm font-medium text-gray-700 mb-1">
+              Surety Company
+            </label>
+            <input
+              id="surety_company"
+              name="surety_company"
+              type="text"
+              defaultValue={initialData?.surety_company ?? ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="e.g. Travelers, Zurich National"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="employee_count" className="block text-sm font-medium text-gray-700 mb-1">
+              Number of Employees
+            </label>
+            <input
+              id="employee_count"
+              name="employee_count"
+              type="number"
+              min={0}
+              defaultValue={initialData?.employee_count != null ? String(initialData.employee_count) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="years_in_business" className="block text-sm font-medium text-gray-700 mb-1">
+              Years in Business
+            </label>
+            <input
+              id="years_in_business"
+              name="years_in_business"
+              type="number"
+              min={0}
+              defaultValue={initialData?.years_in_business != null ? String(initialData.years_in_business) : ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 pt-1">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              name="sam_gov_registered"
+              defaultChecked={initialData?.sam_gov_registered ?? false}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            Registered on SAM.gov
+          </label>
+
+          <div>
+            <label htmlFor="sba_size_category" className="block text-sm font-medium text-gray-700 mb-1">
+              SBA Size Category
+            </label>
+            <select
+              id="sba_size_category"
+              name="sba_size_category"
+              defaultValue={initialData?.sba_size_category ?? ''}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">-- Select --</option>
+              <option value="small">Small Business</option>
+              <option value="other_than_small">Other Than Small</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      {/* ── Construction Types ────────────────────────────────────────── */}
+      <fieldset className="rounded-lg border border-gray-200 p-4">
+        <legend className="px-1 text-sm font-semibold text-gray-900">Construction Types</legend>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {CONSTRUCTION_TYPE_OPTIONS.map((opt) => (
+            <label key={opt.value} className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                name="construction_types"
+                value={opt.value}
+                defaultChecked={
+                  (initialData?.construction_types as string[] | undefined)?.includes(opt.value) ?? false
+                }
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* ── Geographic Coverage ───────────────────────────────────────── */}
+      <fieldset className="rounded-lg border border-gray-200 p-4 space-y-4">
+        <legend className="px-1 text-sm font-semibold text-gray-900">Geographic Coverage</legend>
+
+        <div>
+          <label htmlFor="primary_state" className="block text-sm font-medium text-gray-700 mb-1">
+            Primary State
+          </label>
+          <select
+            id="primary_state"
+            name="primary_state"
+            defaultValue={initialData?.primary_state ?? ''}
+            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
+          >
+            <option value="">-- Select state --</option>
+            {US_STATES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-2">
+            States Where You Work
+          </p>
+          <div
+            className="grid grid-cols-3 gap-x-4 gap-y-1 overflow-y-auto rounded-md border border-gray-200 p-3"
+            style={{ maxHeight: '200px' }}
+          >
+            {US_STATES.map((s) => (
+              <label key={s.value} className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  name="geographic_states"
+                  value={s.value}
+                  defaultChecked={
+                    (initialData?.geographic_states as string[] | undefined)?.includes(s.value) ?? false
+                  }
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                {s.value}
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-gray-500">Select all states where your company performs work.</p>
+        </div>
+      </fieldset>
+
       {/* Capability Statement */}
       <div>
         <label htmlFor="capability_statement" className="block text-sm font-medium text-gray-700 mb-1">
@@ -135,7 +341,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: '#2F80FF', focusRingColor: '#2F80FF' } as React.CSSProperties}
         >
           {isPending ? 'Saving...' : 'Save Profile'}
         </button>

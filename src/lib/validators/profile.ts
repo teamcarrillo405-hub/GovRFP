@@ -8,6 +8,46 @@ export const CERTIFICATION_OPTIONS = [
   'SDB',
 ] as const
 
+export const CONSTRUCTION_TYPE_OPTIONS = [
+  { value: 'building', label: 'Building Construction' },
+  { value: 'heavy_civil', label: 'Heavy Civil / Infrastructure' },
+  { value: 'highway', label: 'Highway / Transportation' },
+  { value: 'residential', label: 'Residential' },
+  { value: 'specialty_trade', label: 'Specialty Trade' },
+  { value: 'electrical', label: 'Electrical' },
+  { value: 'mechanical', label: 'Mechanical / HVAC / Plumbing' },
+  { value: 'environmental', label: 'Environmental / Remediation' },
+] as const
+
+export const US_STATES = [
+  { value: 'AL', label: 'Alabama' }, { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' }, { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' }, { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' }, { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' }, { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' }, { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' }, { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' }, { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' }, { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' }, { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' }, { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' }, { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' }, { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' }, { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' }, { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' }, { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' }, { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' }, { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' }, { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' }, { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' }, { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' }, { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' }, { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' },
+  { value: 'DC', label: 'Washington D.C.' },
+] as const
+
 export const profileSchema = z.object({
   company_name: z.string().min(1, 'Company name is required').max(200),
   uei_cage: z.string().max(50).optional().or(z.literal('')),
@@ -18,6 +58,29 @@ export const profileSchema = z.object({
     .max(2000, 'Capability statement must be 2000 characters or less')
     .optional()
     .or(z.literal('')),
+
+  // Business capacity
+  annual_revenue_usd: z.number().int().min(0).optional().nullable(),
+  bonding_single_usd: z.number().int().min(0).optional().nullable(),
+  bonding_aggregate_usd: z.number().int().min(0).optional().nullable(),
+  surety_company: z.string().max(200).optional().or(z.literal('')),
+  max_project_size_usd: z.number().int().min(0).optional().nullable(),
+  employee_count: z.number().int().min(0).optional().nullable(),
+  years_in_business: z.number().int().min(0).optional().nullable(),
+
+  // Business type
+  construction_types: z.array(z.enum([
+    'building', 'heavy_civil', 'highway', 'residential', 'specialty_trade', 'electrical', 'mechanical', 'environmental'
+  ])).default([]),
+  sba_size_category: z.enum(['small', 'other_than_small']).optional().nullable(),
+  sam_gov_registered: z.boolean().default(false),
+
+  // Geography
+  primary_state: z.string().max(2).optional().or(z.literal('')),
+  geographic_states: z.array(z.string().max(2)).default([]),
+
+  // Onboarding
+  onboarding_completed: z.boolean().default(false),
 })
 
 export const pastProjectSchema = z.object({
