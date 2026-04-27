@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getUser, createClient } from '@/lib/supabase/server'
+import { getProfile } from '@/app/(dashboard)/profile/actions'
+import { scoreOpportunity, matchLabel, type MatchBreakdown } from '@/lib/matching/opportunity-scorer'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -259,13 +261,7 @@ const PAST_PERFORMANCE = [
   },
 ]
 
-const SCORE_BREAKDOWN = [
-  { label: 'NAICS Alignment', pct: 95 },
-  { label: 'Set-Aside Eligibility', pct: 100 },
-  { label: 'Geographic Coverage', pct: 88 },
-  { label: 'Past Performance Depth', pct: 82 },
-  { label: 'Incumbent Strength', pct: 61 },
-]
+// SCORE_BREAKDOWN is now computed live from the matching engine — see page body
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -286,7 +282,7 @@ export default async function OpportunityDetailPage({
     const { data } = await supabase
       .from('opportunities' as any)
       .select(
-        'id, title, agency, naics_code, set_aside, due_date, estimated_value, match_score, solicitation_number, scope_of_work, place_of_performance, contract_type, posted_date, point_of_contact',
+        'id, title, agency, naics_code, set_aside, due_date, estimated_value, match_score, solicitation_number, scope_of_work, place_of_performance, place_of_performance_state, contract_type, posted_date, point_of_contact',
       )
       .eq('id', id)
       .single()
@@ -296,6 +292,62 @@ export default async function OpportunityDetailPage({
   }
 
   if (!opportunity) notFound()
+
+  // ── Live match score ────────────────────────────────────────────────────
+  const profile = await getProfile()
+
+  let breakdown: MatchBreakdown | null = null
+  if (profile) {
+    breakdown = scoreOpportunity(
+      {
+        certifications: profile.certifications ?? [],
+        naics_codes: profile.naics_codes ?? [],
+        construction_types: (profile.construction_types ?? []) as string[],
+        geographic_states: profile.geographic_states ?? [],
+        primary_state: profile.primary_state ?? null,
+        annual_revenue_usd: profile.annual_revenue_usd ?? null,
+        bonding_single_usd: profile.bonding_single_usd ?? null,
+        max_project_size_usd: profile.max_project_size_usd ?? null,
+        sba_size_category: profile.sba_size_category ?? null,
+      },
+      {
+        naics_code: opportunity.naics_code,
+        set_aside: opportunity.set_aside,
+        place_of_performance_state: (opportunity as any).place_of_performance_state ?? null,
+        estimated_value: opportunity.estimated_value ?? null,
+        title: opportunity.title ?? null,
+      },
+    )
+  }
+
+  const score = breakdown ? breakdown.total : (opportunity.match_score ?? 0)
+  const label = matchLabel(score)
+  const labelColor =
+    label === 'Strong Match'
+      ? '#00C48C'
+      : label === 'Good Match'
+        ? '#2F80FF'
+        : label === 'Moderate Match'
+          ? '#F59E0B'
+          : '#94A3B8'
+
+  const liveBreakdownBars = breakdown
+    ? [
+        { label: 'NAICS Alignment', pct: Math.round((breakdown.naics / 30) * 100) },
+        { label: 'Set-Aside Eligibility', pct: Math.round((breakdown.set_aside / 25) * 100) },
+        { label: 'Geographic Coverage', pct: Math.round((breakdown.geography / 20) * 100) },
+        { label: 'Capacity Fit', pct: Math.round((breakdown.capacity / 15) * 100) },
+        { label: 'Construction Type', pct: Math.round((breakdown.construction_type / 10) * 100) },
+      ]
+    : [
+        { label: 'NAICS Alignment', pct: 0 },
+        { label: 'Set-Aside Eligibility', pct: 0 },
+        { label: 'Geographic Coverage', pct: 0 },
+        { label: 'Capacity Fit', pct: 0 },
+        { label: 'Construction Type', pct: 0 },
+      ]
+
+  const topReasons = (breakdown?.reasons ?? []).slice(0, 3)
 
   const days = daysRemaining(opportunity.due_date)
   const daysColor =
@@ -314,7 +366,6 @@ export default async function OpportunityDetailPage({
           ? 'Due today'
           : `${days} days remaining`
 
-  const score = opportunity.match_score ?? 0
   const titleTruncated =
     (opportunity.title ?? 'Untitled').length > 55
       ? (opportunity.title ?? '').substring(0, 55) + '…'
@@ -606,18 +657,41 @@ export default async function OpportunityDetailPage({
                 style={{
                   fontSize: 13,
                   fontWeight: 600,
-                  color: '#00C48C',
+                  color: labelColor,
                   marginTop: 4,
                 }}
               >
-                Strong Match
+                {label}
               </div>
             </div>
 
             {/* Breakdown bars */}
-            {SCORE_BREAKDOWN.map((item) => (
+            {liveBreakdownBars.map((item) => (
               <ScoreBar key={item.label} label={item.label} pct={item.pct} />
             ))}
+
+            {/* Reason bullets */}
+            {topReasons.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                {topReasons.map((reason, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      fontSize: 11,
+                      color: '#94A3B8',
+                      lineHeight: 1.5,
+                      marginBottom: 3,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 5,
+                    }}
+                  >
+                    <span style={{ flexShrink: 0, marginTop: 1 }}>&#x2022;</span>
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* CTA */}
             <Link

@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { BarChart2, FileText, DollarSign, TrendingUp, ChevronRight, Calendar } from 'lucide-react';
+import { getProfile } from '@/app/(dashboard)/profile/actions';
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -35,6 +37,10 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default async function DashboardPage() {
+  const profile = await getProfile();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((profile as any)?.onboarding_completed === false) redirect('/onboarding');
+
   const supabase = await createClient();
 
   const { data: proposals } = await supabase
