@@ -8,6 +8,7 @@ import {
   US_STATES,
 } from '@/lib/validators/profile'
 import type { ProfileFormData } from '@/lib/validators/profile'
+import { WebsiteScrapeWidget } from './WebsiteScrapeWidget'
 
 interface ProfileFormProps {
   initialData: Partial<ProfileFormData> | null
@@ -48,6 +49,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           {message.text}
         </div>
       )}
+
+      {/* Website auto-fill widget */}
+      <WebsiteScrapeWidget />
 
       {/* Company Name */}
       <div>
@@ -335,6 +339,57 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           placeholder="Describe your company's core competencies, differentiators, and relevant experience..."
         />
         <p className="mt-1 text-xs text-gray-500 text-right">{charCount}/2000</p>
+      </div>
+
+      {/* Differentiators */}
+      <div>
+        <label htmlFor="differentiators" className="block text-sm font-medium text-gray-700 mb-1">
+          Key Differentiators
+        </label>
+        <textarea
+          id="differentiators"
+          name="differentiators"
+          rows={3}
+          maxLength={1000}
+          defaultValue={(initialData as Record<string, unknown> | null)?.differentiators as string ?? ''}
+          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y"
+          placeholder="What sets your company apart — certifications, specialized equipment, local relationships, safety record..."
+        />
+        <p className="mt-1 text-xs text-gray-500">Used by AI to write stronger win themes in proposals.</p>
+      </div>
+
+      {/* Website URL + EMR row */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="website_url" className="block text-sm font-medium text-gray-700 mb-1">
+            Company Website
+          </label>
+          <input
+            id="website_url"
+            name="website_url"
+            type="url"
+            defaultValue={(initialData as Record<string, unknown> | null)?.website_url as string ?? ''}
+            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="https://yourcompany.com"
+          />
+        </div>
+        <div>
+          <label htmlFor="emr" className="block text-sm font-medium text-gray-700 mb-1">
+            EMR (Experience Modification Rate)
+          </label>
+          <input
+            id="emr"
+            name="emr"
+            type="number"
+            step="0.01"
+            min="0"
+            max="9.99"
+            defaultValue={(initialData as Record<string, unknown> | null)?.emr as string ?? ''}
+            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="e.g. 0.82"
+          />
+          <p className="mt-1 text-xs text-gray-500">Safety rating used in federal construction proposals. Below 1.0 is good.</p>
+        </div>
       </div>
 
       <div className="flex justify-end">

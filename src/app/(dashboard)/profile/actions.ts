@@ -53,6 +53,16 @@ export async function updateProfile(formData: FormData) {
 
     // Onboarding
     onboarding_completed: formData.get('onboarding_completed') === 'on',
+
+    // Website & identity
+    website_url: (formData.get('website_url') as string) || '',
+    differentiators: (formData.get('differentiators') as string) || '',
+    emr: (() => {
+      const v = formData.get('emr') as string
+      if (!v || v.trim() === '') return null
+      const n = parseFloat(v)
+      return isNaN(n) ? null : n
+    })(),
   }
 
   const parsed = profileSchema.safeParse(raw)
@@ -81,7 +91,8 @@ export async function getProfile() {
       'company_name, uei_cage, certifications, naics_codes, capability_statement, ' +
       'annual_revenue_usd, bonding_single_usd, bonding_aggregate_usd, surety_company, ' +
       'max_project_size_usd, employee_count, years_in_business, sam_gov_registered, ' +
-      'construction_types, sba_size_category, primary_state, geographic_states, onboarding_completed'
+      'construction_types, sba_size_category, primary_state, geographic_states, onboarding_completed, ' +
+      'website_url, differentiators, emr'
     )
     .eq('id', user.id)
     .single()

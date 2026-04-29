@@ -12,10 +12,15 @@ import SectionEditor, { type SectionEditorHandle } from './SectionEditor'
 import EditorToolbar from './EditorToolbar'
 import CompliancePanel from './CompliancePanel'
 import RegenerateDialog from './RegenerateDialog'
+import SectionPreflightModal from './SectionPreflightModal'
 import RfpStructureSidebar from './RfpStructureSidebar'
 import { PastPerformancePanel } from './PastPerformancePanel'
 import ScoringRubricPanel from './ScoringRubricPanel'
 import GrammarPanel from './GrammarPanel'
+import GrammarPopover from './GrammarPopover'
+import type { GrammarIssue } from '@/lib/editor/grammar-analyzer'
+import type { GrammarClickPayload } from '@/lib/editor/grammar-decoration-extension'
+import { grammarPluginKey, grammarDismissKey } from '@/lib/editor/grammar-decoration-extension'
 import WinThemesPanel from './WinThemesPanel'
 import PageLimitsPanel from './PageLimitsPanel'
 import ColorTeamPanel from './ColorTeamPanel'
@@ -124,9 +129,15 @@ export default function ProposalEditor({
   )
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false)
   const [activeRfpSection, setActiveRfpSection] = useState<string | null>(null)
+  const [preflightGaps, setPreflightGaps] = useState<string[]>([])
+  const [pendingSection, setPendingSection] = useState<SectionName | null>(null)
+  const [showPreflightModal, setShowPreflightModal] = useState(false)
   const [colorTeamStatus, setColorTeamStatus] = useState<Record<string, ColorTeamStatus>>(
     () => Object.fromEntries(SECTION_NAMES.map((n) => [n, 'white' as ColorTeamStatus]))
   )
+  const [inlineGrammarIssues, setInlineGrammarIssues] = useState<GrammarIssue[]>([])
+  const [dismissedGrammarTexts, setDismissedGrammarTexts] = useState<Set<string>>(new Set())
+  const [grammarPopover, setGrammarPopover] = useState<GrammarClickPayload | null>(null)
 
   // Refs for interval logic (avoid stale closures)
   const editorRef = useRef<SectionEditorHandle>(null)
@@ -357,9 +368,97 @@ export default function ProposalEditor({
     return () => clearTimeout(timer)
   }, [detectActiveRfpSection, activeView])
 
+  // ── Inline grammar handlers ───────────────────────────────────────────────
+
+  const handleShowGrammarInDocument = useCallback((issues: GrammarIssue[]) => {
+    setInlineGrammarIssues(issues)
+    setDismissedGrammarTexts(new Set())
+    setGrammarPopover(null)
+    // Switch to the current section so the highlights are visible
+    setActiveView(lastActiveSectionRef.current)
+  }, [])
+
+  const handleGrammarIssueClick = useCallback((payload: GrammarClickPayload) => {
+    setGrammarPopover(payload)
+  }, [])
+
+  const handleGrammarAccept = useCallback((issue: GrammarIssue) => {
+    const editor = editorRef.current?.editor
+    setGrammarPopover(null)
+
+    if (editor && issue.replacement !== undefined) {
+      // Find and replace the first occurrence in the document
+      const { state } = editor.view
+      let found = false
+      state.doc.descendants((node, pos) => {
+        if (found || !node.isText || !node.text) return
+        const idx = node.text.toLowerCase().indexOf(issue.text.toLowerCase())
+        if (idx === -1) return
+        const from = pos + idx
+        const to = from + issue.text.length
+        const tr = state.tr.insertText(issue.replacement ?? '', from, to)
+        editor.view.dispatch(tr)
+        found = true
+        isDirtyRef.current = true
+      })
+    } else if (editor) {
+      // Scroll to the first occurrence
+      const { state } = editor.view
+      let targetPos: number | null = null
+      state.doc.descendants((node, pos) => {
+        if (targetPos !== null || !node.isText || !node.text) return
+        const idx = node.text.toLowerCase().indexOf(issue.text.toLowerCase())
+        if (idx !== -1) targetPos = pos + idx
+      })
+      if (targetPos !== null) {
+        editor.commands.setTextSelection(targetPos)
+        editor.commands.scrollIntoView()
+        editor.commands.focus()
+      }
+    }
+
+    // Dismiss after accept
+    setDismissedGrammarTexts((prev) => new Set([...prev, grammarDismissKey(issue)]))
+  }, [])
+
+  const handleGrammarDismiss = useCallback((issue: GrammarIssue) => {
+    setDismissedGrammarTexts((prev) => new Set([...prev, grammarDismissKey(issue)]))
+    setGrammarPopover(null)
+  }, [])
+
+  // Clear grammar decorations when switching sections
+  useEffect(() => {
+    if (inlineGrammarIssues.length > 0) {
+      setInlineGrammarIssues([])
+      setDismissedGrammarTexts(new Set())
+      setGrammarPopover(null)
+    }
+  // Only run on section change, not on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection])
+
+  // ── Generate preflight check ──────────────────────────────────────────────
+
+  const handleGenerateWithPreflight = async (section: SectionName) => {
+    if (isStreaming) return
+    try {
+      const res = await fetch(`/api/proposals/${proposalId}/preflight?section=${encodeURIComponent(section)}`)
+      const { gaps } = await res.json() as { gaps: string[] }
+      if (gaps && gaps.length > 0) {
+        setPreflightGaps(gaps)
+        setPendingSection(section)
+        setShowPreflightModal(true)
+        return
+      }
+    } catch {
+      // Non-fatal — proceed to generate without preflight
+    }
+    handleGenerate(section)
+  }
+
   // ── Generate (Quality Watchdog loop) ─────────────────────────────────────
 
-  const handleGenerate = async (section: SectionName, instruction?: string) => {
+  const handleGenerate = async (section: SectionName, instruction?: string, attachmentContext?: string) => {
     if (isStreaming) return
 
     setIsStreaming(true)
@@ -372,7 +471,7 @@ export default function ProposalEditor({
       const res = await fetch(`/api/proposals/${proposalId}/draft`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, instruction }),
+        body: JSON.stringify({ section, instruction, attachment_context: attachmentContext }),
       })
 
       if (!res.ok || !res.body) throw new Error('Generation failed')
@@ -544,10 +643,10 @@ export default function ProposalEditor({
       {/* ── Main content area ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* SECTION VIEW */}
+        {/* SECTION VIEW — editor left, score panel right */}
         {isSectionName(activeView) && (
           <>
-            {/* Toolbar */}
+            {/* Toolbar spans full width */}
             <div className="shrink-0">
               <EditorToolbar
                 editor={editor ?? null}
@@ -556,139 +655,113 @@ export default function ProposalEditor({
               />
             </div>
 
-            {/* Scrollable editor canvas */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="max-w-4xl mx-auto w-full px-12 py-8">
-                <SectionEditor
-                  ref={editorRef}
-                  content={currentSectionState?.content ?? null}
-                  onUpdate={handleEditorUpdate}
-                  isStreaming={isStreaming}
-                  streamBuffer={streamBuffer}
-                />
+            {/* Horizontal split: editor | score panel */}
+            <div className="flex-1 flex overflow-hidden">
 
-                {/* Empty state */}
-                {!hasContent && !isStreaming && (
-                  <div className="border border-t-0 border-gray-200 bg-gray-50 px-6 py-4 rounded-b-md">
-                    <p className="text-sm text-gray-500 font-medium">No draft yet</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Click Generate {activeSection} to create an AI draft based on your contractor
-                      profile and RFP requirements.
-                    </p>
-                  </div>
-                )}
+              {/* ── Left: editor canvas ── */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="max-w-3xl mx-auto w-full px-10 py-8">
+                  <SectionEditor
+                    ref={editorRef}
+                    content={currentSectionState?.content ?? null}
+                    onUpdate={handleEditorUpdate}
+                    isStreaming={isStreaming}
+                    streamBuffer={streamBuffer}
+                    grammarIssues={inlineGrammarIssues.length > 0 ? inlineGrammarIssues : undefined}
+                    dismissedGrammarTexts={dismissedGrammarTexts}
+                    onGrammarIssueClick={handleGrammarIssueClick}
+                  />
 
-                {/* Quality Watchdog status bar */}
-                {isStreaming && watchdogStatus && (
-                  <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
-                    <svg
-                      className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      />
-                    </svg>
-                    <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
-                    <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
-                    {watchdogScore && (
-                      <span
-                        className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${
-                          watchdogScore.passed
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {watchdogScore.score}/100
-                      </span>
-                    )}
-                  </div>
-                )}
+                  {/* Empty state */}
+                  {!hasContent && !isStreaming && (
+                    <div className="border border-t-0 border-gray-200 bg-gray-50 px-6 py-4 rounded-b-md">
+                      <p className="text-sm text-gray-500 font-medium">No draft yet</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click Generate {activeSection} below to create an AI draft.
+                      </p>
+                    </div>
+                  )}
 
-                {/* Generate / save bar */}
-                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md mt-0">
-                  {/* Auto-save indicator */}
-                  <div>
-                    {saveStatus === 'saving' && (
-                      <span className="flex items-center gap-1.5 text-xs text-blue-600">
-                        <svg
-                          className="animate-spin h-3 w-3"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
+                  {/* Quality Watchdog status bar */}
+                  {isStreaming && watchdogStatus && (
+                    <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
+                      <svg className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
+                      <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
+                      {watchdogScore && (
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${watchdogScore.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {watchdogScore.score}/100
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Generate / save bar */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-t-0 border-gray-200 rounded-b-md">
+                    <div>
+                      {saveStatus === 'saving' && (
+                        <span className="flex items-center gap-1.5 text-xs text-blue-600">
+                          <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Saving...
+                        </span>
+                      )}
+                      {saveStatus === 'saved' && currentSectionState?.lastSavedAt && (
+                        <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
+                      )}
+                      {saveStatus === 'error' && (
+                        <span className="text-xs text-red-600">Save failed — check connection</span>
+                      )}
+                      {saveStatus === 'idle' && !currentSectionState?.lastSavedAt && (
+                        <span className="text-xs text-gray-500">Not yet saved</span>
+                      )}
+                      {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
+                        <span className="text-xs text-gray-500">Saved at {currentSectionState.lastSavedAt}</span>
+                      )}
+                      {isStreaming && !watchdogStatus && (
+                        <span className="text-xs text-blue-600">Generating...</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {hasContent ? (
+                        <button
+                          onClick={() => setShowRegenerateDialog(true)}
+                          disabled={isStreaming}
+                          className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                          />
-                        </svg>
-                        Saving...
-                      </span>
-                    )}
-                    {saveStatus === 'saved' && currentSectionState?.lastSavedAt && (
-                      <span className="text-xs text-gray-500">
-                        Saved at {currentSectionState.lastSavedAt}
-                      </span>
-                    )}
-                    {saveStatus === 'error' && (
-                      <span className="text-xs text-red-600">Save failed — check connection</span>
-                    )}
-                    {saveStatus === 'idle' && !currentSectionState?.lastSavedAt && (
-                      <span className="text-xs text-gray-500">Not yet saved</span>
-                    )}
-                    {saveStatus === 'idle' && currentSectionState?.lastSavedAt && (
-                      <span className="text-xs text-gray-500">
-                        Saved at {currentSectionState.lastSavedAt}
-                      </span>
-                    )}
-                    {isStreaming && !watchdogStatus && (
-                      <span className="text-xs text-blue-600">Generating...</span>
-                    )}
-                  </div>
-
-                  {/* Generate / Regenerate button */}
-                  <div className="flex items-center gap-3">
-                    {hasContent ? (
-                      <button
-                        onClick={() => setShowRegenerateDialog(true)}
-                        disabled={isStreaming}
-                        className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Regenerate Section
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleGenerate(activeSection)}
-                        disabled={isStreaming}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Generate {activeSection}
-                      </button>
-                    )}
+                          Regenerate Section
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleGenerateWithPreflight(activeSection)}
+                          disabled={isStreaming}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Generate {activeSection}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* ── Right: score panel ── */}
+              <div className="w-72 shrink-0 border-l border-gray-200 overflow-hidden flex flex-col bg-gray-50">
+                <ScoringRubricPanel
+                  proposalId={proposalId}
+                  sectionName={activeSection}
+                  plainText={allSectionsText[activeSection] ?? ''}
+                  requirements={requirements}
+                  complianceMatrix={complianceMatrix}
+                  compact
+                />
+              </div>
+
             </div>
           </>
         )}
@@ -750,6 +823,7 @@ export default function ProposalEditor({
                 <GrammarPanel
                   plainText={allSectionsText[activeSection] ?? ''}
                   sectionName={activeSection}
+                  onShowInDocument={handleShowGrammarInDocument}
                 />
               </div>
             )}
@@ -819,6 +893,46 @@ export default function ProposalEditor({
         }}
         onCancel={() => setShowRegenerateDialog(false)}
       />
+
+      {/* Inline grammar popover */}
+      {grammarPopover && (
+        <GrammarPopover
+          issue={grammarPopover.issue}
+          screenX={grammarPopover.screenX}
+          screenY={grammarPopover.screenY}
+          onAccept={handleGrammarAccept}
+          onDismiss={handleGrammarDismiss}
+          onClose={() => setGrammarPopover(null)}
+        />
+      )}
+
+      {/* Preflight modal — collects missing data before generation */}
+      {showPreflightModal && pendingSection && (
+        <SectionPreflightModal
+          isOpen={showPreflightModal}
+          sectionName={pendingSection}
+          gaps={preflightGaps as ('past_projects' | 'key_personnel' | 'capability_statement')[]}
+          onConfirm={(attachmentContext) => {
+            setShowPreflightModal(false)
+            const section = pendingSection
+            setPendingSection(null)
+            setPreflightGaps([])
+            handleGenerate(section, undefined, attachmentContext)
+          }}
+          onSkip={() => {
+            setShowPreflightModal(false)
+            const section = pendingSection
+            setPendingSection(null)
+            setPreflightGaps([])
+            handleGenerate(section)
+          }}
+          onCancel={() => {
+            setShowPreflightModal(false)
+            setPendingSection(null)
+            setPreflightGaps([])
+          }}
+        />
+      )}
     </div>
   )
 }

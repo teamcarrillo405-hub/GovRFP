@@ -31,6 +31,7 @@ export async function POST(
     return new Response('Invalid section name', { status: 400 })
   }
   const instruction = body.instruction as string | undefined
+  const attachmentContext = body.attachment_context as string | undefined
 
   // Load all context in parallel
   const [profileRes, pastProjectsRes, keyPersonnelRes, proposalRes, analysisRes] = await Promise.all([
@@ -84,6 +85,7 @@ export async function POST(
           requirements,
           matrix,
           instruction,
+          attachmentContext,
           supabase,
         })) {
           emit(event)

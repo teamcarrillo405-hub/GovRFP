@@ -60,7 +60,7 @@ export default async function DashboardLayout({
 
       <div style={{ display: 'flex', flex: 1 }}>
         <AppSidebar />
-        <main style={{ flex: 1, padding: 28, overflow: 'visible', background: '#F0F2F5' }}>
+        <main style={{ flex: 1, padding: 28, overflow: 'visible', background: '#0B0B0D' }} className="cmd-grid">
           {children}
         </main>
       </div>

@@ -81,6 +81,11 @@ export const profileSchema = z.object({
 
   // Onboarding
   onboarding_completed: z.boolean().default(false),
+
+  // Website & identity
+  website_url: z.string().url().max(500).optional().or(z.literal('')),
+  differentiators: z.string().max(1000).optional().or(z.literal('')),
+  emr: z.number().min(0).max(9.99).optional().nullable(),
 })
 
 export const pastProjectSchema = z.object({

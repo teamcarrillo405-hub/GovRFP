@@ -1,58 +1,115 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Chrome — dark surfaces only */
-  --navy:       #0B1220;
-  --slate:      #1A2433;
-  --mid:        #1E2B3C;
-  --navborder:  #263447;
-  --softgray:   #9AA4B2;
+  /* ── Avero Shell / Chrome ───────────────────────────────── */
+  --gunmetal:     #1A1D21;   /* primary dark shell background  */
+  --carbon:       #0B0B0D;   /* base black, stage depth        */
+  --shell-mid:    #22262B;   /* elevated panel within shell    */
+  --shell-border: #2E3238;   /* borders inside dark surfaces   */
+  --titanium:     #C0C2C6;   /* outlines, separators, inactive */
 
-  /* Primary interactive — ONE color */
-  --blue:       #2F80FF;
+  /* ── Avero Accent ───────────────────────────────────────── */
+  --red:          #FF1A1A;   /* primary CTA, action, active    */
+  --red-deep:     #B30000;   /* hover / pressed state          */
+  --gold:         #D4AF37;   /* premium labels — use sparingly */
+  --soft-white:   #F5F5F7;   /* text on dark surfaces          */
 
-  /* Semantic status — TEXT ONLY, never fills */
-  --success:    #00C48C;
-  --error:      #FF4D4F;
-  --warning:    #F59E0B;
+  /* ── Semantic status ────────────────────────────────────── */
+  --success:      #00C48C;
+  --error:        #FF4D4F;
+  --warning:      #F59E0B;
 
-  /* Data viz — charts only */
-  --chart-1:    #2F80FF;
-  --chart-2:    #7B61FF;
-  --chart-3:    #00C2FF;
-  --chart-4:    #00A3A3;
+  /* ── Data viz (charts only) ─────────────────────────────── */
+  --chart-1:      #FF1A1A;
+  --chart-2:      #C0C2C6;
+  --chart-3:      #D4AF37;
+  --chart-4:      #00C48C;
 
-  /* Light surfaces */
-  --body:       #F0F2F5;
-  --card:       #FFFFFF;
-  --text-1:     #0F172A;
-  --text-2:     #475569;
-  --text-3:     #94A3B8;
-  --border:     #E2E8F0;
-  --divider:    #F8FAFC;
+  /* ── Light work surfaces (editor, forms, documents) ─────── */
+  --body:         #F5F5F7;
+  --card:         #FFFFFF;
+  --text-1:       #0F172A;
+  --text-2:       #475569;
+  --text-3:       #94A3B8;
+  --border:       #E2E8F0;
+  --divider:      #F8FAFC;
 }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: var(--body);
-  color: var(--text-1);
+  background: #0B0B0D;
+  color: #F5F5F7;
+}
+
+/* Technical headlines */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
+/* ─── Glassmorphism panels ─── */
+.glass {
+  background: rgba(26, 29, 33, 0.72);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(192, 194, 198, 0.1);
+  border-radius: 12px;
+}
+.glass-accent {
+  background: rgba(26, 29, 33, 0.72);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255, 26, 26, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 26, 26, 0.07) inset, 0 8px 32px rgba(0,0,0,0.5);
+}
+.glass-gold {
+  background: rgba(26, 29, 33, 0.72);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 12px;
+}
+
+/* ─── Command center grid background ─── */
+.cmd-grid {
+  background-image:
+    linear-gradient(rgba(255, 26, 26, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 26, 26, 0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ─── Panel entry animation (linear — no bounce) ─── */
+@keyframes panel-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.panel-enter {
+  animation: panel-enter 0.28s linear both;
+}
+
+/* ─── HUD pulse dot ─── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+.hud-dot {
+  animation: pulse-dot 2s linear infinite;
 }
 
 /* ─── Utility helpers ─── */
-.scrollbar-none {
-  scrollbar-width: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+.font-mono-kpi { font-family: 'IBM Plex Mono', monospace; }
+.font-oxanium  { font-family: 'Oxanium', 'Space Grotesk', sans-serif; }
+
+/* ─── Light work surfaces (editor, docs) ─── */
+.surface-light {
+  background: #FFFFFF;
+  color: #0F172A;
 }
 
-/* Tabular numbers for data alignment */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Respect user reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

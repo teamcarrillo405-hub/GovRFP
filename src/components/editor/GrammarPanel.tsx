@@ -6,6 +6,7 @@ import { analyzeGrammar, type GrammarIssue, type GrammarReport } from '@/lib/edi
 interface Props {
   plainText: string
   sectionName: string
+  onShowInDocument?: (issues: GrammarIssue[]) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -145,7 +146,7 @@ function SeveritySection({
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function GrammarPanel({ plainText, sectionName }: Props) {
+export default function GrammarPanel({ plainText, sectionName, onShowInDocument }: Props) {
   const [report, setReport] = useState<GrammarReport | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -197,7 +198,16 @@ export default function GrammarPanel({ plainText, sectionName }: Props) {
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">&ldquo;{sectionName}&rdquo;</p>
         </div>
-        <button
+        <div className="flex items-center gap-2">
+          {onShowInDocument && report && report.issues.length > 0 && (
+            <button
+              onClick={() => onShowInDocument(report.issues)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-100 transition-colors"
+            >
+              Show in Document
+            </button>
+          )}
+          <button
           onClick={handleReanalyze}
           disabled={isAnalyzing || !hasText}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
@@ -230,6 +240,7 @@ export default function GrammarPanel({ plainText, sectionName }: Props) {
             'Re-analyze'
           )}
         </button>
+        </div>
       </div>
 
       {/* ── No-text state ── */}

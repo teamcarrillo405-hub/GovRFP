@@ -18,7 +18,7 @@ const variantClasses: Record<CardVariant, string> = {
   default:
     'bg-white border border-gray-200 rounded-xl p-6',
   highlight:
-    'bg-white border border-gray-200 border-l-4 border-l-[#FDFF66] rounded-xl p-6',
+    'bg-white border border-gray-200 border-l-4 border-l-[#FF1A1A] rounded-xl p-6',
   stat:
     'bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-1',
 }
@@ -38,7 +38,7 @@ export function StatCard({ label, value, sub, className = '' }: StatCardProps) {
   return (
     <div className={['bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-1', className].join(' ')}>
       <span className="text-gray-500 text-xs font-medium uppercase tracking-wider font-sans">{label}</span>
-      <span className="text-[#ff7b20] text-3xl font-black leading-none font-sans">{value}</span>
+      <span className="text-[#FF1A1A] text-3xl font-black leading-none font-sans">{value}</span>
       {sub && <span className="text-gray-500 text-xs font-sans">{sub}</span>}
     </div>
   )

@@ -14,9 +14,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-[#FDFF66] text-black font-bold uppercase tracking-wide hover:brightness-105 active:brightness-95 disabled:opacity-50 shadow-sm',
+    'bg-[#FF1A1A] text-white font-semibold tracking-wide hover:bg-[#B30000] active:bg-[#B30000] disabled:opacity-50 shadow-sm',
   secondary:
-    'border border-gray-300 text-gray-700 bg-white hover:border-[#FDFF66] hover:text-gray-900 disabled:opacity-50',
+    'border border-[#2E3238] text-[#0F172A] bg-white hover:border-[#FF1A1A] hover:text-[#B30000] disabled:opacity-50',
   ghost:
     'text-gray-600 bg-transparent hover:text-gray-900 hover:bg-gray-50 disabled:opacity-50',
   danger:
@@ -26,7 +26,7 @@ const variantClasses: Record<Variant, string> = {
 const sizeClasses: Record<Size, string> = {
   sm:  'px-3 py-1.5 text-xs rounded-md',
   md:  'px-4 py-2 text-sm rounded-lg',
-  lg:  'px-6 py-3 text-base rounded-xl',
+  lg:  'px-6 py-3 text-base rounded-lg',
 }
 
 const Spinner = () => (
@@ -61,7 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={[
           'inline-flex items-center justify-center gap-2 font-sans transition-all duration-150 cursor-pointer select-none',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FDFF66] focus-visible:ring-offset-2',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF1A1A] focus-visible:ring-offset-2',
           variantClasses[variant],
           sizeClasses[size],
           (disabled || loading) ? 'cursor-not-allowed' : '',

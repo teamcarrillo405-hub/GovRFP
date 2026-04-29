@@ -19,6 +19,8 @@ interface RedraftParams {
   matrix: ScoringMatrix
   /** Optional user instruction (passed through on first attempt only) */
   instruction?: string
+  /** User-provided real data collected via preflight modal */
+  attachmentContext?: string
   /** Supabase client for persisting scores */
   supabase: ReturnType<typeof import('@/lib/supabase/server')['createClient']> extends Promise<infer T> ? T : never
 }
@@ -43,7 +45,12 @@ export async function* autoRedraft(
     rfpText, requirements, matrix, supabase,
   } = params
 
-  let currentInstruction = params.instruction
+  // Prepend attachment context to first instruction so preflight data lands in the prompt
+  const baseInstruction = params.attachmentContext
+    ? [params.attachmentContext, params.instruction].filter(Boolean).join('\n\n')
+    : params.instruction
+
+  let currentInstruction = baseInstruction
   let lastContent = ''
   let lastScore = 0
 

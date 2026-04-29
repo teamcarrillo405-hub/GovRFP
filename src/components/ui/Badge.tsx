@@ -20,14 +20,14 @@ const variantConfig: Record<BadgeVariant, { bg: string; text: string; dot: strin
     dot:  'bg-gray-400',
   },
   processing: {
-    bg:   'bg-blue-50',
-    text: 'text-blue-700',
-    dot:  'bg-blue-500',
+    bg:   'bg-[#22262B]',
+    text: 'text-[#C0C2C6]',
+    dot:  'bg-[#C0C2C6]',
   },
   analyzed: {
-    bg:   'bg-[#FDFF66]/20',
-    text: 'text-yellow-700',
-    dot:  'bg-[#FDFF66]',
+    bg:   'bg-[#FF1A1A]/10',
+    text: 'text-[#B30000]',
+    dot:  'bg-[#FF1A1A]',
   },
   ready: {
     bg:   'bg-green-50',
@@ -35,9 +35,9 @@ const variantConfig: Record<BadgeVariant, { bg: string; text: string; dot: strin
     dot:  'bg-green-500',
   },
   shared: {
-    bg:   'bg-purple-50',
-    text: 'text-purple-700',
-    dot:  'bg-purple-500',
+    bg:   'bg-gray-100',
+    text: 'text-gray-600',
+    dot:  'bg-gray-400',
   },
   go: {
     bg:   'bg-green-50',
@@ -45,9 +45,9 @@ const variantConfig: Record<BadgeVariant, { bg: string; text: string; dot: strin
     dot:  'bg-green-500',
   },
   caution: {
-    bg:   'bg-orange-50',
-    text: 'text-[#ff7b20]',
-    dot:  'bg-[#ff7b20]',
+    bg:   'bg-amber-50',
+    text: 'text-amber-700',
+    dot:  'bg-amber-500',
   },
   'no-go': {
     bg:   'bg-red-50',
@@ -55,9 +55,9 @@ const variantConfig: Record<BadgeVariant, { bg: string; text: string; dot: strin
     dot:  'bg-red-500',
   },
   'set-aside': {
-    bg:   'bg-[#FDFF66]/20',
-    text: 'text-yellow-700',
-    dot:  'bg-[#FDFF66]',
+    bg:   'bg-[#D4AF37]/10',
+    text: 'text-[#9A7A10]',
+    dot:  'bg-[#D4AF37]',
   },
 }
 

@@ -1,10 +1,13 @@
 'use client'
 
-import { forwardRef, useImperativeHandle } from 'react'
+import { forwardRef, useImperativeHandle, useEffect, useMemo } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import type { Editor } from '@tiptap/react'
 import type { JSONContent } from '@tiptap/react'
 import { editorExtensions } from '@/lib/editor/extensions'
+import { GrammarDecorationExtension, grammarPluginKey } from '@/lib/editor/grammar-decoration-extension'
+import type { GrammarClickPayload } from '@/lib/editor/grammar-decoration-extension'
+import type { GrammarIssue } from '@/lib/editor/grammar-analyzer'
 
 export interface SectionEditorHandle {
   editor: Editor | null
@@ -15,14 +18,25 @@ interface Props {
   onUpdate: (json: JSONContent) => void
   isStreaming: boolean
   streamBuffer: string
+  grammarIssues?: GrammarIssue[]
+  dismissedGrammarTexts?: Set<string>
+  onGrammarIssueClick?: (payload: GrammarClickPayload) => void
 }
 
 const SectionEditor = forwardRef<SectionEditorHandle, Props>(function SectionEditor(
-  { content, onUpdate, isStreaming, streamBuffer },
+  { content, onUpdate, isStreaming, streamBuffer, grammarIssues, dismissedGrammarTexts, onGrammarIssueClick },
   ref
 ) {
+  const extensions = useMemo(() => [
+    ...editorExtensions,
+    GrammarDecorationExtension.configure({
+      onIssueClick: (payload) => onGrammarIssueClick?.(payload),
+    }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [])
+
   const editor = useEditor({
-    extensions: editorExtensions,
+    extensions,
     content: content ?? '',
     onUpdate: ({ editor }) => {
       onUpdate(editor.getJSON())
@@ -33,6 +47,23 @@ const SectionEditor = forwardRef<SectionEditorHandle, Props>(function SectionEdi
   useImperativeHandle(ref, () => ({
     editor: editor ?? null,
   }))
+
+  // Sync grammar issues into the ProseMirror plugin via a transaction
+  useEffect(() => {
+    if (!editor || !grammarIssues) return
+    const dismissed = dismissedGrammarTexts ?? new Set<string>()
+
+    // Mutate storage in-place so extension's this.storage reference stays valid
+    editor.storage.grammarDecoration.issues = grammarIssues
+    editor.storage.grammarDecoration.dismissed = dismissed
+
+    editor.view.dispatch(
+      editor.view.state.tr.setMeta(grammarPluginKey, {
+        issues: grammarIssues,
+        dismissed,
+      })
+    )
+  }, [editor, grammarIssues, dismissedGrammarTexts])
 
   if (!editor) return null
 
@@ -65,7 +96,6 @@ const SectionEditor = forwardRef<SectionEditorHandle, Props>(function SectionEdi
         {isStreaming && (
           <div className="absolute inset-0 bg-white/60 flex flex-col items-center justify-center gap-3">
             <div className="flex items-center gap-2">
-              {/* Spinner SVG */}
               <svg
                 className="animate-spin h-5 w-5 text-blue-700"
                 xmlns="http://www.w3.org/2000/svg"
@@ -96,6 +126,16 @@ const SectionEditor = forwardRef<SectionEditorHandle, Props>(function SectionEdi
           border-radius: 2px;
           padding: 0 2px;
         }
+        .grammar-highlight {
+          border-radius: 2px;
+          cursor: pointer;
+        }
+        .grammar-type-jargon { border-bottom: 2px solid #8B5CF6; background-color: #F5F3FF; }
+        .grammar-type-passive-voice { border-bottom: 2px solid #F97316; background-color: #FFF7ED; }
+        .grammar-type-weak-word { border-bottom: 2px dashed #3B82F6; background-color: #EFF6FF; }
+        .grammar-type-grammar { border-bottom: 2px solid #EF4444; background-color: #FFF5F5; }
+        .grammar-type-repeated-word { border-bottom: 2px dashed #9CA3AF; background-color: #F9FAFB; }
+        .grammar-type-long-sentence { background-color: #FFFBEB; border-bottom: 2px solid #EAB308; }
       `}</style>
     </div>
   )

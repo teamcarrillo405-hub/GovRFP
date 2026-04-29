@@ -7,7 +7,7 @@ import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import type { RfpStructure } from '@/lib/documents/rfp-structure'
 import Link from 'next/link'
-import { ChevronLeft, Clock, Download, ClipboardList, History, ShieldCheck, DollarSign, Users } from 'lucide-react'
+import { ChevronLeft, Clock, Download, ClipboardList, History, ShieldCheck, DollarSign, Users, ExternalLink } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -44,6 +44,17 @@ export default async function EditorPage({ params }: Props) {
   }
 
   const rfpStructure = (proposal.rfp_structure ?? null) as RfpStructure | null
+
+  // Load RFP URL when proposal came from a SAM.gov opportunity
+  let rfpUrl: string | null = null
+  if ((proposal as any).opportunity_id) {
+    const { data: opp } = await supabase
+      .from('opportunities')
+      .select('sam_url')
+      .eq('id', (proposal as any).opportunity_id)
+      .single()
+    rfpUrl = opp?.sam_url ?? null
+  }
 
   // Load sections, analysis in parallel
   const [sectionsResult, analysisResult] = await Promise.all([
@@ -166,6 +177,29 @@ export default async function EditorPage({ params }: Props) {
           <Users size={13} strokeWidth={1.5} />
           Teaming
         </Link>
+        {rfpUrl && (
+          <a
+            href={rfpUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#0F172A',
+              textDecoration: 'none',
+              padding: '4px 10px',
+              border: '1px solid #CBD5E1',
+              borderRadius: 6,
+              background: '#F8FAFC',
+            }}
+          >
+            <ExternalLink size={13} strokeWidth={1.5} />
+            View RFP
+          </a>
+        )}
         <div style={{ flex: 1 }} />
         {updatedAt && (
           <span style={{ fontSize: 11, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>

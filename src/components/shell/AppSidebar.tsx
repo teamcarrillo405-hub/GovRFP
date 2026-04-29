@@ -17,53 +17,45 @@ import {
   CreditCard,
 } from 'lucide-react';
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
+interface NavItem  { label: string; href: string; icon: React.ReactNode }
+interface NavSection { title: string; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
     title: 'WORKSPACE',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={15} strokeWidth={1.5} /> },
-      { label: 'Pipeline', href: '/pipeline', icon: <KanbanSquare size={15} strokeWidth={1.5} /> },
+      { label: 'Dashboard',  href: '/dashboard', icon: <LayoutDashboard size={14} strokeWidth={1.5} /> },
+      { label: 'Pipeline',   href: '/pipeline',  icon: <KanbanSquare    size={14} strokeWidth={1.5} /> },
     ],
   },
   {
     title: 'PROPOSALS',
     items: [
-      { label: 'All Proposals', href: '/proposals', icon: <FileText size={15} strokeWidth={1.5} /> },
-      { label: 'Compliance Matrix', href: '/proposals/compliance', icon: <Grid size={15} strokeWidth={1.5} /> },
+      { label: 'All Proposals',    href: '/proposals',            icon: <FileText size={14} strokeWidth={1.5} /> },
+      { label: 'Compliance Matrix', href: '/proposals/compliance', icon: <Grid     size={14} strokeWidth={1.5} /> },
     ],
   },
   {
     title: 'INTELLIGENCE',
     items: [
-      { label: 'Opportunities', href: '/opportunities', icon: <Search size={15} strokeWidth={1.5} /> },
-      { label: 'Content Library', href: '/library', icon: <Library size={15} strokeWidth={1.5} /> },
-      { label: 'Past Performance', href: '/past-performance', icon: <Award size={15} strokeWidth={1.5} /> },
+      { label: 'Opportunities',   href: '/opportunities',    icon: <Search   size={14} strokeWidth={1.5} /> },
+      { label: 'Content Library', href: '/library',          icon: <Library  size={14} strokeWidth={1.5} /> },
+      { label: 'Past Performance', href: '/past-performance', icon: <Award   size={14} strokeWidth={1.5} /> },
     ],
   },
   {
     title: 'ANALYZE',
     items: [
-      { label: 'Analytics', href: '/analytics', icon: <BarChart2 size={15} strokeWidth={1.5} /> },
-      { label: 'Scoring & Red Team', href: '/scoring', icon: <Target size={15} strokeWidth={1.5} /> },
+      { label: 'Analytics',       href: '/analytics', icon: <BarChart2 size={14} strokeWidth={1.5} /> },
+      { label: 'Scoring & Red Team', href: '/scoring', icon: <Target   size={14} strokeWidth={1.5} /> },
     ],
   },
   {
     title: 'SETTINGS',
     items: [
-      { label: 'Team', href: '/team', icon: <Users size={15} strokeWidth={1.5} /> },
-      { label: 'Integrations', href: '/account', icon: <Plug size={15} strokeWidth={1.5} /> },
-      { label: 'Billing', href: '/account#billing', icon: <CreditCard size={15} strokeWidth={1.5} /> },
+      { label: 'Team',         href: '/team',           icon: <Users      size={14} strokeWidth={1.5} /> },
+      { label: 'Integrations', href: '/account',        icon: <Plug       size={14} strokeWidth={1.5} /> },
+      { label: 'Billing',      href: '/account#billing', icon: <CreditCard size={14} strokeWidth={1.5} /> },
     ],
   },
 ];
@@ -78,25 +70,28 @@ export function AppSidebar() {
         position: 'sticky',
         top: 52,
         height: 'calc(100vh - 52px)',
-        background: '#0B1220',
+        background: 'rgba(11, 11, 13, 0.88)',
+        backdropFilter: 'blur(20px) saturate(1.5)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
+        borderRight: '1px solid rgba(192, 194, 198, 0.08)',
         overflowY: 'auto',
         flexShrink: 0,
-        padding: '12px 0',
+        padding: '14px 0',
       }}
+      className="scrollbar-none"
     >
       {NAV_SECTIONS.map((section) => (
         <div key={section.title} style={{ marginBottom: 4 }}>
           {/* Section label */}
-          <div
-            style={{
-              padding: '8px 16px 4px',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#263447',
-            }}
-          >
+          <div style={{
+            padding: '8px 16px 4px',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'rgba(192, 194, 198, 0.35)',
+            fontFamily: "'IBM Plex Mono', monospace",
+          }}>
             {section.title}
           </div>
 
@@ -112,16 +107,20 @@ export function AppSidebar() {
                   alignItems: 'center',
                   gap: 10,
                   padding: '7px 16px',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: isActive ? '#fff' : '#9AA4B2',
+                  fontSize: 12.5,
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? '#F5F5F7' : '#C0C2C6',
                   textDecoration: 'none',
-                  background: isActive ? '#1E2B3C' : 'transparent',
-                  borderLeft: isActive ? '2px solid #2F80FF' : '2px solid transparent',
-                  transition: 'all 0.1s',
+                  background: isActive ? 'rgba(255, 26, 26, 0.08)' : 'transparent',
+                  borderLeft: isActive ? '2px solid #FF1A1A' : '2px solid transparent',
+                  transition: 'all 0.15s linear',
                 }}
               >
-                <span style={{ color: isActive ? '#2F80FF' : '#9AA4B2', flexShrink: 0 }}>
+                <span style={{
+                  color: isActive ? '#FF1A1A' : 'rgba(192,194,198,0.6)',
+                  flexShrink: 0,
+                  transition: 'color 0.15s linear',
+                }}>
                   {item.icon}
                 </span>
                 {item.label}

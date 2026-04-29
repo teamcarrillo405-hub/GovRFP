@@ -20,6 +20,8 @@ export function buildSectionPrompt(
     certifications?: string[]
     naics_codes?: string[]
     capability_statement?: string
+    differentiators?: string
+    emr?: number | null
   } | null,
   pastProjects: Array<{
     agency?: string
@@ -41,8 +43,12 @@ export function buildSectionPrompt(
   const companyName = profile?.company_name ?? 'the contractor'
   const certifications = profile?.certifications ?? []
   const capabilityStatement = profile?.capability_statement ?? ''
+  const differentiators = profile?.differentiators ?? ''
+  const emr = profile?.emr ?? null
 
-  const COMMON_FOOTER = `\nWrite in clear, professional proposal language. Use HTML tags for structure (h2, h3, p, ul, li). Output raw HTML only — no markdown, no code fences, no backticks. Start directly with an HTML tag. Never use em dashes (— or –); use commas, colons, or rewrite the sentence instead.`
+  const COMMON_FOOTER = `\nWrite in clear, professional proposal language. Use HTML tags for structure (h2, h3, p, ul, li). Output raw HTML only — no markdown, no code fences, no backticks. Start directly with an HTML tag. Never use em dashes (— or –); use commas, colons, or rewrite the sentence instead.
+
+CRITICAL RULE: Never fabricate or invent specific details (project names, contract numbers, dollar amounts, employee names, certifications) that were not provided above. If a data field is missing or marked "No past projects provided" / "No key personnel provided", write placeholder text in brackets like [INSERT PAST PROJECT] or [INSERT PERSONNEL NAME] rather than making up information. The client will fill in the real details.`
 
   let sectionText: string
 
@@ -69,6 +75,8 @@ export function buildSectionPrompt(
 Company: ${companyName}
 Certifications: ${certifications.length > 0 ? certifications.join(', ') : 'None'}
 Capability Statement: ${capabilityStatement}
+${differentiators ? `Key Differentiators: ${differentiators}` : ''}
+${emr !== null ? `Safety Record (EMR): ${emr} — highlight this as a competitive strength if below 1.0` : ''}
 
 Key Personnel: ${personnelSummary}
 
@@ -99,6 +107,8 @@ ${relevantReqs || 'See RFP text below.'}`
       sectionText = `Draft the Technical Approach section for a government proposal.
 
 Company: ${companyName}
+${differentiators ? `Company Differentiators: ${differentiators}` : ''}
+${emr !== null ? `EMR (Safety Rate): ${emr}` : ''}
 
 Technical Requirements to Address:
 ${technicalReqs || 'See RFP text below.'}

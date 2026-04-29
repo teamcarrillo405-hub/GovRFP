@@ -21,6 +21,7 @@ interface Props {
   plainText: string
   requirements: AnalysisRequirement[]
   complianceMatrix: ComplianceMatrixRow[]
+  compact?: boolean
 }
 
 // ── Score gauge badge ─────────────────────────────────────────────────────────
@@ -105,6 +106,7 @@ export default function ScoringRubricPanel({
   plainText,
   requirements,
   complianceMatrix,
+  compact = false,
 }: Props) {
   const [loadingScore, setLoadingScore] = useState(false)
   const [scoreResult, setScoreResult] = useState<ScoringFeedbackResult | null>(null)
@@ -167,6 +169,121 @@ export default function ScoringRubricPanel({
     } finally {
       setLoadingScore(false)
     }
+  }
+
+  if (compact) {
+    return (
+      <div className="flex flex-col h-full font-sans">
+        {/* Score button header */}
+        <div className="shrink-0 px-4 py-3 border-b border-gray-200 flex items-center justify-between gap-3 bg-white">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Score</p>
+            {scoreResult && !loadingScore && (
+              <>
+                <p className={`text-xs font-bold mt-0.5 ${scoreResult.estimatedScore / scoreResult.maxScore >= 0.7 ? 'text-green-700' : scoreResult.estimatedScore / scoreResult.maxScore >= 0.5 ? 'text-yellow-700' : 'text-red-700'}`}>
+                  {scoreResult.estimatedScore}/{scoreResult.maxScore}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {(scoreResult as typeof scoreResult & { matrixSource?: string }).matrixSource === 'section_lm'
+                    ? 'Section M criteria'
+                    : 'RFP-derived criteria'}
+                </p>
+              </>
+            )}
+          </div>
+          {hasContent && (
+            <button
+              onClick={handleScoreSection}
+              disabled={loadingScore}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingScore ? (
+                <>
+                  <svg className="animate-spin h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Scoring...
+                </>
+              ) : scoreResult ? 'Re-score' : 'Score Section'}
+            </button>
+          )}
+        </div>
+
+        {/* Results area */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          {!hasContent && !scoreResult && (
+            <p className="text-xs text-gray-400 text-center pt-6">Write content to score this section.</p>
+          )}
+
+          {loadingScore && (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <svg className="animate-spin h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p className="text-xs text-gray-500">Evaluating as SSEB panel...</p>
+            </div>
+          )}
+
+          {scoreError && !loadingScore && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-semibold text-red-800">Evaluation failed</p>
+              <p className="text-xs text-red-600">{scoreError}</p>
+              <button onClick={handleScoreSection} className="text-xs text-red-700 underline hover:text-red-900">Retry</button>
+            </div>
+          )}
+
+          {scoreResult && !loadingScore && (
+            <div className="space-y-4">
+              {/* Gauge */}
+              <div className="flex justify-center pt-2">
+                <ScoreBadge score={scoreResult.estimatedScore} max={scoreResult.maxScore} />
+              </div>
+
+              {scoreResult.strengths.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-green-800 mb-2">Strengths</p>
+                  <ul className="space-y-1">
+                    {scoreResult.strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-green-700">
+                        <span className="shrink-0 text-green-500">+</span>{s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {scoreResult.weaknesses.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-red-800 mb-2">Weaknesses</p>
+                  <ul className="space-y-1">
+                    {scoreResult.weaknesses.map((w, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-red-700">
+                        <span className="shrink-0 text-red-400">-</span>{w}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {scoreResult.improvements.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-amber-800 mb-2">Improvements</p>
+                  <ol className="space-y-1.5">
+                    {scoreResult.improvements.map((imp, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-amber-700">
+                        <span className="shrink-0 font-semibold text-amber-500">{i + 1}.</span>{imp}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (

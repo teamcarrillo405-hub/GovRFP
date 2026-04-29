@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
+import { GlassPanel } from '@/components/ui/GlassPanel';
+import { ArcGauge } from '@/components/ui/ArcGauge';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,15 +31,15 @@ interface SectionScore {
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.10em', color: '#475569', marginBottom: 14 }}>
-      {children}
-    </div>
-  );
-}
-
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', ...style }}>
+    <div style={{
+      fontSize: 10,
+      fontWeight: 700,
+      fontFamily: "'Oxanium', sans-serif",
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.14em',
+      color: '#C0C2C6',
+      marginBottom: 14,
+    }}>
       {children}
     </div>
   );
@@ -58,20 +60,54 @@ function HorizontalBarChart({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <SectionLabel>{title}</SectionLabel>
         {sampleData && (
-          <span style={{ fontSize: 10, fontWeight: 600, color: '#94A3B8', background: '#F1F5F9', borderRadius: 4, padding: '2px 6px', marginBottom: 14 }}>
+          <span style={{
+            fontSize: 9,
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontWeight: 600,
+            color: 'rgba(192,194,198,0.45)',
+            background: 'rgba(192,194,198,0.08)',
+            borderRadius: 3,
+            padding: '2px 6px',
+            marginBottom: 14,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase' as const,
+          }}>
             Sample data
           </span>
         )}
       </div>
       {data.map(item => (
         <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 96, fontSize: 11, fontWeight: 500, color: '#475569', textAlign: 'right' as const, flexShrink: 0 }}>{item.label}</div>
-          <div style={{ flex: 1, height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${(item.value / max) * 100}%`, height: '100%', background: '#2F80FF', borderRadius: 4 }} />
+          <div style={{
+            width: 96,
+            fontSize: 10,
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: '#C0C2C6',
+            textAlign: 'right' as const,
+            flexShrink: 0,
+            letterSpacing: '0.04em',
+          }}>
+            {item.label}
           </div>
-          <div style={{ width: 80, fontSize: 11, fontWeight: 700, color: '#0F172A', flexShrink: 0 }}>
+          <div style={{ flex: 1, height: 7, background: 'rgba(192,194,198,0.12)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{
+              width: `${(item.value / max) * 100}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #FF1A1A, #D4AF37)',
+              borderRadius: 4,
+            }} />
+          </div>
+          <div style={{
+            width: 80,
+            fontSize: 11,
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontWeight: 700,
+            color: '#F5F5F7',
+            flexShrink: 0,
+            letterSpacing: '0.04em',
+          }}>
             {item.value}%{' '}
-            <span style={{ fontWeight: 400, color: '#94A3B8' }}>({item.count})</span>
+            <span style={{ fontWeight: 400, color: 'rgba(192,194,198,0.45)' }}>({item.count})</span>
           </div>
         </div>
       ))}
@@ -120,13 +156,13 @@ function TrendChart({ months }: { months: { label: string; winRate: number | nul
         const y = padT + chartH - (pct / 100) * chartH;
         return (
           <g key={pct}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#E2E8F0" strokeWidth={1} />
-            <text x={padL - 4} y={y + 4} fontSize={9} fill="#94A3B8" textAnchor="end">{pct}%</text>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="rgba(192,194,198,0.08)" strokeWidth={1} />
+            <text x={padL - 4} y={y + 4} fontSize={9} fill="#C0C2C6" textAnchor="end">{pct}%</text>
           </g>
         );
       })}
 
-      {/* Volume bars (gray, behind line) */}
+      {/* Volume bars (behind line) */}
       {months.map((m, i) => {
         const x = padL + i * colW + colW / 2;
         const barH = m.total > 0 ? (m.total / maxTotal) * (chartH * 0.4) : 0;
@@ -137,22 +173,22 @@ function TrendChart({ months }: { months: { label: string; winRate: number | nul
             y={padT + chartH - barH}
             width={barW}
             height={barH}
-            fill="#E2E8F0"
+            fill="rgba(192,194,198,0.15)"
             rx={2}
           />
         );
       })}
 
-      {/* Win rate line */}
-      {pathD && <path d={pathD} fill="none" stroke="#2F80FF" strokeWidth={2} strokeLinejoin="round" />}
+      {/* Win rate line — gold */}
+      {pathD && <path d={pathD} fill="none" stroke="#D4AF37" strokeWidth={2} strokeLinejoin="round" />}
 
       {/* Dots + labels */}
       {points.map((pt, i) => {
         if (!pt) return null;
         return (
           <g key={`dot-${i}`}>
-            <circle cx={pt.x} cy={pt.y} r={4} fill="#2F80FF" stroke="#fff" strokeWidth={2} />
-            <text x={pt.x} y={pt.y - 8} fontSize={9} fill="#0F172A" fontWeight="700" textAnchor="middle">{pt.winRate}%</text>
+            <circle cx={pt.x} cy={pt.y} r={4} fill="#D4AF37" stroke="rgba(11,11,13,0.8)" strokeWidth={2} />
+            <text x={pt.x} y={pt.y - 8} fontSize={9} fill="#D4AF37" fontWeight="700" textAnchor="middle">{pt.winRate}%</text>
           </g>
         );
       })}
@@ -161,7 +197,7 @@ function TrendChart({ months }: { months: { label: string; winRate: number | nul
       {months.map((m, i) => {
         const x = padL + i * colW + colW / 2;
         return (
-          <text key={`xlbl-${i}`} x={x} y={H - 4} fontSize={9} fill="#94A3B8" textAnchor="middle">{m.label}</text>
+          <text key={`xlbl-${i}`} x={x} y={H - 4} fontSize={9} fill="#C0C2C6" textAnchor="middle">{m.label}</text>
         );
       })}
     </svg>
@@ -506,11 +542,16 @@ export default async function AnalyticsPage() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ background: '#F0F2F5', minHeight: '100vh', padding: '0 0 40px' }}>
-      {/* Header */}
+    <div style={{ paddingBottom: 40 }}>
+      {/* Page Title */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', margin: 0 }}>Analytics</h1>
-        <p style={{ fontSize: 13, color: '#475569', marginTop: 4, marginBottom: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <div style={{ width: 3, height: 22, background: '#FF1A1A', borderRadius: 2, boxShadow: '0 0 8px rgba(255,26,26,0.6)', flexShrink: 0 }} />
+          <h1 style={{ fontSize: 19, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
+            Intel Analytics
+          </h1>
+        </div>
+        <p style={{ fontSize: 10.5, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.07em', paddingLeft: 15, margin: '4px 0 0' }}>
           FY 2026 · {proposals.length} proposal{proposals.length !== 1 ? 's' : ''}
           {decided.length > 0 ? ` · ${decided.length} decided` : ''}
         </p>
@@ -518,90 +559,120 @@ export default async function AnalyticsPage() {
 
       {/* KPI Strip */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-        {[
-          {
-            label: 'Win Rate',
-            value: `${winRate}%`,
-            sub: decided.length > 0 ? `${won.length} of ${decided.length} decided` : 'No decided proposals',
-            subColor: '#475569',
-          },
-          {
-            label: 'Won Contract Value',
-            value: wonValue > 0 ? fmtValue(wonValue) : '—',
-            sub: won.length > 0 ? `${won.length} awarded contract${won.length !== 1 ? 's' : ''}` : 'No wins yet',
-            subColor: wonValue > 0 ? '#00C48C' : '#94A3B8',
-          },
-          {
-            label: 'Proposals Submitted',
-            value: String(proposals.length),
-            sub: `${decided.length} with outcome`,
-            subColor: '#475569',
-          },
-          {
-            label: 'Avg Days to Submit',
-            value: avgDays !== null ? `${avgDays}d` : '—',
-            sub: avgDays !== null ? `${withSubmitTime.length} proposals measured` : 'No timeline data',
-            subColor: '#475569',
-          },
-        ].map(kpi => (
-          <Card key={kpi.label}>
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.10em', color: '#475569', marginBottom: 8 }}>
-              {kpi.label}
+        {/* Win Rate — with ArcGauge */}
+        <GlassPanel variant="gold" style={{ padding: '20px 22px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Win Rate
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <ArcGauge value={winRate} size={100} color="#D4AF37" label="win rate" />
+            <div>
+              <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.06em', marginTop: 4 }}>
+                {decided.length > 0 ? `${won.length} of ${decided.length} decided` : 'No decided proposals'}
+              </div>
             </div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 6 }}>
-              {kpi.value}
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: kpi.subColor }}>{kpi.sub}</div>
-          </Card>
-        ))}
+          </div>
+        </GlassPanel>
+
+        {/* Won Contract Value */}
+        <GlassPanel style={{ padding: '20px 22px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Won Contract Value
+          </div>
+          <div style={{ fontSize: 38, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace", color: '#D4AF37', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+            {wonValue > 0 ? fmtValue(wonValue) : '—'}
+          </div>
+          <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: wonValue > 0 ? '#00C48C' : 'rgba(192,194,198,0.45)', letterSpacing: '0.06em' }}>
+            {won.length > 0 ? `${won.length} awarded contract${won.length !== 1 ? 's' : ''}` : 'No wins yet'}
+          </div>
+        </GlassPanel>
+
+        {/* Proposals Submitted */}
+        <GlassPanel style={{ padding: '20px 22px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Proposals Submitted
+          </div>
+          <div style={{ fontSize: 38, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace", color: '#F5F5F7', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+            {String(proposals.length)}
+          </div>
+          <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.06em' }}>
+            {decided.length} with outcome
+          </div>
+        </GlassPanel>
+
+        {/* Avg Days to Submit */}
+        <GlassPanel style={{ padding: '20px 22px' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Avg Days to Submit
+          </div>
+          <div style={{ fontSize: 38, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace", color: '#F5F5F7', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+            {avgDays !== null ? `${avgDays}d` : '—'}
+          </div>
+          <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.06em' }}>
+            {avgDays !== null ? `${withSubmitTime.length} proposals measured` : 'No timeline data'}
+          </div>
+        </GlassPanel>
       </div>
 
       {/* Row 1: Agency + Set-Aside */}
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16, marginBottom: 16 }}>
-        <Card>
+        <GlassPanel style={{ padding: '20px 22px' }}>
           <HorizontalBarChart data={agencyChartData} title="Win Rate by Agency" sampleData={agencyUseSample} />
-        </Card>
+        </GlassPanel>
 
-        <Card>
+        <GlassPanel style={{ padding: '20px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <SectionLabel>Win Rate by Set-Aside</SectionLabel>
             {setAsideUseSample && (
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#94A3B8', background: '#F1F5F9', borderRadius: 4, padding: '2px 6px', marginBottom: 14 }}>
+              <span style={{
+                fontSize: 9,
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontWeight: 600,
+                color: 'rgba(192,194,198,0.45)',
+                background: 'rgba(192,194,198,0.08)',
+                borderRadius: 3,
+                padding: '2px 6px',
+                marginBottom: 14,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
+              }}>
                 Sample data
               </span>
             )}
           </div>
           {setAsideData.map(sa => (
             <div key={sa.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2F80FF', flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 12, color: '#475569' }}>{sa.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>{sa.value}%</span>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', letterSpacing: '0.04em' }}>{sa.label}</span>
+              <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, color: '#F5F5F7' }}>{sa.value}%</span>
             </div>
           ))}
-        </Card>
+        </GlassPanel>
       </div>
 
       {/* Row 2: NAICS + Compliance Score Correlation */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <Card>
+        <GlassPanel style={{ padding: '20px 22px' }}>
           <HorizontalBarChart data={naicsChartData} title="Win Rate by NAICS" sampleData={naicsUseSample} />
-        </Card>
+        </GlassPanel>
 
-        <Card>
+        <GlassPanel style={{ padding: '20px 22px' }}>
           <SectionLabel>Win Rate by Compliance Score</SectionLabel>
-          <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', marginBottom: 14, letterSpacing: '0.04em' }}>
             Unique insight — correlates section compliance with award outcomes
           </div>
           {lowBucketZeroWins && (
             <div style={{
-              background: '#F59E0B14',
-              border: '1px solid #F59E0B40',
+              background: 'rgba(245,158,11,0.08)',
+              border: '1px solid rgba(245,158,11,0.25)',
               borderRadius: 6,
               padding: '8px 12px',
               marginBottom: 14,
-              fontSize: 11,
+              fontSize: 10,
+              fontFamily: "'IBM Plex Mono', monospace",
               fontWeight: 600,
               color: '#F59E0B',
+              letterSpacing: '0.04em',
             }}>
               Proposals with compliance score below 70 have 0% win rate
             </div>
@@ -610,141 +681,187 @@ export default async function AnalyticsPage() {
             const maxBucket = Math.max(...complianceBuckets.map(b => b.value), 1);
             return (
               <div key={bucket.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 44, fontSize: 11, fontWeight: 500, color: '#475569', textAlign: 'right' as const, flexShrink: 0 }}>{bucket.label}</div>
-                <div style={{ flex: 1, height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ width: `${(bucket.value / maxBucket) * 100}%`, height: '100%', background: '#2F80FF', borderRadius: 4 }} />
+                <div style={{
+                  width: 44,
+                  fontSize: 10,
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  color: '#C0C2C6',
+                  textAlign: 'right' as const,
+                  flexShrink: 0,
+                  letterSpacing: '0.04em',
+                }}>
+                  {bucket.label}
                 </div>
-                <div style={{ width: 80, fontSize: 11, fontWeight: 700, color: '#0F172A', flexShrink: 0 }}>
+                <div style={{ flex: 1, height: 7, background: 'rgba(192,194,198,0.12)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${(bucket.value / maxBucket) * 100}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #FF1A1A, #D4AF37)',
+                    borderRadius: 4,
+                  }} />
+                </div>
+                <div style={{
+                  width: 80,
+                  fontSize: 11,
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontWeight: 700,
+                  color: '#F5F5F7',
+                  flexShrink: 0,
+                  letterSpacing: '0.04em',
+                }}>
                   {bucket.value}%{' '}
-                  <span style={{ fontWeight: 400, color: '#94A3B8' }}>({bucket.count})</span>
+                  <span style={{ fontWeight: 400, color: 'rgba(192,194,198,0.45)' }}>({bucket.count})</span>
                 </div>
               </div>
             );
           })}
-        </Card>
+        </GlassPanel>
       </div>
 
       {/* Row 3: Monthly Trend */}
-      <Card style={{ marginBottom: 16 }}>
+      <GlassPanel style={{ padding: '20px 22px', marginBottom: 16 }}>
         <SectionLabel>Win Rate Trend — Last 12 Months</SectionLabel>
-        <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 16 }}>
-          Blue line = win rate · Gray bars = proposal volume
+        <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', marginBottom: 16, letterSpacing: '0.04em' }}>
+          Gold line = win rate · Gray bars = proposal volume
         </div>
         {monthsWithData < 3 ? (
           <div style={{ padding: '32px 0', textAlign: 'center' as const }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontFamily: "'Oxanium', sans-serif", fontWeight: 600, color: '#C0C2C6', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
               Not enough data yet
             </div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>
+            <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)' }}>
               Win rate trend will appear after more proposals are decided
             </div>
           </div>
         ) : (
           <TrendChart months={months} />
         )}
-      </Card>
+      </GlassPanel>
 
       {/* Row 4: AI Learning Insights */}
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>AI Learning Insights</div>
-        <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 16 }}>
+      <GlassPanel style={{ padding: '20px 22px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+          <div style={{ width: 3, height: 16, background: '#D4AF37', borderRadius: 2, boxShadow: '0 0 6px rgba(212,175,55,0.5)', flexShrink: 0 }} />
+          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            AI Learning Insights
+          </span>
+        </div>
+        <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', marginBottom: 16, paddingLeft: 15, letterSpacing: '0.04em' }}>
           Based on {proposals.length} proposals across FY 2026
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          <div style={{ padding: '14px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', lineHeight: 1.4, marginBottom: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <GlassPanel style={{ padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#F5F5F7', lineHeight: 1.5, marginBottom: 8 }}>
               {insight1}
             </div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>
+            <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.04em' }}>
               {winScoreDecided.length} proposals with win score data
             </div>
-          </div>
-          <div style={{ padding: '14px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', lineHeight: 1.4, marginBottom: 8 }}>
+          </GlassPanel>
+          <GlassPanel style={{ padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#F5F5F7', lineHeight: 1.5, marginBottom: 8 }}>
               {insight2}
             </div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>
+            <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.04em' }}>
               {earlySubmit.length} proposals submitted 5+ days from creation
             </div>
-          </div>
-          <div style={{ padding: '14px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', lineHeight: 1.4, marginBottom: 8 }}>
+          </GlassPanel>
+          <GlassPanel variant={insight3HasWarning ? 'accent' : 'default'} style={{ padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#F5F5F7', lineHeight: 1.5, marginBottom: 8 }}>
               {insight3}
             </div>
-            <div style={{ fontSize: 11, color: insight3HasWarning ? '#F59E0B' : '#94A3B8' }}>
+            <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: insight3HasWarning ? '#F59E0B' : 'rgba(192,194,198,0.45)', letterSpacing: '0.04em' }}>
               {insight3HasWarning ? 'Action: review compliance scores on active proposals' : 'All active proposals are on track'}
             </div>
-          </div>
+          </GlassPanel>
         </div>
-      </Card>
+      </GlassPanel>
 
       {/* Row 5: Win/Loss Detail Table */}
-      <Card>
-        <SectionLabel>Win / Loss Detail</SectionLabel>
-        <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 16 }}>Last 10 decided proposals</div>
+      <GlassPanel noPad>
+        {/* Panel header */}
+        <div style={{ padding: '13px 20px', borderBottom: '1px solid rgba(192,194,198,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+            Win / Loss Detail
+          </span>
+          <span style={{ fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', letterSpacing: '0.06em' }}>
+            Last 10 decided proposals
+          </span>
+        </div>
+
         {tableRows.length === 0 ? (
-          <div style={{ padding: '32px 0', textAlign: 'center' as const }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 4 }}>No decided proposals yet</div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Win/Loss table will populate as proposals are marked won or lost</div>
+          <div style={{ padding: '40px 20px', textAlign: 'center' as const }}>
+            <div style={{ fontSize: 12, fontFamily: "'Oxanium', sans-serif", fontWeight: 600, color: '#C0C2C6', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+              No decided proposals yet
+            </div>
+            <div style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)' }}>
+              Win/Loss table will populate as proposals are marked won or lost
+            </div>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' as const }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' as const, fontSize: 12 }}>
               <thead>
-                <tr>
+                <tr style={{ background: 'rgba(11,11,13,0.4)' }}>
                   {['Title', 'Outcome', 'Contract Value', 'Submitted', 'Compliance', 'Win Score'].map(col => (
                     <th key={col} style={{
                       textAlign: 'left' as const,
-                      padding: '8px 12px',
-                      fontSize: 10,
+                      padding: '10px 16px',
+                      fontSize: 9,
                       fontWeight: 700,
+                      fontFamily: "'IBM Plex Mono', monospace",
                       textTransform: 'uppercase' as const,
-                      letterSpacing: '0.08em',
-                      color: '#94A3B8',
-                      borderBottom: '1px solid #E2E8F0',
+                      letterSpacing: '0.12em',
+                      color: 'rgba(192,194,198,0.45)',
+                      borderBottom: '1px solid rgba(192,194,198,0.08)',
                     }}>{col}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {tableRows.map((row, i) => (
-                  <tr key={row.id} style={{ background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
-                    <td style={{ padding: '10px 12px', color: '#0F172A', fontWeight: 500, maxWidth: 280 }}>
+                  <tr key={row.id} style={{ background: i % 2 === 0 ? 'rgba(26,29,33,0.4)' : 'transparent' }}>
+                    <td style={{ padding: '11px 16px', color: '#F5F5F7', fontWeight: 500, maxWidth: 280, borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                         {row.title}
                       </div>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
+                    <td style={{ padding: '11px 16px', borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
                       <span style={{
-                        fontSize: 11,
+                        fontSize: 9,
+                        fontFamily: "'IBM Plex Mono', monospace",
                         fontWeight: 700,
                         color: row.outcome === 'won' ? '#00C48C' : '#FF4D4F',
-                        background: row.outcome === 'won' ? '#00C48C14' : '#FF4D4F14',
-                        borderRadius: 4,
-                        padding: '2px 8px',
+                        background: row.outcome === 'won' ? 'rgba(0,196,140,0.1)' : 'rgba(255,77,79,0.1)',
+                        border: `1px solid ${row.outcome === 'won' ? 'rgba(0,196,140,0.3)' : 'rgba(255,77,79,0.3)'}`,
+                        borderRadius: 3,
+                        padding: '2px 7px',
+                        letterSpacing: '0.10em',
+                        textTransform: 'uppercase' as const,
                       }}>
                         {row.outcome === 'won' ? 'Won' : 'Lost'}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#475569' }}>
+                    <td style={{ padding: '11px 16px', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: row.contractValue != null ? '#D4AF37' : 'rgba(192,194,198,0.45)', borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
                       {row.contractValue != null ? fmtValue(row.contractValue) : '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#475569' }}>
+                    <td style={{ padding: '11px 16px', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#C0C2C6', borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
                       {row.submitted
                         ? new Date(row.submitted).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
                         : '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#475569' }}>
+                    <td style={{ padding: '11px 16px', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
                       {row.complianceScore !== null ? (
                         <span style={{
                           color: row.complianceScore >= 85 ? '#00C48C' : row.complianceScore >= 70 ? '#F59E0B' : '#FF4D4F',
+                          fontWeight: 700,
                         }}>
                           {row.complianceScore}
                         </span>
-                      ) : '—'}
+                      ) : <span style={{ color: 'rgba(192,194,198,0.45)' }}>—</span>}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#475569' }}>
-                      {row.winScore !== null ? `${row.winScore}%` : '—'}
+                    <td style={{ padding: '11px 16px', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#C0C2C6', borderBottom: '1px solid rgba(192,194,198,0.06)' }}>
+                      {row.winScore !== null ? `${row.winScore}%` : <span style={{ color: 'rgba(192,194,198,0.45)' }}>—</span>}
                     </td>
                   </tr>
                 ))}
@@ -752,7 +869,7 @@ export default async function AnalyticsPage() {
             </table>
           </div>
         )}
-      </Card>
+      </GlassPanel>
     </div>
   );
 }

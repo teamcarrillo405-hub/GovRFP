@@ -4,6 +4,7 @@ export interface GrammarIssue {
   text: string           // the offending phrase
   suggestion: string     // what to do instead
   sentenceContext: string // the full sentence it appears in (truncated to 120 chars)
+  replacement?: string   // direct word substitution when available ('' means delete)
 }
 
 export interface GrammarReport {
@@ -106,6 +107,15 @@ const WEAK_WORDS: Record<string, string> = {
   some: 'Quantify or name the specific items',
 }
 
+// Direct one-word replacements for weak words ('' = delete the word)
+const WEAK_WORD_REPLACEMENT: Record<string, string> = {
+  very: '',
+  really: '',
+  quite: '',
+  somewhat: '',
+  basically: '',
+}
+
 const WEAK_WORD_REGEX = new RegExp(
   `\\b(${Object.keys(WEAK_WORDS).join('|')})\\b`,
   'gi'
@@ -126,6 +136,14 @@ const JARGON_MAP: Record<string, string> = {
   'world-class': 'Provide evidence or a specific differentiator',
   'best-in-class': 'Provide evidence or a specific differentiator',
   paradigm: 'Use "model", "approach", or "method" instead',
+}
+
+// Direct one-word replacements for jargon terms
+const JARGON_REPLACEMENT: Record<string, string> = {
+  utilize: 'use',
+  leverage: 'use',
+  facilitate: 'enable',
+  paradigm: 'approach',
 }
 
 const JARGON_REGEX = new RegExp(
@@ -298,6 +316,7 @@ export function analyzeGrammar(plainText: string): GrammarReport {
       text: weakMatch[1],
       suggestion: WEAK_WORDS[word] ?? 'Use a more precise word',
       sentenceContext: truncate(ctxSentence ?? '', 120),
+      replacement: WEAK_WORD_REPLACEMENT[word],
     })
   }
 
@@ -323,6 +342,7 @@ export function analyzeGrammar(plainText: string): GrammarReport {
       text: jargonMatch[1],
       suggestion: JARGON_MAP[word] ?? 'Replace with plain language',
       sentenceContext: truncate(ctxSentence ?? '', 120),
+      replacement: JARGON_REPLACEMENT[word],
     })
   }
 

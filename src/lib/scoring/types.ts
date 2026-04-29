@@ -113,8 +113,53 @@ export function normalizeWeights(raw: number[]): number[] {
 }
 
 /**
+ * Build scoring criteria derived from RFP requirements when no Section L/M exists.
+ * Groups requirements by topic and assigns weights based on federal construction norms.
+ */
+export function buildCriteriaFromRequirements(requirements: AnalysisRequirement[]): ScoringCriterion[] {
+  // Federal construction evaluation weight norms
+  const TOPIC_WEIGHTS: Record<string, number> = {
+    Technical:       0.35,
+    Management:      0.20,
+    'Past Performance': 0.25,
+    Price:           0.10,
+    Certifications:  0.05,
+    Deliverables:    0.03,
+    Other:           0.02,
+  }
+
+  // Identify which topics actually appear in the requirements
+  const topicsPresent = [...new Set(requirements.map((r) => r.proposal_topic))]
+    .filter((t) => TOPIC_WEIGHTS[t] !== undefined)
+
+  if (topicsPresent.length === 0) return buildDefaultCriteria()
+
+  // Build one criterion per topic, description summarises the mandatory reqs
+  const rawWeights = topicsPresent.map((t) => TOPIC_WEIGHTS[t] ?? 0.05)
+  const normalized = normalizeWeights(rawWeights)
+
+  return topicsPresent.map((topic, i) => {
+    const topicReqs = requirements
+      .filter((r) => r.proposal_topic === topic && r.classification === 'mandatory')
+      .slice(0, 5)
+      .map((r) => `- ${r.text.slice(0, 150)}`)
+      .join('\n')
+
+    return {
+      ref: `RFP-${topic.replace(/\s+/g, '_').toUpperCase()}`,
+      label: topic,
+      weight: normalized[i],
+      description: topicReqs
+        ? `Address all mandatory requirements in this category:\n${topicReqs}`
+        : `Address all ${topic} requirements from the RFP`,
+    }
+  })
+}
+
+/**
  * Build a ScoringMatrix for a proposal from its L/M crosswalk.
- * Falls back to DEFAULT_CRITERIA if crosswalk is empty.
+ * Falls back to RFP-derived criteria when crosswalk is empty.
+ * Only falls back to generic defaults when neither crosswalk nor requirements exist.
  */
 export function buildScoringMatrix(
   proposalId: string,
@@ -124,10 +169,15 @@ export function buildScoringMatrix(
   const reqsBySection = groupRequirementsBySection(requirements)
 
   if (!crosswalk.length) {
+    // Prefer RFP-derived criteria over generic defaults
+    const criteria = requirements.length > 0
+      ? buildCriteriaFromRequirements(requirements)
+      : buildDefaultCriteria()
+
     return {
       proposal_id: proposalId,
       source: 'default',
-      criteria: buildDefaultCriteria(),
+      criteria,
       requirements_by_section: reqsBySection,
     }
   }
