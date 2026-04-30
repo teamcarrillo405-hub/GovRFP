@@ -48,6 +48,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/archiver": "^7.0.0",
     "@types/node": "^20",
+    "@types/office-js": "^1.0.589",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
