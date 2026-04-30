@@ -12,6 +12,7 @@ import type { WinFactors } from '@/lib/analysis/types'
 import PrWinAdvisorPanel from '@/components/proposals/PrWinAdvisorPanel'
 import NotificationSettingsPanel from '@/components/proposals/NotificationSettingsPanel'
 import { WatchdogKpiStrip } from '@/components/scoring/WatchdogKpiStrip'
+import { getContractByProposalId } from '@/lib/contracts/queries'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -73,6 +74,10 @@ export default async function ProposalDetailPage({ params }: Props) {
     .select('id')
     .eq('source_proposal_id', id)
     .maybeSingle()
+
+  const existingContract = proposal.outcome === 'won'
+    ? await getContractByProposalId(id)
+    : null
 
   const isProcessing = proposal.status === 'processing'
   const isReady      = proposal.status === 'ready'
@@ -148,6 +153,25 @@ export default async function ProposalDetailPage({ params }: Props) {
           score: (s.score ?? 0) as number,
           passed: (s.passed ?? false) as boolean,
         }))} />
+      )}
+
+      {/* ── Convert to Contract CTA ── */}
+      {proposal.outcome === 'won' && !existingContract && (
+        <div style={{ background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.2)', borderRadius: 12, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#00C48C', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Proposal Won</div>
+            <div style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.6)' }}>Track deliverables and CO contacts in Contract Cloud</div>
+          </div>
+          <Link href={`/contracts/new?proposal_id=${id}&title=${encodeURIComponent(proposal.title ?? '')}&agency=${encodeURIComponent('')}&value=${encodeURIComponent(String(proposal.contract_value ?? ''))}`}
+            style={{ padding: '9px 18px', background: '#00C48C', color: '#0B0B0D', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', borderRadius: 8, textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' as const }}>
+            Convert to Contract
+          </Link>
+        </div>
+      )}
+      {proposal.outcome === 'won' && existingContract && (
+        <Link href={`/contracts/${existingContract.id}`} style={{ display: 'block', background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.2)', borderRadius: 12, padding: '12px 20px', textDecoration: 'none', marginBottom: 16 }}>
+          <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: '#00C48C' }}>Contract Cloud: {existingContract.title} &#8594;</span>
+        </Link>
       )}
 
       {/* ── Processing status ── */}

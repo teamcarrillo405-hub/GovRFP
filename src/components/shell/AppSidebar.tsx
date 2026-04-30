@@ -18,6 +18,7 @@ import {
   Shield,
   Handshake,
   Bookmark,
+  FileCheck,
 } from 'lucide-react';
 
 interface NavItem  { label: string; href: string; icon: React.ReactNode }
@@ -36,6 +37,12 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'All Proposals',    href: '/proposals',            icon: <FileText size={14} strokeWidth={1.5} /> },
       { label: 'Compliance Matrix', href: '/proposals/compliance', icon: <Grid     size={14} strokeWidth={1.5} /> },
+    ],
+  },
+  {
+    title: 'CONTRACTS',
+    items: [
+      { label: 'Contract Cloud', href: '/contracts', icon: <FileCheck size={14} strokeWidth={1.5} /> },
     ],
   },
   {
