@@ -684,18 +684,32 @@ export default function ProposalEditor({
 
                   {/* Quality Watchdog status bar */}
                   {isStreaming && watchdogStatus && (
-                    <div className="flex items-center gap-3 px-4 py-2 bg-yellow-50 border border-t-0 border-yellow-200 text-xs">
-                      <svg className="animate-spin h-3.5 w-3.5 text-yellow-600 shrink-0" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      <span className="text-yellow-800 font-medium">Quality Watchdog:</span>
-                      <span className="text-yellow-700 flex-1 truncate">{watchdogStatus}</span>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px',
+                      background: 'rgba(26,29,33,0.9)', borderRadius: 8,
+                      border: `1px solid ${watchdogScore ? (watchdogScore.passed ? 'rgba(0,196,140,0.4)' : watchdogScore.score >= 60 ? 'rgba(245,158,11,0.4)' : 'rgba(255,77,79,0.4)') : 'rgba(192,194,198,0.15)'}`,
+                      marginBottom: 8,
+                    }}>
                       {watchdogScore && (
-                        <span className={`shrink-0 px-2 py-0.5 rounded-full font-semibold ${watchdogScore.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {watchdogScore.score}/100
-                        </span>
+                        <div style={{
+                          fontSize: 22, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                          color: watchdogScore.passed ? '#00C48C' : watchdogScore.score >= 60 ? '#F59E0B' : '#FF4D4F',
+                          lineHeight: 1, minWidth: 40, flexShrink: 0,
+                        }}>
+                          {watchdogScore.score}
+                        </div>
                       )}
+                      {!watchdogScore && (
+                        <div style={{
+                          fontSize: 22, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                          color: 'rgba(192,194,198,0.35)', lineHeight: 1, minWidth: 40, flexShrink: 0,
+                        }}>
+                          …
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {watchdogStatus}
+                      </div>
                     </div>
                   )}
 
