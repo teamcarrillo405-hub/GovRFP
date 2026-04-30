@@ -6,6 +6,7 @@ interface GlassPanelProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   variant?: GlassPanelVariant
   noPad?: boolean
+  hoverable?: boolean
 }
 
 const styles: Record<GlassPanelVariant, CSSProperties> = {
@@ -39,14 +40,18 @@ export function GlassPanel({
   children,
   variant = 'default',
   noPad,
+  hoverable,
   className = '',
   style,
   ...rest
 }: GlassPanelProps) {
+  const variantClass = `glass-${variant}`
+  const hoverClass = hoverable ? 'glass-hoverable' : ''
+
   return (
     <div
-      className={['panel-enter', className].join(' ')}
-      style={{ ...styles[variant], padding: noPad ? 0 : undefined, ...style }}
+      className={['panel-enter', variantClass, hoverClass, className].filter(Boolean).join(' ')}
+      style={{ ...styles[variant], padding: noPad ? 0 : undefined, cursor: hoverable ? 'pointer' : undefined, ...style }}
       {...rest}
     >
       {children}

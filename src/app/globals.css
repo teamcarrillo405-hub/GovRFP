@@ -118,6 +118,49 @@ h1, h2, h3, h4, h5, h6 {
   color: #0F172A;
 }
 
+/* ─── GlassPanel hover states (CSS-only, works in Server Components) ─── */
+.glass-hoverable {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.glass-default.glass-hoverable:hover {
+  border-color: rgba(192, 194, 198, 0.22) !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.55) !important;
+}
+.glass-accent.glass-hoverable:hover {
+  border-color: rgba(255, 26, 26, 0.4) !important;
+  box-shadow: 0 0 28px rgba(255, 26, 26, 0.12) inset, 0 8px 40px rgba(0,0,0,0.6) !important;
+}
+.glass-gold.glass-hoverable:hover {
+  border-color: rgba(212, 175, 55, 0.5) !important;
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.1) inset, 0 8px 40px rgba(0,0,0,0.6) !important;
+}
+
+/* ─── Dark form inputs (capability statement + any dark-surface forms) ─── */
+input.dark-input,
+select.dark-input,
+textarea.dark-input {
+  background: rgba(11, 11, 13, 0.6);
+  border: 1px solid rgba(192, 194, 198, 0.18);
+  color: #F5F5F7;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+input.dark-input:focus,
+select.dark-input:focus,
+textarea.dark-input:focus {
+  border-color: rgba(255, 26, 26, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(255, 26, 26, 0.3);
+}
+input.dark-input::placeholder,
+textarea.dark-input::placeholder {
+  color: rgba(192, 194, 198, 0.35);
+}
+select.dark-input option {
+  background: #1A1D21;
+  color: #F5F5F7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

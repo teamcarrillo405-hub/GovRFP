@@ -1,54 +1,61 @@
 'use client'
 
 import {
-  AreaChart,
-  Area,
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Bar,
-  ComposedChart,
-  Legend,
 } from 'recharts'
 
-interface MonthPoint {
+interface MonthDatum {
   label: string
   winRate: number | null
   total: number
 }
 
-interface CustomTooltipProps {
+interface Props {
+  months: MonthDatum[]
+}
+
+interface TooltipEntry {
+  dataKey?: string
+  value?: number
+}
+
+interface TooltipPayload {
   active?: boolean
-  payload?: Array<{ value: number; name: string; color: string }>
+  payload?: TooltipEntry[]
   label?: string
 }
 
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label }: TooltipPayload) {
   if (!active || !payload?.length) return null
+  const winRate = payload.find(p => p.dataKey === 'winRate')?.value
+  const total = payload.find(p => p.dataKey === 'total')?.value
   return (
     <div style={{
-      background: 'rgba(26,29,33,0.95)',
-      backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(192,194,198,0.15)',
+      background: 'rgba(26,29,33,0.96)',
+      border: '1px solid rgba(212,175,55,0.3)',
       borderRadius: 8,
       padding: '10px 14px',
-      fontSize: 12,
       fontFamily: "'IBM Plex Mono', monospace",
+      fontSize: 11,
+      backdropFilter: 'blur(20px)',
     }}>
-      <div style={{ fontSize: 10, fontFamily: "'Oxanium', sans-serif", fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(192,194,198,0.45)', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
-      {payload.map(p => (
-        <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
-          <span style={{ color: 'rgba(192,194,198,0.6)' }}>{p.name}</span>
-          <span style={{ fontWeight: 700, color: p.color }}>{p.name === 'Win Rate' ? `${p.value}%` : p.value}</span>
-        </div>
-      ))}
+      <div style={{ fontWeight: 700, color: '#F5F5F7', marginBottom: 6, letterSpacing: '0.06em' }}>{label}</div>
+      {winRate != null && (
+        <div style={{ color: '#D4AF37' }}>Win rate: <strong>{winRate}%</strong></div>
+      )}
+      <div style={{ color: '#C0C2C6', marginTop: 2 }}>Volume: {total} proposal{total !== 1 ? 's' : ''}</div>
     </div>
   )
 }
 
-export function AnalyticsTrendChart({ months }: { months: MonthPoint[] }) {
+export function AnalyticsTrendChart({ months }: Props) {
   const data = months.map(m => ({
     label: m.label,
     winRate: m.winRate,
@@ -57,47 +64,51 @@ export function AnalyticsTrendChart({ months }: { months: MonthPoint[] }) {
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-        <defs>
-          <linearGradient id="winRateGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid stroke="rgba(192,194,198,0.06)" strokeDasharray="3 3" vertical={false} />
+      <ComposedChart data={data} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
+        <CartesianGrid
+          vertical={false}
+          stroke="rgba(192,194,198,0.08)"
+          strokeDasharray="3 3"
+        />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", fill: 'rgba(192,194,198,0.4)' }}
+          tick={{ fill: '#C0C2C6', fontSize: 9, fontFamily: "'IBM Plex Mono', monospace" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          yAxisId="left"
+          yAxisId="rate"
           domain={[0, 100]}
-          tick={{ fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", fill: 'rgba(192,194,198,0.4)' }}
+          tickFormatter={(v: number) => `${v}%`}
+          tick={{ fill: '#C0C2C6', fontSize: 9, fontFamily: "'IBM Plex Mono', monospace" }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => `${v}%`}
+          width={34}
         />
         <YAxis
-          yAxisId="right"
+          yAxisId="vol"
           orientation="right"
-          tick={{ fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", fill: 'rgba(192,194,198,0.25)' }}
+          tick={{ fill: 'rgba(192,194,198,0.45)', fontSize: 9, fontFamily: "'IBM Plex Mono', monospace" }}
           axisLine={false}
           tickLine={false}
+          width={24}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(192,194,198,0.1)', strokeWidth: 1 }} />
-        <Bar yAxisId="right" dataKey="total" name="Proposals" fill="rgba(192,194,198,0.12)" radius={[2, 2, 0, 0]} />
-        <Area
-          yAxisId="left"
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(192,194,198,0.04)' }} />
+        <Bar
+          yAxisId="vol"
+          dataKey="total"
+          fill="rgba(192,194,198,0.15)"
+          radius={[3, 3, 0, 0]}
+          maxBarSize={28}
+        />
+        <Line
+          yAxisId="rate"
           type="monotone"
           dataKey="winRate"
-          name="Win Rate"
           stroke="#D4AF37"
           strokeWidth={2}
-          fill="url(#winRateGrad)"
-          dot={{ fill: '#D4AF37', r: 3, strokeWidth: 0 }}
-          activeDot={{ fill: '#D4AF37', r: 5, strokeWidth: 0 }}
+          dot={{ fill: '#D4AF37', r: 4, strokeWidth: 2, stroke: 'rgba(11,11,13,0.8)' }}
+          activeDot={{ r: 6, fill: '#D4AF37', stroke: 'rgba(11,11,13,0.8)', strokeWidth: 2 }}
           connectNulls={false}
         />
       </ComposedChart>

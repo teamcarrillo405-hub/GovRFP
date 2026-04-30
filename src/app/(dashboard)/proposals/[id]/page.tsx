@@ -94,8 +94,8 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── GovRFP back-link banner ── */}
       {govRfpSource && (
-        <div style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 8, border: '1px solid #2F80FF', borderLeft: '3px solid #2F80FF', background: '#FFFFFF', padding: '10px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0F172A' }}>
+        <div style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 8, border: '1px solid rgba(47,128,255,0.3)', borderLeft: '3px solid #2F80FF', background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', padding: '10px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#F5F5F7' }}>
             <span style={{ display: 'inline-flex', width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 9999, background: '#2F80FF14', color: '#2F80FF' }} aria-hidden="true">
               <Check size={11} strokeWidth={2.5} />
             </span>

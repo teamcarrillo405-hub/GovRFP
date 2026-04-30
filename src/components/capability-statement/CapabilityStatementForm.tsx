@@ -71,8 +71,8 @@ export function CapabilityStatementForm({ initial = {}, saved = false, onSubmit 
   return (
     <div className="space-y-6">
       {saved && (
-        <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          ✓ Saved.
+        <div style={{ borderRadius: 8, border: '1px solid rgba(0,196,140,0.3)', background: 'rgba(0,196,140,0.08)', padding: '10px 16px', fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: '#00C48C', letterSpacing: '0.04em' }}>
+          Saved.
         </div>
       )}
 
@@ -219,11 +219,19 @@ export function CapabilityStatementForm({ initial = {}, saved = false, onSubmit 
               return (
                 <label
                   key={code}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs cursor-pointer border ${
-                    checked
-                      ? 'bg-yellow-50 border-yellow-300 text-yellow-900'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    cursor: 'pointer',
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    border: checked ? '1px solid rgba(255,26,26,0.4)' : '1px solid rgba(192,194,198,0.18)',
+                    background: checked ? 'rgba(255,26,26,0.1)' : 'rgba(11,11,13,0.4)',
+                    color: checked ? '#FF1A1A' : '#C0C2C6',
+                  }}
                 >
                   <input
                     type="checkbox"
@@ -284,7 +292,7 @@ export function CapabilityStatementForm({ initial = {}, saved = false, onSubmit 
             className={`${inputCls} min-h-32`}
             maxLength={5000}
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p style={{ marginTop: 4, fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)' }}>
             {(data.capability_narrative?.length ?? 0)} / 5000
           </p>
         </Field>
@@ -646,21 +654,20 @@ export function CapabilityStatementForm({ initial = {}, saved = false, onSubmit 
       </Section>
 
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">
+        <div style={{ borderRadius: 8, border: '1px solid rgba(255,77,79,0.3)', background: 'rgba(255,77,79,0.08)', padding: '10px 16px', fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: '#FF4D4F', letterSpacing: '0.04em' }}>
           {error}
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-        <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTop: '1px solid rgba(192,194,198,0.1)' }}>
+        <Link href="/dashboard" style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6', textDecoration: 'none' }}>
           ← Back to dashboard
         </Link>
         <button
           type="button"
           onClick={submit}
           disabled={isPending}
-          className="px-5 py-2 text-sm font-semibold rounded-md text-gray-900 disabled:opacity-50"
-          style={{ backgroundColor: '#F5C518' }}
+          style={{ padding: '10px 22px', background: '#FF1A1A', color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', borderRadius: 8, border: 'none', cursor: isPending ? 'not-allowed' : 'pointer', opacity: isPending ? 0.5 : 1 }}
         >
           {isPending ? 'Saving…' : 'Save capability statement'}
         </button>
@@ -680,7 +687,7 @@ function RevenueEditor({
 }) {
   return (
     <div className="sm:col-span-2">
-      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+      <label style={{ display: 'block', fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: '#C0C2C6', marginBottom: 6 }}>
         Annual revenue history (last 3 years recommended)
       </label>
       <div className="space-y-2">
@@ -715,7 +722,8 @@ function RevenueEditor({
             <button
               type="button"
               onClick={() => onChange(rows.filter((_, j) => j !== i))}
-              className="col-span-2 text-xs text-red-600 hover:text-red-800"
+              className="col-span-2"
+              style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: '#FF4D4F', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               Remove
             </button>
@@ -725,7 +733,7 @@ function RevenueEditor({
       <button
         type="button"
         onClick={() => onChange([...rows, { year: new Date().getFullYear(), revenue_usd: 0 }])}
-        className="mt-2 text-xs font-semibold text-yellow-800 hover:text-yellow-900"
+        style={{ marginTop: 8, fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#FF1A1A', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}
       >
         + Add year
       </button>
@@ -762,7 +770,7 @@ function ListEditor<T>({
           <button
             type="button"
             onClick={() => onChange(items.filter((_, j) => j !== i))}
-            className="mt-2 text-xs text-red-600 hover:text-red-800"
+            style={{ marginTop: 8, fontSize: 11, color: '#FF4D4F', background: 'none', border: 'none', cursor: 'pointer' }}
             title="Remove"
           >
             ✕
@@ -772,7 +780,7 @@ function ListEditor<T>({
       <button
         type="button"
         onClick={() => onChange([...items, { ...template }])}
-        className="text-xs font-semibold text-yellow-800 hover:text-yellow-900"
+        style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#FF1A1A', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}
       >
         {addLabel}
       </button>
@@ -783,7 +791,48 @@ function ListEditor<T>({
 // ---------------- shared primitives ----------------
 
 const inputCls =
-  'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500'
+  'block w-full rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#FF1A1A] dark-input'
+
+const INPUT_STYLE: React.CSSProperties = {
+  background: 'rgba(11,11,13,0.6)',
+  border: '1px solid rgba(192,194,198,0.18)',
+  color: '#F5F5F7',
+  fontFamily: "'IBM Plex Mono', monospace",
+  fontSize: 12,
+}
+
+function Input(props: React.InputHTMLAttributes<HTMLInputElement> & { wrapCls?: string }) {
+  const { wrapCls, className = '', style, ...rest } = props
+  return (
+    <input
+      className={`${inputCls} ${className}`}
+      style={{ ...INPUT_STYLE, ...style }}
+      {...rest}
+    />
+  )
+}
+
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const { className = '', style, ...rest } = props
+  return (
+    <select
+      className={`${inputCls} ${className}`}
+      style={{ ...INPUT_STYLE, ...style }}
+      {...rest}
+    />
+  )
+}
+
+function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const { className = '', style, ...rest } = props
+  return (
+    <textarea
+      className={`${inputCls} ${className}`}
+      style={{ ...INPUT_STYLE, ...style }}
+      {...rest}
+    />
+  )
+}
 
 function Section({
   title,
@@ -796,17 +845,27 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border border-gray-200 rounded-md">
+    <div style={{ border: '1px solid rgba(192,194,198,0.12)', borderRadius: 8, overflow: 'hidden' }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-t-md"
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          textAlign: 'left',
+          background: 'rgba(26,29,33,0.8)',
+          cursor: 'pointer',
+          border: 'none',
+        }}
       >
-        <span className="text-sm font-semibold text-gray-900">{title}</span>
-        <span className="text-gray-500 text-xs">{open ? '▼' : '▶'}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{title}</span>
+        <span style={{ color: '#C0C2C6', fontSize: 10 }}>{open ? '▼' : '▶'}</span>
       </button>
       {open && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-t border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4" style={{ borderTop: '1px solid rgba(192,194,198,0.08)', background: 'rgba(11,11,13,0.3)' }}>
           {children}
         </div>
       )}
@@ -829,12 +888,12 @@ function Field({
 }) {
   return (
     <div className={fullWidth ? 'sm:col-span-2' : ''}>
-      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
+      <label style={{ display: 'block', fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: '#C0C2C6', marginBottom: 6 }}>
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span style={{ color: '#FF4D4F', marginLeft: 4 }}>*</span>}
       </label>
       {children}
-      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      {hint && <p style={{ marginTop: 4, fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)' }}>{hint}</p>}
     </div>
   )
 }

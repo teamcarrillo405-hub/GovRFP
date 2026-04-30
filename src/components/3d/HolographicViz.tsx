@@ -81,11 +81,11 @@ interface HolographicVizProps {
 
 export function HolographicViz({ style, className, nodeCount = 0, winRate = 0 }: HolographicVizProps) {
   return (
-    <div className={className} style={{ width: '100%', height: '100%', ...style }}>
+    <div className={className} style={{ width: '100%', height: '100%', minHeight: 220, ...style }}>
       <Canvas
         camera={{ position: [0, 0, 5.8], fov: 40 }}
         gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
-        style={{ background: 'transparent', width: '100%', height: '100%' }}
+        style={{ background: 'transparent', width: '100%', height: '100%', minHeight: 220 }}
         dpr={[1, 1.5]}
       >
         <PipelineOrb nodeCount={nodeCount} winRate={winRate} />
