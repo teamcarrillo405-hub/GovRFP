@@ -2,67 +2,58 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { getUser, createClient } from '@/lib/supabase/server'
-import { requireProposalRole } from '@/lib/auth/proposal-role'
 import { addTeamingPartner, deleteTeamingPartner } from './actions'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-type PartnerRole = 'prime' | 'subcontractor' | 'mentor_protege' | 'joint_venture'
-type Certification = 'WOSB' | 'SDVOSB' | '8a' | 'HUBZone' | 'SDB' | 'none'
-type PartnerStatus = 'prospect' | 'contacted' | 'loi_signed' | 'declined'
-
 interface TeamingPartner {
   id: string
   proposal_id: string
-  company_name: string
-  role: PartnerRole
-  certification: Certification
-  work_share_pct: number | null
-  point_of_contact: string | null
-  email: string | null
+  user_id: string
+  partner_name: string
+  role: string
+  workshare_pct: number
+  naics_codes: string[]
+  sba_certifications: string[]
+  contact_email: string | null
   notes: string | null
-  status: PartnerStatus
   created_at: string
 }
 
-function roleLabel(role: PartnerRole): string {
-  if (role === 'prime') return 'Prime'
-  if (role === 'subcontractor') return 'Subcontractor'
-  if (role === 'mentor_protege') return 'Mentor-Protege'
-  if (role === 'joint_venture') return 'Joint Venture'
-  return role
+const WORKSHARE_PALETTE = [
+  '#FF1A1A',
+  '#2F80FF',
+  '#00C48C',
+  '#F59E0B',
+  '#A855F7',
+  '#F97316',
+]
+
+const SBA_CERT_COLORS: Record<string, string> = {
+  '8(a)':    '#2F80FF',
+  HUBZone:   '#00C48C',
+  SDVOSB:    '#F59E0B',
+  WOSB:      '#A855F7',
+  VOSB:      '#F97316',
 }
 
-function certLabel(cert: Certification): string {
-  if (cert === 'none') return '—'
-  if (cert === '8a') return '8(a)'
-  return cert
-}
-
-function statusColor(status: PartnerStatus): string {
-  if (status === 'loi_signed') return '#00C48C'
-  if (status === 'contacted') return '#F59E0B'
-  if (status === 'declined') return '#FF4D4F'
-  return '#94A3B8'
-}
-
-function statusLabel(status: PartnerStatus): string {
-  if (status === 'loi_signed') return 'LOI Signed'
-  if (status === 'contacted') return 'Contacted'
-  if (status === 'declined') return 'Declined'
-  return 'Prospect'
+const GLASS: React.CSSProperties = {
+  background: 'rgba(26,29,33,0.72)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(192,194,198,0.1)',
+  borderRadius: 8,
 }
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   fontSize: 13,
-  color: '#F5F5F7',
-  border: '1px solid rgba(192,194,198,0.1)',
+  background: 'rgba(11,11,13,0.5)',
+  border: '1px solid rgba(192,194,198,0.15)',
   borderRadius: 6,
-  padding: '7px 10px',
-  background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
+  color: '#C0C2C6',
+  padding: '8px 12px',
   outline: 'none',
   boxSizing: 'border-box',
 }
@@ -75,6 +66,69 @@ const LABEL_STYLE: React.CSSProperties = {
   textTransform: 'uppercase',
   display: 'block',
   marginBottom: 4,
+  fontFamily: "'Oxanium', sans-serif",
+}
+
+const SECTION_TITLE: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: 'rgba(192,194,198,0.45)',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  fontFamily: "'Space Grotesk', sans-serif",
+}
+
+function roleBadge(role: string) {
+  const colorMap: Record<string, string> = {
+    Prime:          '#FF1A1A',
+    Subcontractor:  '#2F80FF',
+    Consultant:     '#A855F7',
+    'JV Partner':   '#00C48C',
+  }
+  const color = colorMap[role] ?? '#94A3B8'
+  return (
+    <span
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color,
+        background: color + '1A',
+        padding: '2px 8px',
+        borderRadius: 4,
+        fontFamily: "'Space Grotesk', sans-serif",
+      }}
+    >
+      {role}
+    </span>
+  )
+}
+
+function sbaBadges(certs: string[]) {
+  if (!certs || certs.length === 0) return <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.35)' }}>—</span>
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      {certs.map((cert) => {
+        const color = SBA_CERT_COLORS[cert] ?? '#94A3B8'
+        return (
+          <span
+            key={cert}
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color,
+              background: color + '1A',
+              padding: '2px 6px',
+              borderRadius: 3,
+              fontFamily: "'Oxanium', sans-serif",
+              letterSpacing: '0.03em',
+            }}
+          >
+            {cert}
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 export default async function TeamingPage({ params }: Props) {
@@ -85,7 +139,6 @@ export default async function TeamingPage({ params }: Props) {
 
   const supabase = await createClient()
 
-  // Proposal
   const { data: proposal } = await supabase
     .from('proposals')
     .select('id, title')
@@ -94,51 +147,22 @@ export default async function TeamingPage({ params }: Props) {
 
   if (!proposal) notFound()
 
-  // Role gate
-  const roleResult = await requireProposalRole(id, 'viewer')
-  if (!roleResult) notFound()
-
-  // RFP analysis for set-aside context
-  const { data: analysis } = await supabase
-    .from('rfp_analysis')
-    .select('naics_codes, set_aside_flags, set_asides_detected')
-    .eq('proposal_id', id)
-    .maybeSingle()
-
-  // Teaming partners
   let partners: TeamingPartner[] = []
   try {
     const { data: partnerData } = await supabase
       .from('teaming_partners' as any)
       .select('*')
       .eq('proposal_id', id)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
     partners = (partnerData ?? []) as TeamingPartner[]
   } catch {
     partners = []
   }
 
-  // Work share stats
-  const totalWorkShare = partners.reduce((sum, p) => sum + (p.work_share_pct ?? 0), 0)
-  const remaining = Math.max(0, 100 - totalWorkShare)
-  const workShareOver = totalWorkShare > 100
-
-  // Set-aside context
-  const setAsidesDetected: string[] =
-    Array.isArray(analysis?.set_asides_detected)
-      ? (analysis.set_asides_detected as string[])
-      : typeof analysis?.set_asides_detected === 'string' && analysis.set_asides_detected
-      ? [analysis.set_asides_detected]
-      : []
-
-  const naicsCodes: string[] =
-    Array.isArray(analysis?.naics_codes)
-      ? (analysis.naics_codes as string[])
-      : typeof analysis?.naics_codes === 'string' && analysis.naics_codes
-      ? [analysis.naics_codes]
-      : []
-
-  const showSetAsideCard = setAsidesDetected.length > 0
+  const totalWorkshare = partners.reduce((sum, p) => sum + (p.workshare_pct ?? 0), 0)
+  const remaining = Math.max(0, 100 - totalWorkshare)
+  const workshareOver = totalWorkshare > 100
+  const partnerCount = partners.length
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
@@ -163,314 +187,395 @@ export default async function TeamingPage({ params }: Props) {
 
       {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', margin: 0 }}>
-          Teaming Partners
+        <h1
+          style={{
+            fontSize: 22,
+            fontWeight: 800,
+            fontFamily: "'Oxanium', sans-serif",
+            color: '#F5F5F7',
+            margin: 0,
+          }}
+        >
+          Teaming Structure
         </h1>
-        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.55)', marginTop: 4, marginBottom: 0 }}>
-          Subcontractor and teaming partner management
+        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.55)', marginTop: 6, marginBottom: 0 }}>
+          {partnerCount} partner{partnerCount !== 1 ? 's' : ''}{' '}
+          &middot;{' '}
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{totalWorkshare.toFixed(2)}%</span> allocated{' '}
+          &middot;{' '}
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{remaining.toFixed(2)}%</span> available
         </p>
       </div>
 
-      {/* Set-Aside Context Card */}
-      {showSetAsideCard && (
+      {/* Workshare exceeded warning */}
+      {workshareOver && (
         <div
           style={{
-            background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(192,194,198,0.1)',
+            background: 'rgba(255,26,26,0.08)',
+            border: '1px solid rgba(255,26,26,0.3)',
             borderRadius: 8,
-            padding: '16px 20px',
-            marginBottom: 24,
+            padding: '12px 16px',
+            marginBottom: 20,
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#FF1A1A',
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)', marginBottom: 10 }}>
-            Set-Aside Requirements Detected
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-            {setAsidesDetected.map((sa) => (
-              <span
-                key={sa}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: '#2F80FF',
-                  background: '#2F80FF14',
-                  padding: '3px 9px',
-                  borderRadius: 4,
-                }}
-              >
-                {sa}
-              </span>
-            ))}
-            {naicsCodes.map((code) => (
-              <span
-                key={code}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: 'rgba(192,194,198,0.55)',
-                  background: 'rgba(11,11,13,0.2)',
-                  padding: '3px 9px',
-                  borderRadius: 4,
-                }}
-              >
-                NAICS {code}
-              </span>
-            ))}
-          </div>
-          <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.55)', margin: 0, lineHeight: 1.5 }}>
-            This opportunity has set-aside requirements. Ensure teaming partners meet applicable SBA size standards and certifications.
-          </p>
+          Total workshare exceeds 100%. Review partner allocations.
         </div>
       )}
 
-      {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, alignItems: 'start' }}>
-
-        {/* LEFT — Partner table */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Stats bar */}
+      <div
+        style={{
+          ...GLASS,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          marginBottom: 20,
+        }}
+      >
+        {[
+          { label: 'Total Partners', value: String(partnerCount) },
+          {
+            label: 'Total Workshare %',
+            value: totalWorkshare.toFixed(2) + '%',
+            danger: workshareOver,
+          },
+          {
+            label: 'Prime Capacity %',
+            value: remaining.toFixed(2) + '%',
+          },
+        ].map((stat, idx) => (
           <div
+            key={stat.label}
             style={{
-              background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(192,194,198,0.1)',
-              borderRadius: 8,
-              overflow: 'hidden',
+              padding: '18px 24px',
+              borderRight: idx < 2 ? '1px solid rgba(192,194,198,0.08)' : 'none',
             }}
           >
-            {/* Table header */}
+            <div style={SECTION_TITLE}>{stat.label}</div>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1.8fr 1fr 90px 80px 110px 60px',
-                padding: '10px 16px',
-                borderBottom: '1px solid rgba(192,194,198,0.08)',
-                background: 'rgba(11,11,13,0.3)',
+                fontSize: 28,
+                fontWeight: 800,
+                fontFamily: "'IBM Plex Mono', monospace",
+                color: stat.danger ? '#FF1A1A' : '#F5F5F7',
+                marginTop: 6,
+                lineHeight: 1,
               }}
             >
-              {['Company Name', 'Role', 'Certification', 'Work Share', 'Status', ''].map((col) => (
-                <div
-                  key={col}
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(192,194,198,0.45)',
-                    padding: '0 6px',
-                  }}
-                >
-                  {col}
-                </div>
-              ))}
+              {stat.value}
             </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Empty state */}
-            {partners.length === 0 && (
-              <div
-                style={{
-                  padding: '40px 24px',
-                  textAlign: 'center',
-                  color: 'rgba(192,194,198,0.45)',
-                  fontSize: 13,
-                }}
-              >
-                No teaming partners added yet. Use the form to add your first partner.
-              </div>
-            )}
-
-            {/* Rows */}
+      {/* Workshare allocation bar */}
+      {partners.length > 0 && (
+        <div
+          style={{
+            ...GLASS,
+            padding: '16px 20px',
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ ...SECTION_TITLE, marginBottom: 12 }}>Workshare Allocation</div>
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              height: 36,
+              borderRadius: 6,
+              overflow: 'hidden',
+              background: 'rgba(11,11,13,0.4)',
+            }}
+          >
             {partners.map((partner, idx) => {
-              const sc = statusColor(partner.status)
+              const pct = Math.min(partner.workshare_pct ?? 0, 100)
+              const color = WORKSHARE_PALETTE[idx % WORKSHARE_PALETTE.length]
+              const showLabel = pct > 10
               return (
                 <div
                   key={partner.id}
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.8fr 1fr 90px 80px 110px 60px',
-                    padding: '12px 16px',
-                    borderBottom: idx < partners.length - 1 ? '1px solid #F1F5F9' : 'none',
+                    width: `${pct}%`,
+                    background: color,
+                    display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    transition: 'width 0.4s',
+                    minWidth: pct > 0 ? 2 : 0,
                   }}
+                  title={`${partner.partner_name}: ${pct}%`}
                 >
-                  {/* Company Name */}
-                  <div style={{ padding: '0 6px' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>
-                      {partner.company_name}
-                    </div>
-                    {partner.point_of_contact && (
-                      <div style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)', marginTop: 1 }}>
-                        {partner.point_of_contact}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Role */}
-                  <div style={{ padding: '0 6px' }}>
-                    <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)' }}>
-                      {roleLabel(partner.role)}
-                    </span>
-                  </div>
-
-                  {/* Certification */}
-                  <div style={{ padding: '0 6px' }}>
-                    {partner.certification !== 'none' ? (
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#2F80FF',
-                          background: '#2F80FF14',
-                          padding: '2px 7px',
-                          borderRadius: 4,
-                        }}
-                      >
-                        {certLabel(partner.certification)}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: 12, color: '#CBD5E1' }}>—</span>
-                    )}
-                  </div>
-
-                  {/* Work Share */}
-                  <div style={{ padding: '0 6px' }}>
-                    {partner.work_share_pct != null ? (
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#2F80FF' }}>
-                        {partner.work_share_pct}%
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: 12, color: '#CBD5E1' }}>—</span>
-                    )}
-                  </div>
-
-                  {/* Status */}
-                  <div style={{ padding: '0 6px' }}>
+                  {showLabel && (
                     <span
                       style={{
                         fontSize: 11,
-                        fontWeight: 600,
-                        color: sc,
-                        background: sc + '14',
-                        padding: '3px 8px',
-                        borderRadius: 4,
+                        fontWeight: 700,
+                        color: '#fff',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        padding: '0 6px',
+                        fontFamily: "'Oxanium', sans-serif",
                       }}
                     >
-                      {statusLabel(partner.status)}
+                      {partner.partner_name}
                     </span>
-                  </div>
-
-                  {/* Delete action */}
-                  <div style={{ padding: '0 6px' }}>
-                    <form
-                      action={async () => {
-                        'use server'
-                        await deleteTeamingPartner(partner.id, id)
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        style={{
-                          fontSize: 11,
-                          color: 'rgba(192,194,198,0.45)',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px 6px',
-                          borderRadius: 4,
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </form>
-                  </div>
+                  )}
+                </div>
+              )
+            })}
+            {/* Remaining capacity */}
+            {remaining > 0 && (
+              <div
+                style={{
+                  width: `${Math.min(remaining, 100)}%`,
+                  background: 'rgba(192,194,198,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title={`Available: ${remaining.toFixed(2)}%`}
+              />
+            )}
+          </div>
+          {/* Legend */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
+            {partners.map((partner, idx) => {
+              const color = WORKSHARE_PALETTE[idx % WORKSHARE_PALETTE.length]
+              return (
+                <div key={partner.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 2,
+                      background: color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: 'rgba(192,194,198,0.6)',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }}
+                  >
+                    {partner.partner_name}{' '}
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)' }}>
+                      {(partner.workshare_pct ?? 0).toFixed(2)}%
+                    </span>
+                  </span>
                 </div>
               )
             })}
           </div>
+        </div>
+      )}
 
-          {/* Work Share Summary */}
+      {/* Partners table */}
+      <div style={{ ...GLASS, marginBottom: 20, overflow: 'hidden' }}>
+        {/* Table header */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr 100px 1.2fr 1.4fr 1.2fr 70px',
+            padding: '10px 16px',
+            borderBottom: '1px solid rgba(192,194,198,0.08)',
+            background: 'rgba(11,11,13,0.3)',
+          }}
+        >
+          {['Partner', 'Role', 'Workshare', 'NAICS', 'SBA Certs', 'Contact', ''].map((col) => (
+            <div
+              key={col}
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'rgba(192,194,198,0.45)',
+                padding: '0 6px',
+                fontFamily: "'Oxanium', sans-serif",
+              }}
+            >
+              {col}
+            </div>
+          ))}
+        </div>
+
+        {/* Empty state */}
+        {partners.length === 0 && (
           <div
             style={{
-              background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(192,194,198,0.1)',
-              borderRadius: 8,
-              padding: '16px 20px',
+              padding: '48px 24px',
+              textAlign: 'center',
+              color: 'rgba(192,194,198,0.35)',
+              fontSize: 13,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)', marginBottom: 12 }}>
-              Work Share Summary
-            </div>
+            No teaming partners added yet. Use the form below to add your first partner.
+          </div>
+        )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, color: 'rgba(192,194,198,0.6)' }}>Total assigned to partners</span>
-              <span
+        {/* Rows */}
+        {partners.map((partner, idx) => (
+          <div
+            key={partner.id}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 100px 1.2fr 1.4fr 1.2fr 70px',
+              padding: '12px 16px',
+              borderBottom: idx < partners.length - 1 ? '1px solid rgba(192,194,198,0.06)' : 'none',
+              alignItems: 'center',
+            }}
+          >
+            {/* Partner name */}
+            <div style={{ padding: '0 6px' }}>
+              <div
                 style={{
                   fontSize: 13,
-                  fontWeight: 700,
-                  color: workShareOver ? '#FF4D4F' : '#0F172A',
+                  fontWeight: 600,
+                  color: '#F5F5F7',
+                  fontFamily: "'Space Grotesk', sans-serif",
                 }}
               >
-                {totalWorkShare}%
+                {partner.partner_name}
+              </div>
+            </div>
+
+            {/* Role */}
+            <div style={{ padding: '0 6px' }}>
+              {roleBadge(partner.role)}
+            </div>
+
+            {/* Workshare */}
+            <div style={{ padding: '0 6px' }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  color: WORKSHARE_PALETTE[idx % WORKSHARE_PALETTE.length],
+                }}
+              >
+                {(partner.workshare_pct ?? 0).toFixed(2)}%
               </span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, color: 'rgba(192,194,198,0.6)' }}>Remaining for prime</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#F5F5F7' }}>{remaining}%</span>
+            {/* NAICS codes */}
+            <div style={{ padding: '0 6px' }}>
+              {partner.naics_codes && partner.naics_codes.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  {partner.naics_codes.map((code) => (
+                    <span
+                      key={code}
+                      style={{
+                        fontSize: 10,
+                        color: 'rgba(192,194,198,0.55)',
+                        background: 'rgba(192,194,198,0.06)',
+                        padding: '2px 5px',
+                        borderRadius: 3,
+                        fontFamily: "'IBM Plex Mono', monospace",
+                      }}
+                    >
+                      {code}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.3)' }}>—</span>
+              )}
             </div>
 
-            {/* Progress bar */}
-            <div
-              style={{
-                height: 6,
-                background: 'rgba(11,11,13,0.2)',
-                borderRadius: 99,
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: `${Math.min(totalWorkShare, 100)}%`,
-                  background: workShareOver ? '#FF4D4F' : '#2F80FF',
-                  borderRadius: 99,
-                  transition: 'width 0.3s',
+            {/* SBA certs */}
+            <div style={{ padding: '0 6px' }}>
+              {sbaBadges(partner.sba_certifications)}
+            </div>
+
+            {/* Contact email */}
+            <div style={{ padding: '0 6px' }}>
+              {partner.contact_email ? (
+                <a
+                  href={`mailto:${partner.contact_email}`}
+                  style={{
+                    fontSize: 11,
+                    color: 'rgba(192,194,198,0.5)',
+                    textDecoration: 'none',
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {partner.contact_email}
+                </a>
+              ) : (
+                <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.3)' }}>—</span>
+              )}
+            </div>
+
+            {/* Delete action */}
+            <div style={{ padding: '0 6px' }}>
+              <form
+                action={async () => {
+                  'use server'
+                  await deleteTeamingPartner(partner.id, id)
                 }}
-              />
+              >
+                <button
+                  type="submit"
+                  style={{
+                    fontSize: 11,
+                    color: 'rgba(192,194,198,0.4)',
+                    background: 'none',
+                    border: '1px solid rgba(192,194,198,0.1)',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    borderRadius: 4,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  Remove
+                </button>
+              </form>
             </div>
-
-            {workShareOver && (
-              <p style={{ fontSize: 12, color: '#F59E0B', marginTop: 10, marginBottom: 0, fontWeight: 600 }}>
-                Warning: total work share exceeds 100%. Review partner allocations.
-              </p>
-            )}
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* RIGHT — Add Partner Form */}
+      {/* Add Partner form */}
+      <div style={{ ...GLASS, padding: '24px' }}>
         <div
           style={{
-            background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(192,194,198,0.1)',
-            borderRadius: 8,
-            padding: '20px',
+            fontSize: 15,
+            fontWeight: 700,
+            color: '#F5F5F7',
+            marginBottom: 20,
+            fontFamily: "'Space Grotesk', sans-serif",
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#F5F5F7', marginBottom: 16 }}>
-            Add Partner
-          </div>
+          Add Partner
+        </div>
 
-          <form
-            action={async (formData: FormData) => {
-              'use server'
-              await addTeamingPartner(id, formData)
+        <form
+          action={addTeamingPartner.bind(null, id)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 0 }}
+        >
+          {/* Row 1: name + role + workshare */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 120px',
+              gap: 16,
+              marginBottom: 16,
             }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
           >
-            {/* Company Name */}
             <div>
-              <label style={LABEL_STYLE} htmlFor="company_name">Company Name</label>
+              <label style={LABEL_STYLE} htmlFor="partner_name">Partner Name</label>
               <input
-                id="company_name"
-                name="company_name"
+                id="partner_name"
+                name="partner_name"
                 type="text"
                 required
                 placeholder="Acme Contractors Inc."
@@ -478,100 +583,146 @@ export default async function TeamingPage({ params }: Props) {
               />
             </div>
 
-            {/* Role */}
             <div>
               <label style={LABEL_STYLE} htmlFor="role">Role</label>
-              <select id="role" name="role" style={INPUT_STYLE}>
-                <option value="subcontractor">Subcontractor</option>
-                <option value="mentor_protege">Mentor-Protege</option>
-                <option value="joint_venture">Joint Venture</option>
+              <select
+                id="role"
+                name="role"
+                style={{ ...INPUT_STYLE, appearance: 'none' as React.CSSProperties['appearance'] }}
+              >
+                <option value="Subcontractor">Subcontractor</option>
+                <option value="Prime">Prime</option>
+                <option value="Consultant">Consultant</option>
+                <option value="JV Partner">JV Partner</option>
               </select>
             </div>
 
-            {/* Certification */}
             <div>
-              <label style={LABEL_STYLE} htmlFor="certification">Certification</label>
-              <select id="certification" name="certification" style={INPUT_STYLE}>
-                <option value="none">None</option>
-                <option value="WOSB">WOSB</option>
-                <option value="SDVOSB">SDVOSB</option>
-                <option value="8a">8(a)</option>
-                <option value="HUBZone">HUBZone</option>
-                <option value="SDB">SDB</option>
-              </select>
-            </div>
-
-            {/* Work Share */}
-            <div>
-              <label style={LABEL_STYLE} htmlFor="work_share_pct">Work Share %</label>
+              <label style={LABEL_STYLE} htmlFor="workshare_pct">Workshare %</label>
               <input
-                id="work_share_pct"
-                name="work_share_pct"
+                id="workshare_pct"
+                name="workshare_pct"
                 type="number"
                 min={0}
                 max={100}
-                placeholder="20"
+                step={0.01}
+                placeholder="20.00"
                 style={INPUT_STYLE}
               />
             </div>
+          </div>
 
-            {/* Point of Contact */}
+          {/* Row 2: NAICS + contact email */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 16,
+              marginBottom: 16,
+            }}
+          >
             <div>
-              <label style={LABEL_STYLE} htmlFor="point_of_contact">Point of Contact</label>
+              <label style={LABEL_STYLE} htmlFor="naics_codes">NAICS Codes (comma-separated)</label>
               <input
-                id="point_of_contact"
-                name="point_of_contact"
+                id="naics_codes"
+                name="naics_codes"
                 type="text"
-                placeholder="Jane Smith"
+                placeholder="236220, 237310"
                 style={INPUT_STYLE}
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label style={LABEL_STYLE} htmlFor="email">Email</label>
+              <label style={LABEL_STYLE} htmlFor="contact_email">Contact Email</label>
               <input
-                id="email"
-                name="email"
+                id="contact_email"
+                name="contact_email"
                 type="email"
-                placeholder="jane@acme.com"
+                placeholder="contact@partner.com"
                 style={INPUT_STYLE}
               />
             </div>
+          </div>
 
-            {/* Notes */}
-            <div>
-              <label style={LABEL_STYLE} htmlFor="notes">Notes</label>
-              <textarea
-                id="notes"
-                name="notes"
-                rows={3}
-                placeholder="Capabilities, certifications, prior relationship..."
-                style={{ ...INPUT_STYLE, resize: 'vertical', lineHeight: 1.5 }}
-              />
+          {/* SBA certifications */}
+          <div style={{ marginBottom: 16 }}>
+            <span style={LABEL_STYLE}>SBA Certifications</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 4 }}>
+              {['8(a)', 'HUBZone', 'SDVOSB', 'WOSB', 'VOSB'].map((cert) => (
+                <label
+                  key={cert}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    color: 'rgba(192,194,198,0.7)',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="sba_certifications"
+                    value={cert}
+                    style={{ accentColor: SBA_CERT_COLORS[cert] ?? '#2F80FF', width: 14, height: 14 }}
+                  />
+                  {cert}
+                </label>
+              ))}
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  color: 'rgba(192,194,198,0.4)',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  name="sba_certifications"
+                  value="None"
+                  style={{ accentColor: '#94A3B8', width: 14, height: 14 }}
+                />
+                None
+              </label>
             </div>
+          </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              style={{
-                marginTop: 4,
-                width: '100%',
-                padding: '9px 16px',
-                background: '#2F80FF',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                letterSpacing: '0.01em',
-              }}
-            >
-              Add Partner
-            </button>
-          </form>
-        </div>
+          {/* Notes */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={LABEL_STYLE} htmlFor="notes">Notes</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={3}
+              placeholder="Capabilities, prior relationship, contract vehicles..."
+              style={{ ...INPUT_STYLE, resize: 'vertical', lineHeight: 1.6 }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: '10px 16px',
+              background: '#FF1A1A',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+              fontFamily: "'Oxanium', sans-serif",
+            }}
+          >
+            Add Partner
+          </button>
+        </form>
       </div>
     </div>
   )

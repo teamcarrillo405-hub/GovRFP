@@ -3,6 +3,7 @@ import { getUser, createClient } from '@/lib/supabase/server'
 import { checkSubscription, isSubscriptionActive } from '@/lib/billing/subscription-check'
 import ProposalEditor from '@/components/editor/ProposalEditor'
 import ExportButtons from '@/components/export/ExportButtons'
+import DraftAllButton from '@/components/proposals/DraftAllButton'
 import type { ProposalSection } from '@/lib/editor/types'
 import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 import type { RfpStructure } from '@/lib/documents/rfp-structure'
@@ -207,6 +208,7 @@ export default async function EditorPage({ params }: Props) {
             Saved {updatedAt}
           </span>
         )}
+        <DraftAllButton proposalId={id} />
         <ExportButtons proposalId={id} />
       </div>
 

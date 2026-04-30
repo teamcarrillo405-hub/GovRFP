@@ -7,6 +7,9 @@ import type { JSONContent } from '@tiptap/react'
 import { ReadOnlySectionContent } from '@/components/editor/ReadOnlySectionContent'
 import { CommentThread } from '@/components/editor/CommentThread'
 import type { SectionComment } from './actions'
+import { generateComplianceAlerts } from '@/lib/editor/compliance-alerts'
+import { ComplianceAlertsPanel } from '@/components/editor/ComplianceAlertsPanel'
+import type { AnalysisRequirement, ComplianceMatrixRow } from '@/lib/analysis/types'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -44,7 +47,7 @@ export default async function ReviewPage({ params }: Props) {
 
   if (!proposal) notFound()
 
-  const [sectionsResult, commentsResult] = await Promise.all([
+  const [sectionsResult, commentsResult, analysisResult] = await Promise.all([
     supabase
       .from('proposal_sections')
       .select('section_name, content, draft_status')
@@ -54,10 +57,29 @@ export default async function ReviewPage({ params }: Props) {
       .select('*')
       .eq('proposal_id', id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('rfp_analysis')
+      .select('requirements, compliance_matrix')
+      .eq('proposal_id', id)
+      .maybeSingle(),
   ])
 
   const sections = sectionsResult.data ?? []
   const allComments = (commentsResult.data ?? []) as SectionComment[]
+
+  // Build section word counts from Tiptap JSON content (rough estimate)
+  const sectionWordCounts: Record<string, number> = {}
+  for (const section of sections) {
+    if (section.content) {
+      const words = JSON.stringify(section.content).split(/\s+/).length
+      sectionWordCounts[section.section_name] = words
+    }
+  }
+
+  // Generate compliance alerts from analysis data
+  const requirements = (analysisResult.data?.requirements ?? []) as AnalysisRequirement[]
+  const matrix = (analysisResult.data?.compliance_matrix ?? []) as ComplianceMatrixRow[]
+  const complianceAlerts = generateComplianceAlerts(requirements, matrix, sectionWordCounts)
 
   const commentsBySection = allComments.reduce<Record<string, SectionComment[]>>((acc, c) => {
     if (!acc[c.section_name]) acc[c.section_name] = []
@@ -93,6 +115,28 @@ export default async function ReviewPage({ params }: Props) {
             OPEN EDITOR →
           </Link>
         )}
+      </div>
+
+      {/* Pre-Submission Alerts */}
+      <div style={{
+        marginBottom: 32,
+        padding: '20px 24px',
+        borderRadius: 12,
+        background: 'rgba(11,11,13,0.6)',
+        border: '1px solid rgba(192,194,198,0.08)',
+      }}>
+        <div style={{
+          fontSize: 9,
+          fontWeight: 700,
+          fontFamily: "'Oxanium', sans-serif",
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'rgba(192,194,198,0.45)',
+          marginBottom: 16,
+        }}>
+          Pre-Submission Alerts
+        </div>
+        <ComplianceAlertsPanel alerts={complianceAlerts} />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>

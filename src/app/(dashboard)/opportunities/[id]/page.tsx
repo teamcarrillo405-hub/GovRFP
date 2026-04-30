@@ -4,6 +4,8 @@ import { getUser, createClient } from '@/lib/supabase/server'
 import { getProfile } from '@/app/(dashboard)/profile/actions'
 import { scoreOpportunity, matchLabel, type MatchBreakdown } from '@/lib/matching/opportunity-scorer'
 import type { ProfileFormData } from '@/lib/validators/profile'
+import { fetchFpdsAwardsByAgency } from '@/lib/fpds/fetch'
+import type { FpdsSearchResult } from '@/lib/fpds/types'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -177,33 +179,6 @@ function ScoreBar({ label, pct }: { label: string; pct: number }) {
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-
-const PRIOR_AWARDS = [
-  {
-    id: 1,
-    title: 'Road Rehabilitation Phase III',
-    awardee: 'Pacific Civil Contractors, Inc.',
-    value: '$4.2M',
-    year: '2022',
-    incumbent: true,
-  },
-  {
-    id: 2,
-    title: 'Road Rehabilitation Phase II',
-    awardee: 'Southwest Infrastructure Group',
-    value: '$3.8M',
-    year: '2019',
-    incumbent: false,
-  },
-  {
-    id: 3,
-    title: 'Road Rehabilitation Phase I',
-    awardee: 'Southwest Infrastructure Group',
-    value: '$2.1M',
-    year: '2016',
-    incumbent: false,
-  },
-]
 
 const TEAMING_PARTNERS = [
   {
@@ -379,7 +354,18 @@ export default async function OpportunityDetailPage({
       ? (opportunity.title ?? '').substring(0, 55) + '…'
       : (opportunity.title ?? 'Untitled')
 
-  const incidentFound = PRIOR_AWARDS.some((a) => a.incumbent)
+  // ── Live FPDS data ──────────────────────────────────────────────────────
+  let fpdsResult: FpdsSearchResult = { awards: [], totalCount: 0, source: 'fpds' }
+  try {
+    const agency = opportunity.agency ?? opportunity.agency_name ?? ''
+    if (agency) {
+      fpdsResult = await fetchFpdsAwardsByAgency(agency, opportunity.naics_code ?? null)
+    }
+  } catch {
+    // fallback: render page with empty awards
+  }
+
+  const incidentFound = fpdsResult.awards.some((a) => a.isIncumbent)
 
   return (
     <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -499,82 +485,117 @@ export default async function OpportunityDetailPage({
           />
         </SectionCard>
 
-        {/* Prior Awards card */}
+        {/* Prior Awards card — live FPDS data */}
         <SectionCard
-          title="Prior Awards"
+          title="Prior Awards — Incumbent Detection"
           headerRight={
-            <Badge color="#2F80FF" size="xs">
-              Recompete
-            </Badge>
+            fpdsResult.awards.length > 0 ? (
+              <Badge color="#2F80FF" size="xs">
+                {fpdsResult.totalCount} Federal Records
+              </Badge>
+            ) : undefined
           }
           style={{ marginBottom: 20 }}
         >
-          <div style={{ position: 'relative' }}>
-            {/* Vertical line */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 7,
-                top: 8,
-                bottom: 8,
-                width: 2,
-                background: '#E2E8F0',
-              }}
-            />
-
-            {PRIOR_AWARDS.map((award, idx) => (
+          {fpdsResult.awards.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#94A3B8', padding: '8px 0' }}>
+              No prior award history found in federal database for this agency.
+            </div>
+          ) : (
+            <div style={{ position: 'relative' }}>
+              {/* Vertical timeline line */}
               <div
-                key={award.id}
                 style={{
-                  display: 'flex',
-                  gap: 16,
-                  paddingBottom: idx < PRIOR_AWARDS.length - 1 ? 20 : 0,
-                  position: 'relative',
+                  position: 'absolute',
+                  left: 7,
+                  top: 8,
+                  bottom: 8,
+                  width: 2,
+                  background: '#E2E8F0',
                 }}
-              >
-                {/* Timeline dot */}
-                <div
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    background: award.incumbent ? '#2F80FF' : '#CBD5E1',
-                    border: award.incumbent ? '2px solid #2F80FF' : '2px solid #CBD5E1',
-                    flexShrink: 0,
-                    marginTop: 2,
-                    zIndex: 1,
-                    boxShadow: award.incumbent ? '0 0 0 3px #2F80FF22' : 'none',
-                  }}
-                />
+              />
 
-                <div style={{ flex: 1 }}>
+              {fpdsResult.awards.map((award, idx) => (
+                <div
+                  key={award.awardId}
+                  style={{
+                    display: 'flex',
+                    gap: 16,
+                    paddingBottom: idx < fpdsResult.awards.length - 1 ? 20 : 0,
+                    position: 'relative',
+                  }}
+                >
+                  {/* Timeline dot */}
                   <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginBottom: 2,
-                      flexWrap: 'wrap' as const,
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      background: award.isIncumbent ? '#2F80FF' : '#CBD5E1',
+                      border: award.isIncumbent ? '2px solid #2F80FF' : '2px solid #CBD5E1',
+                      flexShrink: 0,
+                      marginTop: 2,
+                      zIndex: 1,
+                      boxShadow: award.isIncumbent ? '0 0 0 3px #2F80FF22' : 'none',
                     }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>
-                      {award.title}
-                    </span>
-                    {award.incumbent && (
-                      <Badge color="#2F80FF" size="xs">
-                        Current Incumbent
-                      </Badge>
+                  />
+
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 2,
+                        flexWrap: 'wrap' as const,
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>
+                        {award.awardeeName}
+                      </span>
+                      {award.isIncumbent && (
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            fontSize: 9,
+                            fontFamily: "'Oxanium', sans-serif",
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase' as const,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: '#FF1A1A18',
+                            color: '#FF4D4F',
+                          }}
+                        >
+                          INCUMBENT
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontFamily: "'IBM Plex Mono', monospace",
+                        color: '#94A3B8',
+                        marginBottom: 2,
+                      }}
+                    >
+                      ${award.awardAmount.toLocaleString()} · {award.awardDate ? award.awardDate.slice(0, 10) : '—'}
+                      {award.naicsCode ? ` · NAICS ${award.naicsCode}` : ''}
+                    </div>
+                    {award.description && (
+                      <div style={{ fontSize: 11, color: '#94A3B8' }}>
+                        {award.description.slice(0, 100)}
+                        {award.description.length > 100 ? '…' : ''}
+                      </div>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, color: '#475569' }}>
-                    {award.awardee} · {award.value} · {award.year}
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {/* Amber advisory */}
+          {/* Amber advisory when incumbent detected */}
           {incidentFound && (
             <div
               style={{

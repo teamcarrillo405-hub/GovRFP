@@ -12,6 +12,9 @@ import {
   buildGovRfpOpportunityUrl,
   extractGovRfpSource,
 } from '@/lib/bridge/govrfp-source'
+import type { WinFactors } from '@/lib/analysis/types'
+import PrWinAdvisorPanel from '@/components/proposals/PrWinAdvisorPanel'
+import NotificationSettingsPanel from '@/components/proposals/NotificationSettingsPanel'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -66,6 +69,7 @@ export default async function ProposalDetailPage({ params }: Props) {
     .maybeSingle()
   const govRfpSource = extractGovRfpSource(analysis?.win_factors)
   const winScore: number | null = analysis?.win_score ?? null
+  const winFactors = (analysis?.win_factors ?? null) as WinFactors | null
 
   // Look up any existing past-performance record sourced from this proposal
   // so OutcomeSelector can show the "View record" callout on first load when
@@ -181,6 +185,15 @@ export default async function ProposalDetailPage({ params }: Props) {
       {isAnalyzed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
+          {/* PrWin Advisor Panel */}
+          {winFactors !== null && (
+            <PrWinAdvisorPanel
+              winScore={winScore}
+              winFactors={winFactors}
+              analysisHref={'/proposals/' + id + '/analysis'}
+            />
+          )}
+
           {/* PRIMARY ACTION */}
           <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', borderRadius: 12, borderLeft: '4px solid #FF1A1A', border: '1px solid rgba(192,194,198,0.1)', padding: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
@@ -204,6 +217,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               { title: 'Review', desc: 'Share drafted sections with your team for inline comments.', href: `/proposals/${id}/review`, cta: 'Review & Comment' },
               ...(hasScores ? [{ title: 'Section Scores', desc: 'Per-criterion quality scores from the AI watchdog review.', href: `/proposals/${id}/scoring`, cta: 'View Scores' }] : []),
               { title: 'Red Team Eval', desc: 'Score as federal evaluators would — Section M criteria, SSEB verdicts.', href: `/proposals/${id}/red-team`, cta: 'Run Red Team' },
+              { title: 'Cost Proposal', desc: 'FAR-compliant cost breakdown with labor categories and auto-generated narrative.', href: `/proposals/${id}/cost`, cta: 'Build Cost' },
             ].map((item) => (
               <div key={item.title} style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div>
@@ -234,6 +248,9 @@ export default async function ProposalDetailPage({ params }: Props) {
             contractValue={proposal.contract_value ?? null}
             ppRecordId={existingPp?.id ?? null}
           />
+
+          {/* ── Notification Settings ── */}
+          <NotificationSettingsPanel proposalId={id} proposalTitle={proposal.title} />
 
           {/* Document metadata */}
           <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 20 }}>

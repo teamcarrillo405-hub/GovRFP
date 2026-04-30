@@ -125,7 +125,7 @@ export default async function LibraryPage({
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0 }}>
             Content Library
@@ -134,6 +134,38 @@ export default async function LibraryPage({
             {totalCount} assets
           </p>
         </div>
+      </div>
+
+      {/* Secondary nav */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <a href="/library" style={{
+          fontSize: 10,
+          fontWeight: 700,
+          fontFamily: "'Oxanium', sans-serif",
+          letterSpacing: '0.08em',
+          padding: '5px 14px',
+          borderRadius: 20,
+          textDecoration: 'none',
+          background: '#FF1A1A',
+          color: '#fff',
+          border: '1px solid #FF1A1A',
+        }}>
+          SNIPPETS
+        </a>
+        <a href="/library/templates" style={{
+          fontSize: 10,
+          fontWeight: 700,
+          fontFamily: "'Oxanium', sans-serif",
+          letterSpacing: '0.08em',
+          padding: '5px 14px',
+          borderRadius: 20,
+          textDecoration: 'none',
+          background: 'rgba(192,194,198,0.06)',
+          color: 'rgba(192,194,198,0.6)',
+          border: '1px solid rgba(192,194,198,0.12)',
+        }}>
+          TEMPLATES
+        </a>
       </div>
 
       {/* Add snippet form */}

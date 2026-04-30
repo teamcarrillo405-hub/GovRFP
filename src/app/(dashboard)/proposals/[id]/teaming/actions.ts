@@ -11,16 +11,28 @@ export async function addTeamingPartner(
   const user = await getUser()
   if (!user) redirect('/login')
 
-  const companyName = (formData.get('company_name') as string | null)?.trim() ?? ''
-  if (!companyName) return
+  const partnerName = (formData.get('partner_name') as string | null)?.trim() ?? ''
+  if (!partnerName) return
 
-  const role = (formData.get('role') as string | null) ?? 'subcontractor'
-  const certification = (formData.get('certification') as string | null) ?? 'none'
-  const workShareRaw = formData.get('work_share_pct')
-  const workSharePct = workShareRaw !== null && workShareRaw !== '' ? parseInt(workShareRaw as string, 10) : null
-  const pointOfContact = (formData.get('point_of_contact') as string | null)?.trim() ?? null
-  const email = (formData.get('email') as string | null)?.trim() ?? null
-  const notes = (formData.get('notes') as string | null)?.trim() ?? null
+  const role = (formData.get('role') as string | null) ?? 'Subcontractor'
+  const workshareRaw = formData.get('workshare_pct')
+  const worksharePct =
+    workshareRaw !== null && workshareRaw !== ''
+      ? parseFloat(workshareRaw as string)
+      : 0
+
+  // naics_codes: comma-separated string → array of trimmed non-empty strings
+  const naicsRaw = (formData.get('naics_codes') as string | null) ?? ''
+  const naicsCodes = naicsRaw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  // sba_certifications: multi-value checkboxes → array
+  const sbaCerts = formData.getAll('sba_certifications').map((v) => v as string)
+
+  const contactEmail = (formData.get('contact_email') as string | null)?.trim() || null
+  const notes = (formData.get('notes') as string | null)?.trim() || null
 
   const supabase = await createClient()
 
@@ -29,14 +41,14 @@ export async function addTeamingPartner(
       .from('teaming_partners' as any)
       .insert({
         proposal_id: proposalId,
-        company_name: companyName,
+        user_id: user.id,
+        partner_name: partnerName,
         role,
-        certification,
-        work_share_pct: workSharePct,
-        point_of_contact: pointOfContact || null,
-        email: email || null,
-        notes: notes || null,
-        status: 'prospect',
+        workshare_pct: worksharePct,
+        naics_codes: naicsCodes,
+        sba_certifications: sbaCerts,
+        contact_email: contactEmail,
+        notes,
       })
 
     if (error) {
@@ -44,6 +56,63 @@ export async function addTeamingPartner(
     }
   } catch (err) {
     console.error('[addTeamingPartner] unexpected error:', err)
+  }
+
+  revalidatePath(`/proposals/${proposalId}/teaming`)
+}
+
+export async function updateTeamingPartner(
+  partnerId: string,
+  proposalId: string,
+  formData: FormData,
+): Promise<void> {
+  const user = await getUser()
+  if (!user) redirect('/login')
+
+  const partnerName = (formData.get('partner_name') as string | null)?.trim() ?? ''
+  if (!partnerName) return
+
+  const role = (formData.get('role') as string | null) ?? 'Subcontractor'
+  const workshareRaw = formData.get('workshare_pct')
+  const worksharePct =
+    workshareRaw !== null && workshareRaw !== ''
+      ? parseFloat(workshareRaw as string)
+      : 0
+
+  const naicsRaw = (formData.get('naics_codes') as string | null) ?? ''
+  const naicsCodes = naicsRaw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  const sbaCerts = formData.getAll('sba_certifications').map((v) => v as string)
+
+  const contactEmail = (formData.get('contact_email') as string | null)?.trim() || null
+  const notes = (formData.get('notes') as string | null)?.trim() || null
+
+  const supabase = await createClient()
+
+  try {
+    const { error } = await supabase
+      .from('teaming_partners' as any)
+      .update({
+        partner_name: partnerName,
+        role,
+        workshare_pct: worksharePct,
+        naics_codes: naicsCodes,
+        sba_certifications: sbaCerts,
+        contact_email: contactEmail,
+        notes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', partnerId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('[updateTeamingPartner] update error:', error.message)
+    }
+  } catch (err) {
+    console.error('[updateTeamingPartner] unexpected error:', err)
   }
 
   revalidatePath(`/proposals/${proposalId}/teaming`)
@@ -63,7 +132,7 @@ export async function deleteTeamingPartner(
       .from('teaming_partners' as any)
       .delete()
       .eq('id', partnerId)
-      .eq('proposal_id', proposalId)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('[deleteTeamingPartner] delete error:', error.message)
