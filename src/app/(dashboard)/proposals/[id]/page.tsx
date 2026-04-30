@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { WinFactors } from '@/lib/analysis/types'
 import PrWinAdvisorPanel from '@/components/proposals/PrWinAdvisorPanel'
 import NotificationSettingsPanel from '@/components/proposals/NotificationSettingsPanel'
+import { WatchdogKpiStrip } from '@/components/scoring/WatchdogKpiStrip'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -138,6 +139,15 @@ export default async function ProposalDetailPage({ params }: Props) {
             {isGo ? 'Go' : isCaution ? 'Caution' : 'No-Go'}
           </span>
         </div>
+      )}
+
+      {(sectionScores?.length ?? 0) > 0 && (
+        <WatchdogKpiStrip scores={(sectionScores ?? []).map(s => ({
+          section_name: s.section_name as string,
+          attempt: (s.attempt ?? 1) as number,
+          score: (s.score ?? 0) as number,
+          passed: (s.passed ?? false) as boolean,
+        }))} />
       )}
 
       {/* ── Processing status ── */}
