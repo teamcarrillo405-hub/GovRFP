@@ -15,6 +15,9 @@ import {
   Users,
   Plug,
   CreditCard,
+  Shield,
+  Handshake,
+  Bookmark,
 } from 'lucide-react';
 
 interface NavItem  { label: string; href: string; icon: React.ReactNode }
@@ -38,9 +41,12 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'INTELLIGENCE',
     items: [
-      { label: 'Opportunities',   href: '/opportunities',    icon: <Search   size={14} strokeWidth={1.5} /> },
-      { label: 'Content Library', href: '/library',          icon: <Library  size={14} strokeWidth={1.5} /> },
-      { label: 'Past Performance', href: '/past-performance', icon: <Award   size={14} strokeWidth={1.5} /> },
+      { label: 'Opportunities',    href: '/opportunities',    icon: <Search    size={14} strokeWidth={1.5} /> },
+      { label: 'Saved Searches',  href: '/saved-searches',   icon: <Bookmark  size={14} strokeWidth={1.5} /> },
+      { label: 'Content Library', href: '/library',          icon: <Library   size={14} strokeWidth={1.5} /> },
+      { label: 'Past Performance', href: '/past-performance', icon: <Award    size={14} strokeWidth={1.5} /> },
+      { label: 'Competitors',     href: '/competitors',      icon: <Shield    size={14} strokeWidth={1.5} /> },
+      { label: 'Teaming Partners', href: '/teaming',         icon: <Handshake size={14} strokeWidth={1.5} /> },
     ],
   },
   {

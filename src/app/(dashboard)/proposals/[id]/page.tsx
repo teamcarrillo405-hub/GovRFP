@@ -7,11 +7,7 @@ import ShareButton from '@/components/team/ShareButton'
 import ExportButtons from '@/components/export/ExportButtons'
 import OutcomeSelector from '@/components/proposals/OutcomeSelector'
 import Link from 'next/link'
-import { ArrowLeft, Check } from 'lucide-react'
-import {
-  buildGovRfpOpportunityUrl,
-  extractGovRfpSource,
-} from '@/lib/bridge/govrfp-source'
+import { ArrowLeft } from 'lucide-react'
 import type { WinFactors } from '@/lib/analysis/types'
 import PrWinAdvisorPanel from '@/components/proposals/PrWinAdvisorPanel'
 import NotificationSettingsPanel from '@/components/proposals/NotificationSettingsPanel'
@@ -60,14 +56,11 @@ export default async function ProposalDetailPage({ params }: Props) {
     .limit(1)
     .single()
 
-  // GovRFP return-trip: if this proposal was created via the Send-to-ProposalAI
-  // handoff, surface a back-link to the source opportunity on GovRFP.
   const { data: analysis } = await supabase
     .from('rfp_analysis')
     .select('win_factors, win_score')
     .eq('proposal_id', id)
     .maybeSingle()
-  const govRfpSource = extractGovRfpSource(analysis?.win_factors)
   const winScore: number | null = analysis?.win_score ?? null
   const winFactors = (analysis?.win_factors ?? null) as WinFactors | null
 
@@ -91,29 +84,6 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   return (
     <main style={{ maxWidth: 900, padding: '0' }}>
-
-      {/* ── GovRFP back-link banner ── */}
-      {govRfpSource && (
-        <div style={{ marginBottom: 24, display: 'flex', flexWrap: 'wrap' as const, alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 8, border: '1px solid rgba(47,128,255,0.3)', borderLeft: '3px solid #2F80FF', background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', padding: '10px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#F5F5F7' }}>
-            <span style={{ display: 'inline-flex', width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 9999, background: '#2F80FF14', color: '#2F80FF' }} aria-hidden="true">
-              <Check size={11} strokeWidth={2.5} />
-            </span>
-            <span>Opened from <strong>GovRFP</strong></span>
-          </div>
-          <a
-            href={buildGovRfpOpportunityUrl(
-              govRfpSource.opportunityId,
-              process.env.NEXT_PUBLIC_GOVRFP_URL,
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: '#2F80FF', textDecoration: 'none' }}
-          >
-            View source opportunity →
-          </a>
-        </div>
-      )}
 
       {/* ── Back link ── */}
       <Link href="/dashboard" style={{ fontSize: 12, color: 'rgba(192,194,198,0.5)', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', marginBottom: 20 }}>

@@ -45,6 +45,14 @@ function mmddyyyy(date) {
   return `${m}/${d}/${date.getFullYear()}`
 }
 
+function toTimestamp(val) {
+  if (!val || typeof val !== 'string') return null
+  const trimmed = val.trim()
+  if (!trimmed) return null
+  const d = new Date(trimmed)
+  return isNaN(d.getTime()) ? null : d.toISOString()
+}
+
 function normalize(raw) {
   const agencyParts = raw.fullParentPathName?.split('.')
   const agency = agencyParts?.[0]?.trim() ?? raw.organizationName ?? null
@@ -60,8 +68,8 @@ function normalize(raw) {
     place_of_performance_state: raw.placeOfPerformance?.state?.code ?? null,
     place_of_performance_city: raw.placeOfPerformance?.city?.name ?? null,
     estimated_value: null,
-    posted_date: raw.postedDate ?? null,
-    due_date: raw.responseDeadLine ?? null,
+    posted_date: toTimestamp(raw.postedDate),
+    due_date: toTimestamp(raw.responseDeadLine),
     active: true,
     sam_url: raw.uiLink ?? raw.link ?? null,
     description: null,

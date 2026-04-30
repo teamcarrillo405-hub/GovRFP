@@ -19,8 +19,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Avero GovTool — Government Proposal Intelligence",
-  description: "AI-powered government proposal writing and intelligence for serious contractors.",
+  title: "GovTool — Government Proposal Intelligence",
+  description: "AI-powered proposal writing, opportunity discovery, and win intelligence for federal contractors.",
 };
 
 export default function RootLayout({
@@ -38,9 +38,9 @@ export default function RootLayout({
         <Toaster position="bottom-right" richColors closeButton />
         <ChatWidget
           accentColor="#FF1A1A"
-          title="Avero Assistant"
+          title="GovTool Assistant"
           subtitle="Ask about features, the workflow, or getting started"
-          emptyText="Ask me anything about Avero GovTool — how it works, the free trial, or writing proposals."
+          emptyText="Ask me anything about GovTool — how it works, the free trial, or writing proposals."
         />
       </body>
     </html>

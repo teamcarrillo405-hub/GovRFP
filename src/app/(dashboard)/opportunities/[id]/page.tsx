@@ -6,10 +6,12 @@ import { scoreOpportunity, matchLabel, type MatchBreakdown } from '@/lib/matchin
 import type { ProfileFormData } from '@/lib/validators/profile'
 import { fetchFpdsAwardsByAgency } from '@/lib/fpds/fetch'
 import type { FpdsSearchResult } from '@/lib/fpds/types'
+import { GlassPanel } from '@/components/ui/GlassPanel'
+import { SizeEligibilityPanel } from '@/components/sba/SizeEligibilityPanel'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  return { title: `Opportunity ${id} — Avero GovTool` }
+  return { title: `Opportunity ${id} — GovTool` }
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -36,6 +38,7 @@ interface Opportunity {
   point_of_contact: string | null
   sam_url: string | null
   ui_link: string | null
+  notice_type: string | null
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -49,11 +52,7 @@ function formatValue(v: number | null): string {
 
 function formatDate(d: string | null): string {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function daysRemaining(due: string | null): number | null {
@@ -63,96 +62,18 @@ function daysRemaining(due: string | null): number | null {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Badge({
-  children,
-  color,
-  size = 'sm',
-}: {
-  children: React.ReactNode
-  color: string
-  size?: 'sm' | 'xs'
-}) {
+function DarkMetaRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        fontSize: size === 'xs' ? 10 : 11,
-        fontWeight: 700,
-        letterSpacing: '0.02em',
-        padding: size === 'xs' ? '2px 6px' : '3px 9px',
-        borderRadius: 4,
-        color,
-        background: `${color}14`,
-        whiteSpace: 'nowrap' as const,
-      }}
-    >
-      {children}
-    </span>
-  )
-}
-
-function SectionCard({
-  title,
-  headerRight,
-  children,
-  style,
-}: {
-  title: string
-  headerRight?: React.ReactNode
-  children: React.ReactNode
-  style?: React.CSSProperties
-}) {
-  return (
-    <div
-      style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 8,
-        overflow: 'hidden',
-        ...style,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 20px',
-          borderBottom: '1px solid #F0F2F5',
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{title}</span>
-        {headerRight}
-      </div>
-      <div style={{ padding: '16px 20px' }}>{children}</div>
-    </div>
-  )
-}
-
-function MetaRow({
-  label,
-  value,
-  last,
-}: {
-  label: string
-  value: string
-  last?: boolean
-}) {
-  return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '180px 1fr',
-        gap: 12,
-        padding: '10px 0',
-        borderBottom: last ? 'none' : '1px solid #F0F2F5',
-        alignItems: 'start',
-      }}
-    >
-      <span style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+    <div style={{
+      display: 'grid', gridTemplateColumns: '160px 1fr', gap: 12,
+      padding: '10px 0',
+      borderBottom: last ? 'none' : '1px solid rgba(192,194,198,0.08)',
+      alignItems: 'start',
+    }}>
+      <span style={{ fontSize: 10, fontWeight: 700, color: '#C0C2C6', textTransform: 'uppercase' as const, letterSpacing: '0.10em', fontFamily: "'IBM Plex Mono', monospace" }}>
         {label}
       </span>
-      <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 500 }}>{value}</span>
+      <span style={{ fontSize: 13, color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace" }}>{value}</span>
     </div>
   )
 }
@@ -161,98 +82,19 @@ function ScoreBar({ label, pct }: { label: string; pct: number }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-        <span style={{ fontSize: 12, color: '#475569', fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#2F80FF' }}>{pct}%</span>
+        <span style={{ fontSize: 11, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.04em' }}>{label}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#FF1A1A', fontFamily: "'IBM Plex Mono', monospace" }}>{pct}%</span>
       </div>
-      <div style={{ height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: '#2F80FF',
-            borderRadius: 2,
-          }}
-        />
+      <div style={{ height: 3, background: 'rgba(192,194,198,0.12)', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #FF1A1A, #FF4D4F)', borderRadius: 2 }} />
       </div>
     </div>
   )
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const TEAMING_PARTNERS = [
-  {
-    id: 1,
-    name: 'Apex Engineering Solutions',
-    location: 'San Antonio, TX',
-    fedValue: '$12.4M',
-    compatibility: 92,
-  },
-  {
-    id: 2,
-    name: 'Meridian Construction Group',
-    location: 'Houston, TX',
-    fedValue: '$8.7M',
-    compatibility: 85,
-  },
-  {
-    id: 3,
-    name: 'TrueNorth Federal LLC',
-    location: 'Austin, TX',
-    fedValue: '$5.1M',
-    compatibility: 78,
-  },
-]
-
-const COMPETITORS = [
-  {
-    id: 1,
-    name: 'Pacific Civil Contractors, Inc.',
-    role: 'Current Incumbent',
-    incumbent: true,
-    wins: 3,
-    avgValue: '$3.9M',
-  },
-  {
-    id: 2,
-    name: 'Southwest Infrastructure Group',
-    role: 'Historical Winner',
-    incumbent: false,
-    wins: 2,
-    avgValue: '$3.0M',
-  },
-]
-
-const PAST_PERFORMANCE = [
-  {
-    id: 1,
-    title: 'Highway Median Barrier Rehabilitation',
-    agency: 'FHWA — Western Division',
-    contractNumber: 'DTFH70-21-C-00014',
-    value: '$3.6M',
-    date: '2021–2023',
-    cpars: 'Exceptional',
-  },
-  {
-    id: 2,
-    title: 'Base Access Road Construction',
-    agency: 'USACE — Fort Sam Houston',
-    contractNumber: 'W9126G-20-C-0032',
-    value: '$2.2M',
-    date: '2020–2022',
-    cpars: 'Very Good',
-  },
-]
-
-// SCORE_BREAKDOWN is now computed live from the matching engine — see page body
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function OpportunityDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
   const user = await getUser()
@@ -264,9 +106,7 @@ export default async function OpportunityDetailPage({
   try {
     const { data } = await supabase
       .from('opportunities' as any)
-      .select(
-        'id, title, agency, agency_name, naics_code, set_aside, set_aside_description, due_date, response_deadline, estimated_value, match_score, solicitation_number, description_text, description, pop_city, pop_state, place_of_performance_state, posted_date, point_of_contact, sam_url, ui_link',
-      )
+      .select('id, title, agency, agency_name, naics_code, set_aside, set_aside_description, due_date, response_deadline, estimated_value, match_score, solicitation_number, description_text, description, pop_city, pop_state, place_of_performance_state, posted_date, point_of_contact, sam_url, ui_link, notice_type')
       .eq('id', id)
       .single()
     opportunity = data ?? null
@@ -276,7 +116,7 @@ export default async function OpportunityDetailPage({
 
   if (!opportunity) notFound()
 
-  // ── Live match score ────────────────────────────────────────────────────
+  // ── Live match score ──────────────────────────────────────────────────
   const profile = await getProfile() as Partial<ProfileFormData> | null
 
   let breakdown: MatchBreakdown | null = null
@@ -306,55 +146,41 @@ export default async function OpportunityDetailPage({
   const score = breakdown ? breakdown.total : (opportunity.match_score ?? 0)
   const label = matchLabel(score)
   const labelColor =
-    label === 'Strong Match'
-      ? '#00C48C'
-      : label === 'Good Match'
-        ? '#2F80FF'
-        : label === 'Moderate Match'
-          ? '#F59E0B'
-          : '#94A3B8'
+    label === 'Strong Match' ? '#00C48C'
+    : label === 'Good Match' ? '#D4AF37'
+    : label === 'Moderate Match' ? '#F59E0B'
+    : '#C0C2C6'
 
   const liveBreakdownBars = breakdown
     ? [
-        { label: 'NAICS Alignment', pct: Math.round((breakdown.naics / 30) * 100) },
-        { label: 'Set-Aside Eligibility', pct: Math.round((breakdown.set_aside / 25) * 100) },
-        { label: 'Geographic Coverage', pct: Math.round((breakdown.geography / 20) * 100) },
-        { label: 'Capacity Fit', pct: Math.round((breakdown.capacity / 15) * 100) },
-        { label: 'Construction Type', pct: Math.round((breakdown.construction_type / 10) * 100) },
+        { label: 'NAICS ALIGNMENT', pct: Math.round((breakdown.naics / 30) * 100) },
+        { label: 'SET-ASIDE ELIGIBILITY', pct: Math.round((breakdown.set_aside / 25) * 100) },
+        { label: 'GEOGRAPHIC COVERAGE', pct: Math.round((breakdown.geography / 20) * 100) },
+        { label: 'CAPACITY FIT', pct: Math.round((breakdown.capacity / 15) * 100) },
+        { label: 'CONSTRUCTION TYPE', pct: Math.round((breakdown.construction_type / 10) * 100) },
       ]
-    : [
-        { label: 'NAICS Alignment', pct: 0 },
-        { label: 'Set-Aside Eligibility', pct: 0 },
-        { label: 'Geographic Coverage', pct: 0 },
-        { label: 'Capacity Fit', pct: 0 },
-        { label: 'Construction Type', pct: 0 },
-      ]
+    : []
 
   const topReasons = (breakdown?.reasons ?? []).slice(0, 3)
 
   const days = daysRemaining(opportunity.due_date)
   const daysColor =
-    days !== null && days <= 1
-      ? '#FF4D4F'
-      : days !== null && days <= 7
-        ? '#F59E0B'
-        : '#475569'
+    days !== null && days <= 1 ? '#FF4D4F'
+    : days !== null && days <= 7 ? '#F59E0B'
+    : '#C0C2C6'
 
   const daysLabel =
-    days === null
-      ? 'No deadline'
-      : days < 0
-        ? 'Past due'
-        : days === 0
-          ? 'Due today'
-          : `${days} days remaining`
+    days === null ? 'No deadline'
+    : days < 0 ? 'PAST DUE'
+    : days === 0 ? 'DUE TODAY'
+    : `T-${days}d`
 
   const titleTruncated =
     (opportunity.title ?? 'Untitled').length > 55
-      ? (opportunity.title ?? '').substring(0, 55) + '…'
+      ? (opportunity.title ?? '').substring(0, 55) + '...'
       : (opportunity.title ?? 'Untitled')
 
-  // ── Live FPDS data ──────────────────────────────────────────────────────
+  // ── Live FPDS data ────────────────────────────────────────────────────
   let fpdsResult: FpdsSearchResult = { awards: [], totalCount: 0, source: 'fpds' }
   try {
     const agency = opportunity.agency ?? opportunity.agency_name ?? ''
@@ -365,620 +191,240 @@ export default async function OpportunityDetailPage({
     // fallback: render page with empty awards
   }
 
-  const incidentFound = fpdsResult.awards.some((a) => a.isIncumbent)
+  const incumbentFound = fpdsResult.awards.some((a) => a.isIncumbent)
 
   return (
-    <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-      {/* ══ LEFT COLUMN ══════════════════════════════════════════════════════ */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-
-        {/* Breadcrumb */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 12,
-            color: '#94A3B8',
-            marginBottom: 14,
-          }}
-        >
-          <Link href="/opportunities" style={{ color: '#94A3B8', textDecoration: 'none', fontWeight: 500 }}>
-            Opportunities
-          </Link>
-          <span>/</span>
-          <span style={{ color: '#0F172A', fontWeight: 600 }}>{titleTruncated}</span>
-        </div>
-
-        {/* Page title block */}
-        <div style={{ marginBottom: 20 }}>
-          <h1
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.025em',
-              margin: '0 0 6px',
-              lineHeight: 1.25,
-            }}
-          >
-            {opportunity.title ?? 'Untitled Opportunity'}
-          </h1>
-          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
-            {opportunity.agency ?? opportunity.agency_name ?? 'Unknown Agency'}
-            {opportunity.solicitation_number ? ` · ${opportunity.solicitation_number}` : ''}
-          </p>
-        </div>
-
-        {/* Action bar */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-            marginBottom: 20,
-            flexWrap: 'wrap' as const,
-          }}
-        >
-          {/* Left pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
-            <Badge color="#2F80FF">{score}% Match</Badge>
-            {opportunity.set_aside && (
-              <Badge color="#475569">{opportunity.set_aside}</Badge>
-            )}
-            <Badge color={daysColor}>{daysLabel}</Badge>
-          </div>
-
-          {/* Right buttons */}
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button
-              style={{
-                background: 'none',
-                border: '1px solid #2F80FF',
-                borderRadius: 6,
-                padding: '7px 16px',
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#2F80FF',
-                cursor: 'pointer',
-              }}
-            >
-              Add to Pipeline
-            </button>
-            <Link
-              href={`/proposals/new?opportunity=${opportunity.id}`}
-              style={{
-                background: '#2F80FF',
-                color: '#fff',
-                borderRadius: 6,
-                padding: '7px 16px',
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}
-            >
-              Start Proposal
-            </Link>
-          </div>
-        </div>
-
-        {/* Opportunity Details card */}
-        <SectionCard title="Opportunity Details" style={{ marginBottom: 20 }}>
-          <MetaRow label="Solicitation Number" value={opportunity.solicitation_number ?? '—'} />
-          <MetaRow label="Notice Type" value="Sources Sought / Pre-Solicitation" />
-          <MetaRow label="NAICS Code" value={opportunity.naics_code ?? '—'} />
-          <MetaRow label="Set-Aside Type" value={opportunity.set_aside ?? opportunity.set_aside_description ?? 'Unrestricted'} />
-          <MetaRow label="Posted Date" value={formatDate(opportunity.posted_date)} />
-          <MetaRow label="Response Deadline" value={formatDate(opportunity.due_date ?? opportunity.response_deadline)} />
-          <MetaRow label="Place of Performance" value={[opportunity.pop_city, opportunity.place_of_performance_state ?? opportunity.pop_state].filter(Boolean).join(', ') || '—'} />
-          <MetaRow label="Estimated Value" value={formatValue(opportunity.estimated_value)} />
-          <MetaRow
-            label="Point of Contact"
-            value={opportunity.point_of_contact ?? '—'}
-            last
-          />
-        </SectionCard>
-
-        {/* Prior Awards card — live FPDS data */}
-        <SectionCard
-          title="Prior Awards — Incumbent Detection"
-          headerRight={
-            fpdsResult.awards.length > 0 ? (
-              <Badge color="#2F80FF" size="xs">
-                {fpdsResult.totalCount} Federal Records
-              </Badge>
-            ) : undefined
-          }
-          style={{ marginBottom: 20 }}
-        >
-          {fpdsResult.awards.length === 0 ? (
-            <div style={{ fontSize: 12, color: '#94A3B8', padding: '8px 0' }}>
-              No prior award history found in federal database for this agency.
-            </div>
-          ) : (
-            <div style={{ position: 'relative' }}>
-              {/* Vertical timeline line */}
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 7,
-                  top: 8,
-                  bottom: 8,
-                  width: 2,
-                  background: '#E2E8F0',
-                }}
-              />
-
-              {fpdsResult.awards.map((award, idx) => (
-                <div
-                  key={award.awardId}
-                  style={{
-                    display: 'flex',
-                    gap: 16,
-                    paddingBottom: idx < fpdsResult.awards.length - 1 ? 20 : 0,
-                    position: 'relative',
-                  }}
-                >
-                  {/* Timeline dot */}
-                  <div
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      background: award.isIncumbent ? '#2F80FF' : '#CBD5E1',
-                      border: award.isIncumbent ? '2px solid #2F80FF' : '2px solid #CBD5E1',
-                      flexShrink: 0,
-                      marginTop: 2,
-                      zIndex: 1,
-                      boxShadow: award.isIncumbent ? '0 0 0 3px #2F80FF22' : 'none',
-                    }}
-                  />
-
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 2,
-                        flexWrap: 'wrap' as const,
-                      }}
-                    >
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>
-                        {award.awardeeName}
-                      </span>
-                      {award.isIncumbent && (
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            fontSize: 9,
-                            fontFamily: "'Oxanium', sans-serif",
-                            fontWeight: 700,
-                            letterSpacing: '0.06em',
-                            textTransform: 'uppercase' as const,
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                            background: '#FF1A1A18',
-                            color: '#FF4D4F',
-                          }}
-                        >
-                          INCUMBENT
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        color: '#94A3B8',
-                        marginBottom: 2,
-                      }}
-                    >
-                      ${award.awardAmount.toLocaleString()} · {award.awardDate ? award.awardDate.slice(0, 10) : '—'}
-                      {award.naicsCode ? ` · NAICS ${award.naicsCode}` : ''}
-                    </div>
-                    {award.description && (
-                      <div style={{ fontSize: 11, color: '#94A3B8' }}>
-                        {award.description.slice(0, 100)}
-                        {award.description.length > 100 ? '…' : ''}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Amber advisory when incumbent detected */}
-          {incidentFound && (
-            <div
-              style={{
-                marginTop: 16,
-                padding: '10px 14px',
-                background: '#F59E0B14',
-                border: '1px solid #F59E0B30',
-                borderRadius: 6,
-                fontSize: 12,
-                color: '#F59E0B',
-                fontWeight: 500,
-              }}
-            >
-              Advisory: An incumbent has been identified. Expect an experienced competitor with incumbency advantage. Highlight differentiation in your technical approach.
-            </div>
-          )}
-        </SectionCard>
-
-        {/* Scope of Work card */}
-        <SectionCard title="Scope of Work">
-          {(opportunity.description_text ?? opportunity.description) ? (
-            (opportunity.description_text ?? opportunity.description)!.split('\n').filter(Boolean).map((para, i) => (
-              <p
-                key={i}
-                style={{
-                  fontSize: 13,
-                  color: '#334155',
-                  lineHeight: 1.7,
-                  margin: i === 0 ? '0 0 10px' : '0 0 10px',
-                }}
-              >
-                {para}
-              </p>
-            ))
-          ) : (
-            <div>
-              <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.7, margin: '0 0 10px' }}>
-                This requirement encompasses the rehabilitation and maintenance of federal roadway infrastructure, including surface restoration, drainage improvements, and safety upgrades within the designated corridor. The contractor shall furnish all labor, materials, equipment, and supervision necessary to complete the work in accordance with applicable federal highway standards.
-              </p>
-              <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.7, margin: 0 }}>
-                Work shall be performed in strict conformance with FHWA specifications, applicable state DOT standards, and all environmental permits. The period of performance is estimated at 18 months from notice to proceed. Prevailing wage rates under the Davis-Bacon Act apply to all covered classifications.
-              </p>
-            </div>
-          )}
-        </SectionCard>
-
+    <div style={{ paddingBottom: 48 }}>
+      {/* ── Breadcrumb ─────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#C0C2C6', marginBottom: 14, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.04em' }}>
+        <Link href="/opportunities" style={{ color: '#C0C2C6', textDecoration: 'none' }}>OPPORTUNITIES</Link>
+        <span style={{ color: 'rgba(192,194,198,0.4)' }}>/</span>
+        <span style={{ color: '#F5F5F7', fontWeight: 600 }}>{titleTruncated}</span>
       </div>
 
-      {/* ══ RIGHT SIDEBAR ═════════════════════════════════════════════════════ */}
-      <div style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ── Page title ─────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <div style={{ width: 3, height: 22, background: '#FF1A1A', borderRadius: 2, boxShadow: '0 0 8px rgba(255,26,26,0.6)', flexShrink: 0 }} />
+          <h1 style={{ fontSize: 19, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, lineHeight: 1.3 }}>
+            {opportunity.title ?? 'Untitled Opportunity'}
+          </h1>
+        </div>
+        <p style={{ fontSize: 11, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.04em', paddingLeft: 15 }}>
+          {opportunity.agency ?? opportunity.agency_name ?? 'Unknown Agency'}
+          {opportunity.solicitation_number ? ` · ${opportunity.solicitation_number}` : ''}
+        </p>
+      </div>
 
-        {/* Match Score card */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '14px 20px',
-              borderBottom: '1px solid #F0F2F5',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0F172A',
-            }}
-          >
-            Your Match Score
-          </div>
-          <div style={{ padding: '20px 20px 16px' }}>
-            {/* Score number */}
-            <div style={{ textAlign: 'center' as const, marginBottom: 16 }}>
-              <div
-                style={{
-                  fontSize: 48,
-                  fontWeight: 800,
-                  color: '#2F80FF',
-                  letterSpacing: '-0.04em',
-                  lineHeight: 1,
-                }}
-              >
-                {score}%
-              </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: labelColor,
-                  marginTop: 4,
-                }}
-              >
-                {label}
-              </div>
-            </div>
-
-            {/* Breakdown bars */}
-            {liveBreakdownBars.map((item) => (
-              <ScoreBar key={item.label} label={item.label} pct={item.pct} />
-            ))}
-
-            {/* Reason bullets */}
-            {topReasons.length > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                {topReasons.map((reason, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      fontSize: 11,
-                      color: '#94A3B8',
-                      lineHeight: 1.5,
-                      marginBottom: 3,
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 5,
-                    }}
-                  >
-                    <span style={{ flexShrink: 0, marginTop: 1 }}>&#x2022;</span>
-                    <span>{reason}</span>
-                  </div>
-                ))}
-              </div>
+      {/* ── Action bar ─────────────────────────────────────────────────── */}
+      <GlassPanel noPad style={{ marginBottom: 20, borderLeft: `2px solid ${labelColor}` }}>
+        <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' as const }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+            <span style={{ fontSize: 24, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: labelColor, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {score}%
+            </span>
+            <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", padding: '3px 8px', borderRadius: 4, background: `${labelColor}18`, border: `1px solid ${labelColor}30`, color: labelColor, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+              {label}
+            </span>
+            {opportunity.set_aside && (
+              <span style={{ fontSize: 9, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", background: 'rgba(192,194,198,0.08)', border: '1px solid rgba(192,194,198,0.15)', borderRadius: 4, padding: '3px 8px', letterSpacing: '0.08em' }}>
+                {opportunity.set_aside}
+              </span>
             )}
-
-            {/* CTA */}
+            <span style={{ fontSize: 9, color: daysColor, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, letterSpacing: '0.08em' }}>
+              {daysLabel}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <Link
-              href={`/proposals/new?opportunity=${opportunity.id}`}
-              style={{
-                display: 'block',
-                background: '#2F80FF',
-                color: '#fff',
-                borderRadius: 6,
-                padding: '9px 0',
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: 'none',
-                textAlign: 'center' as const,
-                marginTop: 4,
-              }}
+              href="/pipeline"
+              style={{ background: 'transparent', border: '1px solid rgba(192,194,198,0.25)', borderRadius: 6, padding: '8px 16px', fontSize: 10, fontWeight: 700, color: '#C0C2C6', textDecoration: 'none', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}
             >
-              Start Proposal
+              PIPELINE
+            </Link>
+            <Link
+              href={`/proposals/new?opportunity_id=${opportunity.id}`}
+              style={{ background: '#FF1A1A', color: '#fff', borderRadius: 6, padding: '8px 16px', fontSize: 10, fontWeight: 700, textDecoration: 'none', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const, boxShadow: '0 0 16px rgba(255,26,26,0.3)' }}
+            >
+              START PROPOSAL
             </Link>
           </div>
         </div>
+      </GlassPanel>
 
-        {/* SBA Size Eligibility card */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '14px 20px',
-              borderBottom: '1px solid #F0F2F5',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0F172A',
-            }}
-          >
-            SBA Size Eligibility
-          </div>
-          <div style={{ padding: '14px 20px' }}>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#00C48C',
-                marginBottom: 8,
-              }}
-            >
-              Eligible — Small Business
+      {/* ── Two-column layout ──────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+
+        {/* ══ LEFT COLUMN ════════════════════════════════════════════════ */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Opportunity Details */}
+          <GlassPanel noPad>
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid rgba(192,194,198,0.08)' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#F5F5F7', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                OPPORTUNITY DETAILS
+              </span>
             </div>
-            <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
-              <div style={{ marginBottom: 4 }}>
-                <span style={{ fontWeight: 600, color: '#334155' }}>NAICS Size Standard: </span>
-                {opportunity.naics_code
-                  ? `NAICS ${opportunity.naics_code} — $45M annual receipts`
-                  : '$45M annual receipts'}
-              </div>
-              <div>
-                <span style={{ fontWeight: 600, color: '#334155' }}>WOSB Certification: </span>
-                <span style={{ color: '#00C48C', fontWeight: 600 }}>Active — Expires Dec 2026</span>
-              </div>
+            <div style={{ padding: '4px 18px 16px' }}>
+              <DarkMetaRow label="Solicitation No." value={opportunity.solicitation_number ?? '—'} />
+              <DarkMetaRow label="Notice Type" value={opportunity.notice_type ?? 'Sources Sought'} />
+              <DarkMetaRow label="NAICS Code" value={opportunity.naics_code ?? '—'} />
+              <DarkMetaRow label="Set-Aside" value={opportunity.set_aside ?? opportunity.set_aside_description ?? 'Unrestricted'} />
+              <DarkMetaRow label="Posted Date" value={formatDate(opportunity.posted_date)} />
+              <DarkMetaRow label="Response Deadline" value={formatDate(opportunity.due_date ?? opportunity.response_deadline)} />
+              <DarkMetaRow label="Place of Performance" value={[opportunity.pop_city, opportunity.place_of_performance_state ?? opportunity.pop_state].filter(Boolean).join(', ') || '—'} />
+              <DarkMetaRow label="Est. Value" value={formatValue(opportunity.estimated_value)} />
+              <DarkMetaRow label="Point of Contact" value={opportunity.point_of_contact ?? '—'} last />
             </div>
-          </div>
-        </div>
+          </GlassPanel>
 
-        {/* Potential Teaming Partners card */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '14px 20px',
-              borderBottom: '1px solid #F0F2F5',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0F172A',
-            }}
-          >
-            Potential Teaming Partners
-          </div>
-          <div style={{ padding: '8px 0' }}>
-            {TEAMING_PARTNERS.map((partner, idx) => (
-              <div
-                key={partner.id}
-                style={{
-                  padding: '12px 20px',
-                  borderBottom:
-                    idx < TEAMING_PARTNERS.length - 1 ? '1px solid #F0F2F5' : 'none',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 2 }}>
-                      {partner.name}
+          {/* Prior Awards — Incumbent Detection */}
+          <GlassPanel noPad>
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid rgba(192,194,198,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#F5F5F7', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                PRIOR AWARDS — INCUMBENT DETECTION
+              </span>
+              {fpdsResult.awards.length > 0 && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", background: 'rgba(192,194,198,0.08)', border: '1px solid rgba(192,194,198,0.15)', borderRadius: 4, padding: '2px 8px', letterSpacing: '0.08em' }}>
+                  {fpdsResult.totalCount} RECORDS
+                </span>
+              )}
+            </div>
+            <div style={{ padding: '14px 18px' }}>
+              {fpdsResult.awards.length === 0 ? (
+                <div style={{ fontSize: 12, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace" }}>
+                  No prior award history found in federal database for this agency.
+                </div>
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 7, top: 8, bottom: 8, width: 1, background: 'rgba(192,194,198,0.12)' }} />
+                  {fpdsResult.awards.map((award, idx) => (
+                    <div key={award.awardId} style={{ display: 'flex', gap: 16, paddingBottom: idx < fpdsResult.awards.length - 1 ? 20 : 0, position: 'relative' }}>
+                      <div style={{ width: 15, height: 15, borderRadius: '50%', background: award.isIncumbent ? '#FF1A1A' : 'rgba(192,194,198,0.2)', border: `1px solid ${award.isIncumbent ? '#FF1A1A' : 'rgba(192,194,198,0.3)'}`, flexShrink: 0, marginTop: 2, zIndex: 1, boxShadow: award.isIncumbent ? '0 0 8px rgba(255,26,26,0.4)' : 'none' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' as const }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>{award.awardeeName}</span>
+                          {award.isIncumbent && (
+                            <span style={{ fontSize: 9, fontFamily: "'Oxanium', sans-serif", fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,26,26,0.12)', color: '#FF4D4F', border: '1px solid rgba(255,26,26,0.25)' }}>
+                              INCUMBENT
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: '#C0C2C6' }}>
+                          ${award.awardAmount.toLocaleString()} · {award.awardDate ? award.awardDate.slice(0, 10) : '—'}
+                          {award.naicsCode ? ` · NAICS ${award.naicsCode}` : ''}
+                        </div>
+                        {award.description && (
+                          <div style={{ fontSize: 11, color: 'rgba(192,194,198,0.6)', marginTop: 2 }}>
+                            {award.description.slice(0, 100)}{award.description.length > 100 ? '...' : ''}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 11, color: '#94A3B8' }}>
-                      {partner.location} · {partner.fedValue} fed
+                  ))}
+                </div>
+              )}
+              {incumbentFound && (
+                <div style={{ marginTop: 14, padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, fontSize: 11, color: '#F59E0B', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.04em', lineHeight: 1.5 }}>
+                  ADVISORY: Incumbent identified. Expect an experienced competitor with incumbency advantage. Highlight differentiation in your technical approach.
+                </div>
+              )}
+            </div>
+          </GlassPanel>
+
+          {/* Scope of Work */}
+          <GlassPanel noPad>
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid rgba(192,194,198,0.08)' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#F5F5F7', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                SCOPE OF WORK
+              </span>
+            </div>
+            <div style={{ padding: '14px 18px' }}>
+              {(opportunity.description_text ?? opportunity.description)
+                ? (opportunity.description_text ?? opportunity.description)!.split('\n').filter(Boolean).map((para, i) => (
+                    <p key={i} style={{ fontSize: 13, color: '#C0C2C6', lineHeight: 1.7, margin: '0 0 10px' }}>{para}</p>
+                  ))
+                : (
+                  <p style={{ fontSize: 12, color: '#C0C2C6', lineHeight: 1.7, fontFamily: "'IBM Plex Mono', monospace" }}>
+                    No scope description available. View the full solicitation on SAM.gov for details.
+                    {(opportunity.sam_url || opportunity.ui_link) && (
+                      <> {' '}<a href={opportunity.sam_url ?? opportunity.ui_link ?? '#'} target="_blank" rel="noopener noreferrer" style={{ color: '#FF1A1A', textDecoration: 'none', fontWeight: 700 }}>Open on SAM.gov</a></>
+                    )}
+                  </p>
+                )
+              }
+            </div>
+          </GlassPanel>
+
+        </div>
+
+        {/* ══ RIGHT SIDEBAR ═══════════════════════════════════════════════ */}
+        <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Match Score */}
+          <GlassPanel noPad variant="accent">
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,26,26,0.12)' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#F5F5F7', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                YOUR MATCH SCORE
+              </span>
+            </div>
+            <div style={{ padding: '20px 16px 16px' }}>
+              <div style={{ textAlign: 'center' as const, marginBottom: 20 }}>
+                <div style={{ fontSize: 54, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: labelColor, letterSpacing: '-0.04em', lineHeight: 1 }}>
+                  {score}%
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: labelColor, marginTop: 6, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                  {label}
+                </div>
+              </div>
+              {liveBreakdownBars.map((item) => (
+                <ScoreBar key={item.label} label={item.label} pct={item.pct} />
+              ))}
+              {topReasons.length > 0 && (
+                <div style={{ marginBottom: 14, marginTop: 4 }}>
+                  {topReasons.map((reason, i) => (
+                    <div key={i} style={{ fontSize: 11, color: '#C0C2C6', fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.5, marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                      <span style={{ flexShrink: 0, color: '#FF1A1A', marginTop: 1 }}>&#x25B8;</span>
+                      <span>{reason}</span>
                     </div>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: '#2F80FF',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {partner.compatibility}%
-                  </span>
+                  ))}
                 </div>
-                <button
-                  style={{
-                    background: 'none',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: 5,
-                    padding: '4px 12px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: '#475569',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Contact
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Competitor Intelligence card */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '14px 20px',
-              borderBottom: '1px solid #F0F2F5',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0F172A',
-            }}
-          >
-            Competitor Intelligence
-          </div>
-          <div style={{ padding: '8px 0' }}>
-            {COMPETITORS.map((comp, idx) => (
-              <div
-                key={comp.id}
-                style={{
-                  padding: '12px 20px',
-                  borderBottom:
-                    idx < COMPETITORS.length - 1 ? '1px solid #F0F2F5' : 'none',
-                }}
+              )}
+              <Link
+                href={`/proposals/new?opportunity_id=${opportunity.id}`}
+                style={{ display: 'block', background: '#FF1A1A', color: '#fff', borderRadius: 6, padding: '10px 0', fontSize: 11, fontWeight: 700, textDecoration: 'none', textAlign: 'center' as const, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const, boxShadow: '0 0 16px rgba(255,26,26,0.25)' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>
-                    {comp.name}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    flexWrap: 'wrap' as const,
-                  }}
-                >
-                  <Badge color={comp.incumbent ? '#2F80FF' : '#475569'} size="xs">
-                    {comp.role}
-                  </Badge>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>
-                    {comp.wins} wins · avg {comp.avgValue}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div
-            style={{
-              margin: '0 20px 16px',
-              padding: '10px 14px',
-              background: '#F59E0B14',
-              border: '1px solid #F59E0B30',
-              borderRadius: 6,
-              fontSize: 12,
-              color: '#F59E0B',
-              fontWeight: 500,
-            }}
-          >
-            Advisory: Incumbent has a 3-win track record on this vehicle. A strong price-to-win analysis is recommended before submitting.
-          </div>
-        </div>
+                START PROPOSAL
+              </Link>
+            </div>
+          </GlassPanel>
 
-        {/* Matching Past Performance card */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '14px 20px',
-              borderBottom: '1px solid #F0F2F5',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0F172A',
-            }}
-          >
-            Your Matching Past Performance
-          </div>
-          <div style={{ padding: '8px 0' }}>
-            {PAST_PERFORMANCE.map((pp, idx) => (
-              <div
-                key={pp.id}
-                style={{
-                  padding: '12px 20px',
-                  borderBottom:
-                    idx < PAST_PERFORMANCE.length - 1 ? '1px solid #F0F2F5' : 'none',
-                }}
+          {/* SBA Size Eligibility */}
+          <SizeEligibilityPanel
+            naics={opportunity.naics_code}
+            annualRevenueUsd={profile?.annual_revenue_usd ?? null}
+            employeeCount={profile?.employee_count ?? null}
+            sbaCategory={profile?.sba_size_category ?? null}
+          />
+
+          {/* External SAM.gov link */}
+          {(opportunity.sam_url || opportunity.ui_link) && (
+            <GlassPanel noPad>
+              <a
+                href={opportunity.sam_url ?? opportunity.ui_link ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', textDecoration: 'none' }}
               >
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>
-                  {pp.title}
-                </div>
-                <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.6, marginBottom: 4 }}>
-                  <div>{pp.agency}</div>
-                  <div>{pp.contractNumber} · {pp.value} · {pp.date}</div>
-                </div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#00C48C' }}>
-                  CPARS: {pp.cpars}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#C0C2C6', fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                  VIEW ON SAM.GOV
+                </span>
+                <span style={{ color: '#FF1A1A', fontSize: 14 }}>&rarr;</span>
+              </a>
+            </GlassPanel>
+          )}
 
+        </div>
       </div>
     </div>
   )

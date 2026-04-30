@@ -74,7 +74,7 @@ export default function LoginPage() {
               fontFamily: "'Space Grotesk', sans-serif",
               display: 'block',
             }}>
-              GovRFP
+              GovTool
             </span>
             <span style={{
               fontSize: 9, color: '#D4AF37',

@@ -15,7 +15,7 @@ export function AppFooter() {
         flexShrink: 0,
       }}
     >
-      © 2026 Avero · We build AI that moves your business forward.
+      © 2026 GovTool · AI-powered federal contractor intelligence.
     </footer>
   );
 }

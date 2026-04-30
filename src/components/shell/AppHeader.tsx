@@ -35,7 +35,7 @@ export function AppHeader({ userInitials = 'GC' }: AppHeaderProps) {
           letterSpacing: '0.06em', textTransform: 'uppercase',
           fontFamily: "'Space Grotesk', sans-serif",
         }}>
-          GovRFP
+          GovTool
         </span>
       </Link>
 
