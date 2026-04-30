@@ -29,13 +29,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ synced: 0, message: 'No opportunities returned' })
     }
 
+    const now = new Date().toISOString()
+    const rows = normalized.map(opp => ({
+      ...opp,
+      // Coerce any empty-string date fields to null so Postgres accepts them
+      posted_date: opp.posted_date || null,
+      due_date: opp.due_date || null,
+      synced_at: now,
+      updated_at: now,
+    }))
+
     // Upsert on notice_id (unique SAM.gov identifier)
     const { error } = await supabase
       .from('opportunities')
-      .upsert(
-        normalized.map(opp => ({ ...opp, synced_at: new Date().toISOString(), updated_at: new Date().toISOString() })),
-        { onConflict: 'notice_id', ignoreDuplicates: false },
-      )
+      .upsert(rows, { onConflict: 'notice_id', ignoreDuplicates: false })
 
     if (error) {
       console.error('[sync/opportunities] upsert error:', error)

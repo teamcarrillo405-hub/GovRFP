@@ -1,8 +1,23 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/server'
+import { GlassPanel } from '@/components/ui/GlassPanel'
+import { HelpCircle, Keyboard, MessageSquare, Zap } from 'lucide-react'
 
 export const metadata = { title: 'Help & Support' }
+
+const SECTION_LABEL: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  fontFamily: "'Oxanium', sans-serif",
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  color: '#C0C2C6',
+  marginBottom: 14,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+}
 
 const FAQ = [
   {
@@ -62,22 +77,23 @@ export default async function HelpPage() {
   if (!user) redirect('/login')
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-12">
+    <div style={{ maxWidth: 760 }}>
       {/* Header */}
-      <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">
-          ← Back to dashboard
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Help & Support</h1>
-        <p className="mt-2 text-gray-500">
-          Answers to common questions, keyboard shortcuts, and how to reach us.
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0 }}>
+          Help & Support
+        </h1>
+        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.55)', marginTop: 6 }}>
+          Quick start, FAQs, keyboard shortcuts, and how to reach us.
         </p>
       </div>
 
       {/* Quick start */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick start</h2>
-        <ol className="space-y-3 text-sm text-gray-700">
+      <GlassPanel style={{ padding: 24, marginBottom: 20 }}>
+        <div style={SECTION_LABEL}>
+          <Zap size={13} strokeWidth={1.5} />Quick Start
+        </div>
+        <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             ['Fill your profile', 'Profile → Company Info, Certifications, NAICS codes', '/profile'],
             ['Add past projects', 'Profile → Past Projects — add every relevant contract', '/profile/past-projects'],
@@ -87,117 +103,167 @@ export default async function HelpPage() {
             ['Generate sections', 'Editor → click "Generate [Section]" — watchdog ensures quality', null],
             ['Export', 'PDF or Word — ready to submit', null],
           ].map(([title, desc, href], i) => (
-            <li key={i} className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#2F80FF] text-white text-xs font-bold flex items-center justify-center">
+            <li key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <span style={{
+                flexShrink: 0,
+                width: 22,
+                height: 22,
+                borderRadius: '50%',
+                background: '#FF1A1A',
+                color: '#fff',
+                fontSize: 10,
+                fontWeight: 800,
+                fontFamily: "'Oxanium', sans-serif",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
                 {i + 1}
               </span>
               <div>
                 {href ? (
-                  <Link href={href} className="font-medium text-blue-700 hover:underline">{title}</Link>
+                  <Link href={href} style={{ fontWeight: 600, fontSize: 13, color: '#FF1A1A', textDecoration: 'none' }}>{title}</Link>
                 ) : (
-                  <span className="font-medium text-gray-900">{title}</span>
+                  <span style={{ fontWeight: 600, fontSize: 13, color: '#F5F5F7' }}>{title}</span>
                 )}
-                <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
+                <p style={{ fontSize: 11, color: 'rgba(192,194,198,0.5)', margin: '2px 0 0' }}>{desc}</p>
               </div>
             </li>
           ))}
         </ol>
-      </section>
+      </GlassPanel>
 
       {/* FAQ */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Frequently asked questions</h2>
-        <div className="space-y-4">
+      <GlassPanel style={{ padding: 24, marginBottom: 20 }}>
+        <div style={SECTION_LABEL}>
+          <HelpCircle size={13} strokeWidth={1.5} />Frequently Asked Questions
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FAQ.map(({ q, a }) => (
-            <details key={q} className="group border border-gray-200 rounded-lg">
-              <summary className="flex items-center justify-between px-4 py-3 cursor-pointer text-sm font-medium text-gray-900 list-none">
+            <details key={q} style={{ borderRadius: 8, border: '1px solid rgba(192,194,198,0.1)', overflow: 'hidden' }}>
+              <summary style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#F5F5F7',
+                listStyle: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'rgba(192,194,198,0.04)',
+              }}>
                 {q}
-                <svg className="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(192,194,198,0.4)" strokeWidth="2">
+                  <path d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
-              <p className="px-4 pb-4 text-sm text-gray-600 leading-relaxed">{a}</p>
+              <p style={{ padding: '12px 16px', fontSize: 13, color: 'rgba(192,194,198,0.65)', lineHeight: 1.6, margin: 0, borderTop: '1px solid rgba(192,194,198,0.07)' }}>
+                {a}
+              </p>
             </details>
           ))}
         </div>
-      </section>
+      </GlassPanel>
 
       {/* Keyboard shortcuts */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Editor keyboard shortcuts</h2>
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Shortcut</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {SHORTCUTS.map(({ key, action }) => (
-                <tr key={key}>
-                  <td className="px-4 py-2">
-                    <kbd className="px-2 py-0.5 rounded bg-gray-100 border border-gray-300 font-mono text-xs">{key}</kbd>
-                  </td>
-                  <td className="px-4 py-2 text-gray-600">{action}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <GlassPanel noPad style={{ marginBottom: 20 }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(192,194,198,0.08)', ...SECTION_LABEL, marginBottom: 0 }}>
+          <Keyboard size={13} strokeWidth={1.5} />Editor Keyboard Shortcuts
         </div>
-      </section>
+        {SHORTCUTS.map(({ key, action }, i) => (
+          <div key={key} style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '11px 20px',
+            borderBottom: i < SHORTCUTS.length - 1 ? '1px solid rgba(192,194,198,0.06)' : 'none',
+          }}>
+            <kbd style={{
+              padding: '3px 10px',
+              borderRadius: 5,
+              background: 'rgba(192,194,198,0.08)',
+              border: '1px solid rgba(192,194,198,0.14)',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 11,
+              color: '#C0C2C6',
+              fontWeight: 600,
+            }}>{key}</kbd>
+            <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)' }}>{action}</span>
+          </div>
+        ))}
+      </GlassPanel>
 
       {/* Contact */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact support</h2>
-        <ContactForm />
-      </section>
-    </div>
-  )
-}
-
-function ContactForm() {
-  return (
-    <div className="border border-gray-200 rounded-lg p-6 space-y-4">
-      <p className="text-sm text-gray-600">
-        Can&apos;t find what you need? Send us a message and we&apos;ll respond within one business day.
-      </p>
-      <form
-        action={`mailto:support@hispanicconstructioncouncil.com`}
-        method="get"
-        className="space-y-3"
-      >
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-          <input
-            name="subject"
-            type="text"
-            placeholder="e.g. Question about the editor"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+      <GlassPanel style={{ padding: 24 }}>
+        <div style={SECTION_LABEL}>
+          <MessageSquare size={13} strokeWidth={1.5} />Contact Support
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-          <textarea
-            name="body"
-            rows={4}
-            placeholder="Describe your issue or question..."
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-        </div>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800"
-        >
-          Open in email client
-        </button>
-      </form>
-      <p className="text-xs text-gray-500">
-        Or email us directly at{' '}
-        <a href="mailto:support@hispanicconstructioncouncil.com" className="underline">
-          support@hispanicconstructioncouncil.com
-        </a>
-      </p>
+        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.6)', marginBottom: 16 }}>
+          Can&apos;t find what you need? Send us a message and we&apos;ll respond within one business day.
+        </p>
+        <form action="mailto:support@hispanicconstructioncouncil.com" method="get" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={{ ...SECTION_LABEL, marginBottom: 6 }}>Subject</label>
+            <input
+              name="subject"
+              type="text"
+              placeholder="e.g. Question about the editor"
+              style={{
+                width: '100%',
+                border: '1px solid rgba(192,194,198,0.15)',
+                borderRadius: 6,
+                padding: '9px 12px',
+                fontSize: 13,
+                color: '#F5F5F7',
+                background: 'rgba(11,11,13,0.5)',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ ...SECTION_LABEL, marginBottom: 6 }}>Message</label>
+            <textarea
+              name="body"
+              rows={4}
+              placeholder="Describe your issue or question..."
+              style={{
+                width: '100%',
+                border: '1px solid rgba(192,194,198,0.15)',
+                borderRadius: 6,
+                padding: '9px 12px',
+                fontSize: 13,
+                color: '#F5F5F7',
+                background: 'rgba(11,11,13,0.5)',
+                outline: 'none',
+                boxSizing: 'border-box',
+                resize: 'none',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button type="submit" style={{
+              padding: '9px 20px',
+              background: '#FF1A1A',
+              color: '#fff',
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: "'Oxanium', sans-serif",
+              letterSpacing: '0.08em',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}>
+              OPEN IN EMAIL CLIENT
+            </button>
+            <a href="mailto:support@hispanicconstructioncouncil.com" style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)', textDecoration: 'none' }}>
+              support@hispanicconstructioncouncil.com
+            </a>
+          </div>
+        </form>
+      </GlassPanel>
     </div>
   )
 }

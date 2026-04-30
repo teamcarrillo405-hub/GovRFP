@@ -58,11 +58,11 @@ function statusLabel(status: PartnerStatus): string {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   fontSize: 13,
-  color: '#0F172A',
-  border: '1px solid #E2E8F0',
+  color: '#F5F5F7',
+  border: '1px solid rgba(192,194,198,0.1)',
   borderRadius: 6,
   padding: '7px 10px',
-  background: '#fff',
+  background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
   outline: 'none',
   boxSizing: 'border-box',
 }
@@ -70,7 +70,7 @@ const INPUT_STYLE: React.CSSProperties = {
 const LABEL_STYLE: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
-  color: '#64748B',
+  color: 'rgba(192,194,198,0.55)',
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
   display: 'block',
@@ -151,7 +151,7 @@ export default async function TeamingPage({ params }: Props) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 4,
-            color: '#94A3B8',
+            color: 'rgba(192,194,198,0.45)',
             textDecoration: 'none',
             fontSize: 13,
           }}
@@ -163,10 +163,10 @@ export default async function TeamingPage({ params }: Props) {
 
       {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', margin: 0 }}>
           Teaming Partners
         </h1>
-        <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, marginBottom: 0 }}>
+        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.55)', marginTop: 4, marginBottom: 0 }}>
           Subcontractor and teaming partner management
         </p>
       </div>
@@ -175,14 +175,14 @@ export default async function TeamingPage({ params }: Props) {
       {showSetAsideCard && (
         <div
           style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
+            background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(192,194,198,0.1)',
             borderRadius: 8,
             padding: '16px 20px',
             marginBottom: 24,
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94A3B8', marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)', marginBottom: 10 }}>
             Set-Aside Requirements Detected
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
@@ -207,8 +207,8 @@ export default async function TeamingPage({ params }: Props) {
                 style={{
                   fontSize: 12,
                   fontWeight: 500,
-                  color: '#64748B',
-                  background: '#F1F5F9',
+                  color: 'rgba(192,194,198,0.55)',
+                  background: 'rgba(11,11,13,0.2)',
                   padding: '3px 9px',
                   borderRadius: 4,
                 }}
@@ -217,7 +217,7 @@ export default async function TeamingPage({ params }: Props) {
               </span>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.55)', margin: 0, lineHeight: 1.5 }}>
             This opportunity has set-aside requirements. Ensure teaming partners meet applicable SBA size standards and certifications.
           </p>
         </div>
@@ -230,8 +230,8 @@ export default async function TeamingPage({ params }: Props) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div
             style={{
-              background: '#fff',
-              border: '1px solid #E2E8F0',
+              background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(192,194,198,0.1)',
               borderRadius: 8,
               overflow: 'hidden',
             }}
@@ -242,8 +242,8 @@ export default async function TeamingPage({ params }: Props) {
                 display: 'grid',
                 gridTemplateColumns: '1.8fr 1fr 90px 80px 110px 60px',
                 padding: '10px 16px',
-                borderBottom: '1px solid #E2E8F0',
-                background: '#F8FAFC',
+                borderBottom: '1px solid rgba(192,194,198,0.08)',
+                background: 'rgba(11,11,13,0.3)',
               }}
             >
               {['Company Name', 'Role', 'Certification', 'Work Share', 'Status', ''].map((col) => (
@@ -254,7 +254,7 @@ export default async function TeamingPage({ params }: Props) {
                     fontWeight: 700,
                     letterSpacing: '0.06em',
                     textTransform: 'uppercase',
-                    color: '#94A3B8',
+                    color: 'rgba(192,194,198,0.45)',
                     padding: '0 6px',
                   }}
                 >
@@ -269,7 +269,7 @@ export default async function TeamingPage({ params }: Props) {
                 style={{
                   padding: '40px 24px',
                   textAlign: 'center',
-                  color: '#94A3B8',
+                  color: 'rgba(192,194,198,0.45)',
                   fontSize: 13,
                 }}
               >
@@ -293,11 +293,11 @@ export default async function TeamingPage({ params }: Props) {
                 >
                   {/* Company Name */}
                   <div style={{ padding: '0 6px' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>
                       {partner.company_name}
                     </div>
                     {partner.point_of_contact && (
-                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>
+                      <div style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)', marginTop: 1 }}>
                         {partner.point_of_contact}
                       </div>
                     )}
@@ -305,7 +305,7 @@ export default async function TeamingPage({ params }: Props) {
 
                   {/* Role */}
                   <div style={{ padding: '0 6px' }}>
-                    <span style={{ fontSize: 12, color: '#475569' }}>
+                    <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)' }}>
                       {roleLabel(partner.role)}
                     </span>
                   </div>
@@ -369,7 +369,7 @@ export default async function TeamingPage({ params }: Props) {
                         type="submit"
                         style={{
                           fontSize: 11,
-                          color: '#94A3B8',
+                          color: 'rgba(192,194,198,0.45)',
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
@@ -389,18 +389,18 @@ export default async function TeamingPage({ params }: Props) {
           {/* Work Share Summary */}
           <div
             style={{
-              background: '#fff',
-              border: '1px solid #E2E8F0',
+              background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(192,194,198,0.1)',
               borderRadius: 8,
               padding: '16px 20px',
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94A3B8', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)', marginBottom: 12 }}>
               Work Share Summary
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, color: '#475569' }}>Total assigned to partners</span>
+              <span style={{ fontSize: 13, color: 'rgba(192,194,198,0.6)' }}>Total assigned to partners</span>
               <span
                 style={{
                   fontSize: 13,
@@ -413,15 +413,15 @@ export default async function TeamingPage({ params }: Props) {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, color: '#475569' }}>Remaining for prime</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{remaining}%</span>
+              <span style={{ fontSize: 13, color: 'rgba(192,194,198,0.6)' }}>Remaining for prime</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#F5F5F7' }}>{remaining}%</span>
             </div>
 
             {/* Progress bar */}
             <div
               style={{
                 height: 6,
-                background: '#F1F5F9',
+                background: 'rgba(11,11,13,0.2)',
                 borderRadius: 99,
                 overflow: 'hidden',
               }}
@@ -448,13 +448,13 @@ export default async function TeamingPage({ params }: Props) {
         {/* RIGHT — Add Partner Form */}
         <div
           style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
+            background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(192,194,198,0.1)',
             borderRadius: 8,
             padding: '20px',
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#F5F5F7', marginBottom: 16 }}>
             Add Partner
           </div>
 

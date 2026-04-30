@@ -158,6 +158,7 @@ export default async function OpportunitiesPage() {
               <GlassPanel
                 key={opp.id}
                 noPad
+                className="glass-row"
                 style={{ borderLeft: `2px solid ${borderColor}`, overflow: 'hidden' }}
               >
                 {/* Card header */}

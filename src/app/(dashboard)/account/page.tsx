@@ -3,34 +3,60 @@ import { getUser } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkSubscription, type SubscriptionStatus } from '@/lib/billing/subscription-check'
 import { BillingButtons } from './billing-buttons'
+import { GlassPanel } from '@/components/ui/GlassPanel'
 
 interface AccountPageProps {
   searchParams: Promise<{ success?: string; canceled?: string }>
 }
 
+const SECTION_LABEL: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  fontFamily: "'Oxanium', sans-serif",
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  color: '#C0C2C6',
+  marginBottom: 16,
+}
+
+const ROW: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '10px 0',
+  borderBottom: '1px solid rgba(192,194,198,0.07)',
+  fontSize: 13,
+}
+
 function StatusBadge({ status }: { status: SubscriptionStatus }) {
-  const textColors: Record<SubscriptionStatus, string> = {
+  const colors: Record<SubscriptionStatus, string> = {
     trialing: '#2F80FF',
     active: '#00C48C',
     past_due: '#F59E0B',
     canceled: '#FF4D4F',
-    none: '#94A3B8',
+    none: 'rgba(192,194,198,0.5)',
   }
   const labels: Record<SubscriptionStatus, string> = {
-    trialing: 'Trial',
-    active: 'Active',
-    past_due: 'Past Due',
-    canceled: 'Canceled',
-    none: 'No Subscription',
+    trialing: 'TRIAL',
+    active: 'ACTIVE',
+    past_due: 'PAST DUE',
+    canceled: 'CANCELED',
+    none: 'NO SUB',
   }
-  const color = textColors[status]
+  const color = colors[status]
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center',
-      borderRadius: 9999, padding: '2px 10px',
-      fontSize: 10.5, fontWeight: 700,
+      display: 'inline-flex',
+      alignItems: 'center',
+      borderRadius: 9999,
+      padding: '3px 10px',
+      fontSize: 9,
+      fontWeight: 700,
+      fontFamily: "'Oxanium', sans-serif",
+      letterSpacing: '0.1em',
       color,
-      background: color + '14',
+      background: color + '18',
+      border: `1px solid ${color}30`,
     }}>
       {labels[status]}
     </span>
@@ -48,9 +74,7 @@ function formatDate(iso: string | null): string {
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const user = await getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
   const supabase = await createClient()
   const { data: profile } = await supabase
@@ -64,75 +88,75 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   const showSuccess = params.success === 'true'
   const showCanceled = params.canceled === 'true'
-
   const showStartTrial = subscription.status === 'none' || subscription.status === 'canceled'
   const showManageBilling = !!profile?.stripe_customer_id
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Account Settings</h1>
+    <div style={{ maxWidth: 600 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0 }}>
+          Account Settings
+        </h1>
+      </div>
 
       {showSuccess && (
-        <div style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #00C48C', background: '#FFFFFF', padding: '12px 16px', fontSize: 13, color: '#00C48C', fontWeight: 500 }}>
+        <GlassPanel variant="default" style={{ marginBottom: 20, padding: '12px 16px', fontSize: 13, color: '#00C48C', fontWeight: 500, borderColor: 'rgba(0,196,140,0.25)' }}>
           Your subscription has been activated. Welcome aboard.
-        </div>
+        </GlassPanel>
       )}
 
       {showCanceled && (
-        <div style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #F59E0B', background: '#FFFFFF', padding: '12px 16px', fontSize: 13, color: '#F59E0B', fontWeight: 500 }}>
+        <GlassPanel variant="default" style={{ marginBottom: 20, padding: '12px 16px', fontSize: 13, color: '#F59E0B', fontWeight: 500, borderColor: 'rgba(245,158,11,0.25)' }}>
           Checkout was canceled. You have not been charged.
-        </div>
+        </GlassPanel>
       )}
 
       {/* Account Info */}
-      <section className="mb-8 rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Account</h2>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Email</span>
-            <span className="text-gray-900 font-medium">{user.email}</span>
-          </div>
+      <GlassPanel style={{ padding: 24, marginBottom: 16 }}>
+        <div style={SECTION_LABEL}>Account</div>
+        <div style={{ ...ROW, borderBottom: 'none' }}>
+          <span style={{ color: 'rgba(192,194,198,0.55)' }}>Email</span>
+          <span style={{ color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>{user.email}</span>
         </div>
-      </section>
+      </GlassPanel>
 
       {/* Subscription Info */}
-      <section className="mb-8 rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription</h2>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-500">Status</span>
-            <StatusBadge status={subscription.status} />
-          </div>
-
-          {subscription.status === 'trialing' && subscription.trialEndsAt && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Trial ends</span>
-              <span className="text-gray-900">{formatDate(subscription.trialEndsAt)}</span>
-            </div>
-          )}
-
-          {subscription.status === 'active' && subscription.currentPeriodEnd && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Next billing date</span>
-              <span className="text-gray-900">{formatDate(subscription.currentPeriodEnd)}</span>
-            </div>
-          )}
+      <GlassPanel style={{ padding: 24, marginBottom: 16 }}>
+        <div style={SECTION_LABEL}>Subscription</div>
+        <div style={ROW}>
+          <span style={{ color: 'rgba(192,194,198,0.55)' }}>Status</span>
+          <StatusBadge status={subscription.status} />
         </div>
-      </section>
+
+        {subscription.status === 'trialing' && subscription.trialEndsAt && (
+          <div style={{ ...ROW }}>
+            <span style={{ color: 'rgba(192,194,198,0.55)' }}>Trial ends</span>
+            <span style={{ color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>{formatDate(subscription.trialEndsAt)}</span>
+          </div>
+        )}
+
+        {subscription.status === 'active' && subscription.currentPeriodEnd && (
+          <div style={{ ...ROW, borderBottom: 'none' }}>
+            <span style={{ color: 'rgba(192,194,198,0.55)' }}>Next billing date</span>
+            <span style={{ color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace", fontSize: 12 }}>{formatDate(subscription.currentPeriodEnd)}</span>
+          </div>
+        )}
+      </GlassPanel>
 
       {/* Billing Actions */}
-      <section className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Billing</h2>
+      <GlassPanel style={{ padding: 24 }}>
+        <div style={SECTION_LABEL}>Billing</div>
         <BillingButtons
           showStartTrial={showStartTrial}
           showManageBilling={showManageBilling}
         />
         {!showStartTrial && !showManageBilling && (
-          <p className="text-sm text-gray-500">
+          <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.45)', margin: 0 }}>
             No billing actions available for your current subscription state.
           </p>
         )}
-      </section>
-    </main>
+      </GlassPanel>
+    </div>
   )
 }

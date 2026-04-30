@@ -10,12 +10,13 @@ interface Props {
 }
 
 function ScoreBar({ score }: { score: number }) {
+  const color = score >= 80 ? '#00C48C' : score >= 65 ? '#F59E0B' : '#FF1A1A'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ flex: 1, height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-        <div style={{ width: `${score}%`, height: '100%', background: '#2F80FF', borderRadius: 4 }} />
+      <div style={{ flex: 1, height: 6, background: 'rgba(192,194,198,0.12)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: 3 }} />
       </div>
-      <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', width: 28, textAlign: 'right' as const }}>{score}</span>
+      <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color, width: 28, textAlign: 'right' as const }}>{score}</span>
     </div>
   )
 }
@@ -55,7 +56,6 @@ function ScoreHistoryChart({ points }: { points: AttemptPoint[] }) {
   // Build polyline points string
   const polylinePoints = points.map(p => `${xOf(p.attempt)},${yOf(p.avgScore)}`).join(' ')
 
-  // Y-axis gridlines at 0, 25, 50, 75, 100
   const yTicks = [0, 25, 50, 75, 100]
 
   return (
@@ -65,70 +65,26 @@ function ScoreHistoryChart({ points }: { points: AttemptPoint[] }) {
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       style={{ display: 'block', maxWidth: '100%', overflow: 'visible' }}
     >
-      {/* Y gridlines */}
       {yTicks.map(tick => (
         <g key={tick}>
-          <line
-            x1={PAD_LEFT}
-            y1={yOf(tick)}
-            x2={PAD_LEFT + chartW}
-            y2={yOf(tick)}
-            stroke="#E2E8F0"
-            strokeWidth={1}
-          />
-          <text
-            x={PAD_LEFT - 6}
-            y={yOf(tick) + 4}
-            textAnchor="end"
-            fontSize={9}
-            fill="#94A3B8"
-          >
-            {tick}
-          </text>
+          <line x1={PAD_LEFT} y1={yOf(tick)} x2={PAD_LEFT + chartW} y2={yOf(tick)} stroke="rgba(192,194,198,0.1)" strokeWidth={1} />
+          <text x={PAD_LEFT - 6} y={yOf(tick) + 4} textAnchor="end" fontSize={9} fill="rgba(192,194,198,0.35)">{tick}</text>
         </g>
       ))}
 
-      {/* Line */}
       {points.length > 1 && (
-        <polyline
-          points={polylinePoints}
-          fill="none"
-          stroke="#2F80FF"
-          strokeWidth={2}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
+        <polyline points={polylinePoints} fill="none" stroke="#FF1A1A" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       )}
 
-      {/* Dots and labels */}
       {points.map((p, i) => {
         const cx = xOf(p.attempt)
         const cy = yOf(p.avgScore)
         const label = points.length === 1 ? 'First submission' : `Draft ${p.attempt}`
         return (
           <g key={i}>
-            <circle cx={cx} cy={cy} r={5} fill="#2F80FF" stroke="#fff" strokeWidth={2} />
-            {/* Score label above dot */}
-            <text
-              x={cx}
-              y={cy - 10}
-              textAnchor="middle"
-              fontSize={10}
-              fontWeight={700}
-              fill="#0F172A"
-            >
-              {Math.round(p.avgScore)}
-            </text>
-            {/* X axis label below chart */}
-            <text
-              x={cx}
-              y={PAD_TOP + chartH + 14}
-              textAnchor="middle"
-              fontSize={9}
-              fill="#94A3B8"
-            >
-              {label}
-            </text>
+            <circle cx={cx} cy={cy} r={5} fill="#FF1A1A" stroke="rgba(11,11,13,0.8)" strokeWidth={2} />
+            <text x={cx} y={cy - 10} textAnchor="middle" fontSize={10} fontWeight={700} fill="#F5F5F7">{Math.round(p.avgScore)}</text>
+            <text x={cx} y={PAD_TOP + chartH + 14} textAnchor="middle" fontSize={9} fill="rgba(192,194,198,0.35)">{label}</text>
           </g>
         )
       })}
@@ -257,120 +213,69 @@ export default async function ScoringPage({ params, searchParams }: Props) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <Link href={`/proposals/${id}/editor`} style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}>
+        <Link href={`/proposals/${id}/editor`} style={{ color: 'rgba(192,194,198,0.45)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}>
           <ChevronLeft size={14} strokeWidth={1.5} />{proposal.title}
         </Link>
       </div>
-      <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.025em', marginBottom: 20 }}>Scoring & Red Team</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', marginBottom: 20 }}>Scoring & Red Team</h1>
 
       {/* Score header */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '24px', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
-          <div style={{ fontSize: 48, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            {score > 0 ? score : '—'} <span style={{ fontSize: 20, fontWeight: 500, color: '#94A3B8' }}>/ 100</span>
+      <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '24px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
+          <div style={{ fontSize: 52, fontWeight: 900, fontFamily: "'Oxanium', sans-serif", color: verdictColor, letterSpacing: '-0.04em', lineHeight: 1 }}>
+            {score > 0 ? score : '—'} <span style={{ fontSize: 20, fontWeight: 500, color: 'rgba(192,194,198,0.35)' }}>/ 100</span>
           </div>
           {score > 0 && (
-            <span style={{ fontSize: 14, fontWeight: 700, color: verdictColor, background: `${verdictColor}14`, padding: '6px 14px', borderRadius: 6 }}>
-              {verdictLabel}
+            <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', color: verdictColor, background: `${verdictColor}18`, padding: '5px 14px', borderRadius: 6 }}>
+              {verdictLabel.toUpperCase()}
             </span>
           )}
         </div>
-
-        {/* Step tracker */}
         <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
           {reviewSteps.map((step, i) => (
             <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: i < currentStep ? '#2F80FF' : 'transparent', border: i < currentStep ? 'none' : i === currentStep ? '2px solid #2F80FF' : '2px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i < currentStep ? '#fff' : i === currentStep ? '#2F80FF' : '#94A3B8', fontSize: 10, fontWeight: 700 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: i < currentStep ? '#FF1A1A' : 'transparent', border: i < currentStep ? 'none' : i === currentStep ? '2px solid #FF1A1A' : '2px solid rgba(192,194,198,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i < currentStep ? '#fff' : i === currentStep ? '#FF1A1A' : 'rgba(192,194,198,0.3)', fontSize: 10, fontWeight: 700 }}>
                   {i < currentStep ? <CheckCircle size={12} strokeWidth={2} /> : i + 1}
                 </div>
-                <span style={{ fontSize: 10, fontWeight: i === currentStep ? 700 : 500, color: i === currentStep ? '#0F172A' : '#94A3B8', whiteSpace: 'nowrap' as const }}>{step}</span>
+                <span style={{ fontSize: 9, fontWeight: i === currentStep ? 700 : 500, fontFamily: "'Oxanium', sans-serif", color: i === currentStep ? '#F5F5F7' : 'rgba(192,194,198,0.35)', whiteSpace: 'nowrap' as const }}>{step}</span>
               </div>
-              {i < reviewSteps.length - 1 && <div style={{ width: 40, height: 1, background: i < currentStep ? '#2F80FF' : '#E2E8F0', margin: '0 4px', marginBottom: 18 }} />}
+              {i < reviewSteps.length - 1 && <div style={{ width: 40, height: 1, background: i < currentStep ? '#FF1A1A' : 'rgba(192,194,198,0.1)', margin: '0 4px', marginBottom: 18 }} />}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Score History Chart — between step tracker and section breakdown */}
       {hasHistory && (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Score History</div>
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 16 }}>Score History</div>
           <ScoreHistoryChart points={historyPoints} />
         </div>
       )}
 
-      {/* Section breakdown */}
       {sections.length > 0 && (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Section Breakdown</div>
+            <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)' }}>Section Breakdown</div>
             {hasMultipleAttempts && (
-              <Link
-                href={compareHref}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: compareMode ? '#fff' : '#2F80FF',
-                  background: compareMode ? '#2F80FF' : '#2F80FF14',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '4px 12px',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {compareMode ? 'Hide comparison' : 'Compare Drafts'}
+              <Link href={compareHref} style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', color: compareMode ? '#fff' : '#C0C2C6', background: compareMode ? '#FF1A1A' : 'rgba(192,194,198,0.08)', border: compareMode ? 'none' : '1px solid rgba(192,194,198,0.15)', borderRadius: 6, padding: '4px 12px', textDecoration: 'none' }}>
+                {compareMode ? 'HIDE COMPARE' : 'COMPARE DRAFTS'}
               </Link>
             )}
           </div>
           {sections.map(s => {
             const delta = compareMode ? deltaMap[s.section_name] : undefined
-            const deltaColor =
-              delta === undefined
-                ? '#94A3B8'
-                : delta > 0
-                ? '#00C48C'
-                : delta < 0
-                ? '#FF4D4F'
-                : '#94A3B8'
-            const deltaLabel =
-              delta === undefined
-                ? null
-                : delta > 0
-                ? `+${delta}`
-                : delta < 0
-                ? `\u2212${Math.abs(delta)}`
-                : '0'
-            const deltaArrow =
-              delta === undefined ? null : delta > 0 ? '\u25b2' : delta < 0 ? '\u25bc' : '\u2014'
+            const deltaColor = delta === undefined ? 'rgba(192,194,198,0.45)' : delta > 0 ? '#00C48C' : delta < 0 ? '#FF4D4F' : 'rgba(192,194,198,0.45)'
+            const deltaLabel = delta === undefined ? null : delta > 0 ? `+${delta}` : delta < 0 ? `\u2212${Math.abs(delta)}` : '0'
+            const deltaArrow = delta === undefined ? null : delta > 0 ? '\u25b2' : delta < 0 ? '\u25bc' : '\u2014'
 
             return (
-              <div
-                key={s.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: compareMode ? '180px 1fr 56px' : '180px 1fr',
-                  gap: 12,
-                  alignItems: 'center',
-                  marginBottom: 12,
-                }}
-              >
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A' }}>{s.section_name}</span>
+              <div key={s.id} style={{ display: 'grid', gridTemplateColumns: compareMode ? '180px 1fr 56px' : '180px 1fr', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#C0C2C6', fontFamily: "'Space Grotesk', sans-serif" }}>{s.section_name}</span>
                 <ScoreBar score={s.score ?? 0} />
                 {compareMode && (
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: deltaColor,
-                      textAlign: 'right' as const,
-                      whiteSpace: 'nowrap' as const,
-                    }}
-                  >
-                    {deltaArrow !== null && deltaLabel !== null
-                      ? `${deltaArrow} ${deltaLabel}`
-                      : '\u2014'}
+                  <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: deltaColor, textAlign: 'right' as const, whiteSpace: 'nowrap' as const }}>
+                    {deltaArrow !== null && deltaLabel !== null ? `${deltaArrow} ${deltaLabel}` : '\u2014'}
                   </span>
                 )}
               </div>
@@ -379,19 +284,18 @@ export default async function ScoringPage({ params, searchParams }: Props) {
         </div>
       )}
 
-      {/* Red team summary */}
       {redTeam?.summary && (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>Red Team Summary</div>
-          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{redTeam.summary}</p>
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 12 }}>Red Team Summary</div>
+          <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.7)', lineHeight: 1.6, margin: 0 }}>{redTeam.summary}</p>
         </div>
       )}
 
       {score === 0 && sections.length === 0 && (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, padding: '32px', textAlign: 'center' as const }}>
-          <p style={{ fontSize: 13, color: '#94A3B8' }}>No scoring data yet. Run Red Team analysis to score this proposal.</p>
-          <Link href={`/proposals/${id}/red-team`} style={{ display: 'inline-block', marginTop: 12, background: '#2F80FF', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
-            Start Red Team Review
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '40px', textAlign: 'center' as const }}>
+          <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.45)', marginBottom: 12 }}>No scoring data yet. Run Red Team analysis to score this proposal.</p>
+          <Link href={`/proposals/${id}/red-team`} style={{ display: 'inline-block', background: '#FF1A1A', color: '#fff', borderRadius: 8, padding: '9px 18px', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', textDecoration: 'none' }}>
+            START RED TEAM REVIEW
           </Link>
         </div>
       )}

@@ -61,80 +61,51 @@ export default async function AnalysisPage({ params }: Props) {
   const { data: capRow } = await capQuery.maybeSingle()
   const capabilityStatement = capRow as CapabilityStatementRow | null
 
+  const GLASS = { background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12 } as const
+  const LABEL = { fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase' as const, letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 14 } as const
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <div>
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/dashboard" className="hover:text-gray-700">
-          Dashboard
-        </Link>
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(192,194,198,0.45)', marginBottom: 20 }}>
+        <Link href="/dashboard" style={{ color: 'rgba(192,194,198,0.45)', textDecoration: 'none' }}>Dashboard</Link>
         <span>/</span>
-        <Link href={`/proposals/${id}`} className="hover:text-gray-700">
-          {proposal.title}
-        </Link>
+        <Link href={`/proposals/${id}`} style={{ color: 'rgba(192,194,198,0.45)', textDecoration: 'none' }}>{proposal.title}</Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">Analysis</span>
+        <span style={{ color: '#C0C2C6' }}>Analysis</span>
       </nav>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">RFP Analysis</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Analyzed {new Date(rfpAnalysis.analyzed_at).toLocaleDateString()} using{' '}
-        {rfpAnalysis.model_used}
+      <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0, marginBottom: 4 }}>RFP Analysis</h1>
+      <p style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 28 }}>
+        Analyzed {new Date(rfpAnalysis.analyzed_at).toLocaleDateString()} · {rfpAnalysis.model_used}
       </p>
 
-      <div className="space-y-8">
-        {/* Win Score + SBA Size Eligibility — side by side on large screens */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Win Probability</h2>
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
-              <WinScoreCard winScore={rfpAnalysis.win_score} winFactors={rfpAnalysis.win_factors} />
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Size Eligibility</h2>
-            <SizeEligibilityCard
-              analysis={rfpAnalysis}
-              capabilityStatement={capabilityStatement}
-            />
-          </section>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ ...GLASS, padding: 20 }}>
+            <div style={LABEL}>Win Probability</div>
+            <WinScoreCard winScore={rfpAnalysis.win_score} winFactors={rfpAnalysis.win_factors} />
+          </div>
+          <div>
+            <SizeEligibilityCard analysis={rfpAnalysis} capabilityStatement={capabilityStatement} />
+          </div>
         </div>
 
-        {/* Set-Aside Flags */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Set-Aside Preferences</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <SetAsideFlags
-              setAsidesDetected={rfpAnalysis.set_asides_detected}
-              setAsideFlags={rfpAnalysis.set_aside_flags}
-            />
-          </div>
-        </section>
+        <div style={{ ...GLASS, padding: 20 }}>
+          <div style={LABEL}>Set-Aside Preferences</div>
+          <SetAsideFlags setAsidesDetected={rfpAnalysis.set_asides_detected} setAsideFlags={rfpAnalysis.set_aside_flags} />
+        </div>
 
-        {/* Compliance Matrix */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Compliance Matrix</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-6 overflow-x-auto">
-            <ComplianceMatrix
-              requirements={rfpAnalysis.requirements}
-              complianceMatrix={rfpAnalysis.compliance_matrix}
-            />
-          </div>
-        </section>
+        <div style={{ ...GLASS, padding: 20, overflowX: 'auto' }}>
+          <div style={LABEL}>Compliance Matrix</div>
+          <ComplianceMatrix requirements={rfpAnalysis.requirements} complianceMatrix={rfpAnalysis.compliance_matrix} />
+        </div>
 
-        {/* Section L/M Crosswalk */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Section L/M Crosswalk</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-6 overflow-x-auto">
-            <SectionLMCrosswalk
-              crosswalk={rfpAnalysis.section_lm_crosswalk}
-              hasSectionL={rfpAnalysis.has_section_l}
-              hasSectionM={rfpAnalysis.has_section_m}
-            />
-          </div>
-        </section>
+        <div style={{ ...GLASS, padding: 20, overflowX: 'auto' }}>
+          <div style={LABEL}>Section L/M Crosswalk</div>
+          <SectionLMCrosswalk crosswalk={rfpAnalysis.section_lm_crosswalk} hasSectionL={rfpAnalysis.has_section_l} hasSectionM={rfpAnalysis.has_section_m} />
+        </div>
       </div>
-    </main>
+    </div>
   )
 }

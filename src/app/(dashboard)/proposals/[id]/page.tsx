@@ -86,7 +86,7 @@ export default async function ProposalDetailPage({ params }: Props) {
   const isNoGo    = winScore !== null && winScore < 40
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10 font-sans">
+    <main style={{ maxWidth: 900, padding: '0' }}>
 
       {/* ── GovRFP back-link banner ── */}
       {govRfpSource && (
@@ -112,24 +112,21 @@ export default async function ProposalDetailPage({ params }: Props) {
       )}
 
       {/* ── Back link ── */}
-      <Link
-        href="/dashboard"
-        className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-flex items-center gap-1 transition-colors"
-      >
+      <Link href="/dashboard" style={{ fontSize: 12, color: 'rgba(192,194,198,0.5)', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', marginBottom: 20 }}>
         ← Dashboard
       </Link>
 
       {/* ── Hero: title + share ── */}
-      <div className="flex items-start justify-between mb-6 gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-extrabold text-gray-900 uppercase tracking-tight leading-tight">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, gap: 16 }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0, textTransform: 'uppercase' }}>
             {proposal.title}
           </h1>
           {proposal.file_name && (
-            <p className="text-sm text-gray-500 mt-1">{proposal.file_name}</p>
+            <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.5)', marginTop: 4 }}>{proposal.file_name}</p>
           )}
         </div>
-        <div className="shrink-0">
+        <div style={{ flexShrink: 0 }}>
           <ShareButton
             proposalId={id}
             teamId={proposal.team_id ?? null}
@@ -141,16 +138,16 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── Win Score hero stat ── */}
       {winScore !== null && (
-        <div style={{ marginBottom: 24, borderRadius: 12, borderLeft: '4px solid #2F80FF', border: '1px solid #E2E8F0', borderLeftWidth: 4, borderLeftColor: '#2F80FF', background: '#FFFFFF', padding: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontSize: 48, fontWeight: 900, color: '#2F80FF', lineHeight: 1, flexShrink: 0 }}>
+        <div style={{ marginBottom: 24, borderRadius: 12, borderLeft: `4px solid ${isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F'}`, background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', padding: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <span style={{ fontSize: 52, fontWeight: 900, fontFamily: "'Oxanium', sans-serif", color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F', lineHeight: 1, flexShrink: 0 }}>
             {winScore}
           </span>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' as const, letterSpacing: '0.10em' }}>Win Score</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F' }}>
+            <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: 'rgba(192,194,198,0.45)', textTransform: 'uppercase' as const, letterSpacing: '0.14em' }}>Win Score</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F', fontFamily: "'Space Grotesk', sans-serif" }}>
               {isGo ? 'Go — Bid It' : isCaution ? 'Proceed with Caution' : 'No-Go — High Risk'}
             </span>
-            <p style={{ fontSize: 12, color: '#475569' }}>
+            <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)', margin: 0 }}>
               {isGo
                 ? 'Win probability is strong. This opportunity aligns well with your profile.'
                 : isCaution
@@ -160,9 +157,9 @@ export default async function ProposalDetailPage({ params }: Props) {
           </div>
           <span style={{
             marginLeft: 'auto', flexShrink: 0, padding: '3px 10px', borderRadius: 9999,
-            fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+            fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase' as const, letterSpacing: '0.1em',
             color: isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F',
-            background: (isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F') + '14',
+            background: (isGo ? '#00C48C' : isCaution ? '#F59E0B' : '#FF4D4F') + '18',
           }}>
             {isGo ? 'Go' : isCaution ? 'Caution' : 'No-Go'}
           </span>
@@ -182,130 +179,52 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── ANALYZED state ── */}
       {isAnalyzed && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-          {/* PRIMARY ACTION — full-width blue-accent card */}
-          <div className="rounded-xl border-l-4 border-l-[#2F80FF] border border-gray-200 bg-white p-6">
-            <div className="flex items-center justify-between gap-4">
+          {/* PRIMARY ACTION */}
+          <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', borderRadius: 12, borderLeft: '4px solid #FF1A1A', border: '1px solid rgba(192,194,198,0.1)', padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <div>
-                <h2 className="text-base font-bold text-gray-900">Ready to Draft</h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0 }}>Ready to Draft</h2>
+                <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)', marginTop: 4, marginBottom: 0 }}>
                   Analysis complete. Generate AI-drafted proposal sections in the editor.
                 </p>
               </div>
-              <Link
-                href={`/proposals/${id}/editor`}
-                className="shrink-0 px-5 py-2.5 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
-              >
-                Draft Proposal
+              <Link href={`/proposals/${id}/editor`} style={{ flexShrink: 0, padding: '10px 20px', background: '#FF1A1A', color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', borderRadius: 8, textDecoration: 'none' }}>
+                DRAFT PROPOSAL
               </Link>
             </div>
           </div>
 
           {/* SECONDARY ACTIONS grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-
-            {/* Analysis */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900">Analysis</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Requirements, compliance matrix, and win probability.
-                </p>
-              </div>
-              <Link
-                href={`/proposals/${id}/analysis`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300 transition-all w-fit"
-              >
-                View Analysis
-              </Link>
-            </div>
-
-            {/* Questions */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900">Questions</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Contract-specific questions that sharpen each drafted section.
-                </p>
-              </div>
-              <Link
-                href={`/proposals/${id}/questions`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-[#2F80FF] border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#2F80FF] transition-all w-fit"
-              >
-                Open Questions
-              </Link>
-            </div>
-
-            {/* Review */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900">Review</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Share drafted sections with your team for inline comments.
-                </p>
-              </div>
-              <Link
-                href={`/proposals/${id}/review`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300 transition-all w-fit"
-              >
-                Review & Comment
-              </Link>
-            </div>
-
-            {/* Section Scores — conditional */}
-            {hasScores && (
-              <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            {[
+              { title: 'Analysis', desc: 'Requirements, compliance matrix, and win probability.', href: `/proposals/${id}/analysis`, cta: 'View Analysis' },
+              { title: 'Questions', desc: 'Contract-specific questions that sharpen each drafted section.', href: `/proposals/${id}/questions`, cta: 'Open Questions' },
+              { title: 'Review', desc: 'Share drafted sections with your team for inline comments.', href: `/proposals/${id}/review`, cta: 'Review & Comment' },
+              ...(hasScores ? [{ title: 'Section Scores', desc: 'Per-criterion quality scores from the AI watchdog review.', href: `/proposals/${id}/scoring`, cta: 'View Scores' }] : []),
+              { title: 'Red Team Eval', desc: 'Score as federal evaluators would — Section M criteria, SSEB verdicts.', href: `/proposals/${id}/red-team`, cta: 'Run Red Team' },
+            ].map((item) => (
+              <div key={item.title} style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">Section Scores</h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Per-criterion quality scores from the AI watchdog review.
-                  </p>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: 11, color: 'rgba(192,194,198,0.5)', marginTop: 4, marginBottom: 0, lineHeight: 1.5 }}>{item.desc}</p>
                 </div>
-                <Link
-                  href={`/proposals/${id}/scoring`}
-                  className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300 transition-all w-fit"
-                >
-                  View Scores
+                <Link href={item.href} style={{ marginTop: 'auto', display: 'inline-flex', alignItems: 'center', fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', color: '#C0C2C6', border: '1px solid rgba(192,194,198,0.15)', borderRadius: 6, padding: '5px 12px', textDecoration: 'none', width: 'fit-content' }}>
+                  {item.cta.toUpperCase()}
                 </Link>
               </div>
-            )}
-
-            {/* Red Team Evaluation */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  {/* Target/crosshair icon */}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2F80FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                  </svg>
-                  <h3 className="text-sm font-bold text-gray-900">Red Team Evaluation</h3>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Score your proposal as federal evaluators would — Section M criteria, SSEB verdicts.
-                </p>
-              </div>
-              <Link
-                href={`/proposals/${id}/red-team`}
-                className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-[#2F80FF] border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#2F80FF] transition-all w-fit"
-              >
-                Run Red Team
-              </Link>
-            </div>
-
+            ))}
             {/* Export */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
+            <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div>
-                <h3 className="text-sm font-bold text-gray-900">Export</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Download the drafted proposal as a PDF or Word document.
-                </p>
+                <h3 style={{ fontSize: 13, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0 }}>Export</h3>
+                <p style={{ fontSize: 11, color: 'rgba(192,194,198,0.5)', marginTop: 4, marginBottom: 0 }}>Download the drafted proposal as a PDF or Word document.</p>
               </div>
-              <div className="mt-auto">
+              <div style={{ marginTop: 'auto' }}>
                 <ExportButtons proposalId={id} />
               </div>
             </div>
-
           </div>
 
           {/* ── Outcome Tracking ── */}
@@ -317,76 +236,62 @@ export default async function ProposalDetailPage({ params }: Props) {
           />
 
           {/* Document metadata */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Document Info</h2>
-            <dl className="grid grid-cols-2 gap-4 text-sm">
+          <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 20 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 14 }}>Document Info</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <dt className="text-gray-500 text-xs">Type</dt>
-                <dd className="font-semibold text-gray-900 mt-0.5">
-                  {proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}
-                </dd>
+                <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>Type</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace" }}>{proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}</div>
               </div>
               <div>
-                <dt className="text-gray-500 text-xs">Pages</dt>
-                <dd className="font-semibold text-gray-900 mt-0.5">
-                  {proposal.page_count ?? 'N/A'}
-                </dd>
+                <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>Pages</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace" }}>{proposal.page_count ?? 'N/A'}</div>
               </div>
               {proposal.is_scanned && (
                 <div>
-                  <dt className="text-gray-500 text-xs">OCR</dt>
-                  <dd className="font-semibold text-gray-900 mt-0.5">
-                    Scanned — text extracted via OCR
-                  </dd>
+                  <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>OCR</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>Scanned — text extracted via OCR</div>
                 </div>
               )}
-            </dl>
+            </div>
           </div>
         </div>
       )}
 
       {/* ── READY state ── */}
       {isReady && (
-        <div className="space-y-4">
-          {/* Document metadata */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Document Info</h2>
-            <dl className="grid grid-cols-2 gap-4 text-sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 20 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 14 }}>Document Info</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <dt className="text-gray-500 text-xs">Type</dt>
-                <dd className="font-semibold text-gray-900 mt-0.5">
-                  {proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}
-                </dd>
+                <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>Type</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace" }}>{proposal.file_type === 'pdf' ? 'PDF' : 'Word (.docx)'}</div>
               </div>
               <div>
-                <dt className="text-gray-500 text-xs">Pages</dt>
-                <dd className="font-semibold text-gray-900 mt-0.5">
-                  {proposal.page_count ?? 'N/A'}
-                </dd>
+                <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>Pages</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7', fontFamily: "'IBM Plex Mono', monospace" }}>{proposal.page_count ?? 'N/A'}</div>
               </div>
               {proposal.is_scanned && (
                 <div>
-                  <dt className="text-gray-500 text-xs">OCR</dt>
-                  <dd className="font-semibold text-gray-900 mt-0.5">
-                    Scanned — text extracted via OCR
-                  </dd>
+                  <div style={{ fontSize: 10, color: 'rgba(192,194,198,0.45)', marginBottom: 2 }}>OCR</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>Scanned — text extracted via OCR</div>
                 </div>
               )}
-            </dl>
+            </div>
           </div>
 
-          {/* RFP Structure preview */}
           {proposal.rfp_structure && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">RFP Structure</h2>
+            <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 14 }}>RFP Structure</div>
               {((proposal.rfp_structure as { sections?: Array<{ number: string; title: string }> }).sections?.length ?? 0) > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Sections</h3>
-                  <ul className="space-y-1">
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#C0C2C6', marginBottom: 8 }}>Sections</div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {(proposal.rfp_structure as { sections: Array<{ number: string; title: string }> }).sections.map(
                       (section, i: number) => (
-                        <li key={i} className="text-sm text-gray-600">
-                          <span className="font-mono text-gray-500 mr-2">{section.number}</span>
+                        <li key={i} style={{ fontSize: 12, color: 'rgba(192,194,198,0.7)' }}>
+                          <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', marginRight: 8 }}>{section.number}</span>
                           {section.title}
                         </li>
                       )
@@ -394,36 +299,16 @@ export default async function ProposalDetailPage({ params }: Props) {
                   </ul>
                 </div>
               )}
-              {((proposal.rfp_structure as { requirements?: Array<{ type: string }> }).requirements?.length ?? 0) > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                    Requirements ({(proposal.rfp_structure as { requirements: Array<{ type: string }> }).requirements.length})
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {(proposal.rfp_structure as { requirements: Array<{ type: string }> }).requirements.filter(
-                      (r) => r.type === 'shall' || r.type === 'must'
-                    ).length} mandatory,{' '}
-                    {(proposal.rfp_structure as { requirements: Array<{ type: string }> }).requirements.filter(
-                      (r) => r.type === 'should'
-                    ).length} desired
-                  </p>
-                </div>
-              )}
             </div>
           )}
 
-          {/* Extracted text preview */}
           {proposal.rfp_text && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Extracted Text</h2>
-              <div className="max-h-96 overflow-y-auto">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+            <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 14 }}>Extracted Text</div>
+              <div style={{ maxHeight: 384, overflowY: 'auto' }}>
+                <pre style={{ fontSize: 12, color: 'rgba(192,194,198,0.7)', whiteSpace: 'pre-wrap', fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.6 }}>
                   {(proposal.rfp_text as string).slice(0, 5000)}
-                  {(proposal.rfp_text as string).length > 5000 && (
-                    <span className="text-gray-500">
-                      {'\n\n'}... ({((proposal.rfp_text as string).length / 1000).toFixed(0)}k characters total)
-                    </span>
-                  )}
+                  {(proposal.rfp_text as string).length > 5000 && `\n\n... (${((proposal.rfp_text as string).length / 1000).toFixed(0)}k characters total)`}
                 </pre>
               </div>
             </div>
@@ -431,28 +316,25 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* ── DRAFT state — from SAM.gov opportunity, no file needed ── */}
+      {/* ── DRAFT state — from SAM.gov opportunity ── */}
       {!isProcessing && !isReady && !isAnalyzed && proposal.status === 'draft' && !proposal.file_name && proposal.opportunity_id && (
-        <div className="space-y-4">
-          <div className="rounded-xl border-l-4 border-l-[#2F80FF] border border-gray-200 bg-white p-6">
-            <div className="flex items-center justify-between gap-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', borderRadius: 12, borderLeft: '4px solid #FF1A1A', border: '1px solid rgba(192,194,198,0.1)', padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <div>
-                <h2 className="text-base font-bold text-gray-900">Ready to Draft</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Proposal created from SAM.gov. Go to the editor to start writing, or upload the RFP PDF from SAM.gov for deeper AI analysis.
+                <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0 }}>Ready to Draft</h2>
+                <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)', marginTop: 4, marginBottom: 0 }}>
+                  Proposal created from SAM.gov. Go to the editor to start writing, or upload the RFP PDF for deeper AI analysis.
                 </p>
               </div>
-              <Link
-                href={`/proposals/${id}/editor`}
-                className="shrink-0 px-5 py-2.5 bg-[#2F80FF] text-white text-sm font-bold rounded-lg hover:brightness-110 transition-all"
-              >
-                Start Writing
+              <Link href={`/proposals/${id}/editor`} style={{ flexShrink: 0, padding: '10px 20px', background: '#FF1A1A', color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', borderRadius: 8, textDecoration: 'none' }}>
+                START WRITING
               </Link>
             </div>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="text-sm font-semibold text-gray-700 mb-1">Optional: Upload RFP for AI Analysis</h2>
-            <p className="text-sm text-gray-500 mb-4">
+          <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 24 }}>
+            <h2 style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7', margin: 0, marginBottom: 4 }}>Optional: Upload RFP for AI Analysis</h2>
+            <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)', marginBottom: 16 }}>
               Download the RFP PDF from SAM.gov and upload it here to extract requirements, generate a compliance matrix, and get a win score.
             </p>
             <FileUpload proposalId={id} />
@@ -462,19 +344,17 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       {/* ── DRAFT state — no file yet ── */}
       {!isProcessing && !isReady && !isAnalyzed && proposal.status === 'draft' && !proposal.file_name && !proposal.opportunity_id && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-1">Upload RFP Document</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Upload the RFP PDF or Word file to begin analysis.
-          </p>
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 24 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0, marginBottom: 4 }}>Upload RFP Document</h2>
+          <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.6)', marginBottom: 20 }}>Upload the RFP PDF or Word file to begin analysis.</p>
           <FileUpload proposalId={id} />
         </div>
       )}
 
       {/* ── Other status ── */}
       {!isProcessing && !isReady && !isAnalyzed && proposal.status !== 'draft' && (
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center">
-          <p className="text-sm text-gray-500">Status: {proposal.status}</p>
+        <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: 24, textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.5)' }}>Status: {proposal.status}</p>
         </div>
       )}
     </main>

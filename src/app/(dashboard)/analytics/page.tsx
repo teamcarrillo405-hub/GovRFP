@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { ArcGauge } from '@/components/ui/ArcGauge';
+import { AnalyticsTrendChart } from '@/components/analytics/AnalyticsTrendChart';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -734,7 +735,7 @@ export default async function AnalyticsPage() {
             </div>
           </div>
         ) : (
-          <TrendChart months={months} />
+          <AnalyticsTrendChart months={months} />
         )}
       </GlassPanel>
 

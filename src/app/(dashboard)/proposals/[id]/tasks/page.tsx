@@ -119,67 +119,34 @@ export default async function TasksPage({ params }: Props) {
   const extraTopics = [...grouped.keys()].filter((t) => !TOPIC_ORDER.includes(t as any))
   const allTopics = [...sortedTopics, ...extraTopics]
 
+  const GLASS = { background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 10 } as const
+
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+    <div style={{ maxWidth: 1100 }}>
       {/* Breadcrumb */}
       <div style={{ marginBottom: 20 }}>
-        <Link
-          href={`/proposals/${id}/editor`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            color: '#94A3B8',
-            textDecoration: 'none',
-            fontSize: 13,
-          }}
-        >
-          <ChevronLeft size={14} strokeWidth={1.5} />
-          {proposal.title}
+        <Link href={`/proposals/${id}/editor`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'rgba(192,194,198,0.45)', textDecoration: 'none', fontSize: 12 }}>
+          <ChevronLeft size={14} strokeWidth={1.5} />{proposal.title}
         </Link>
       </div>
 
-      {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: 0 }}>
-          SME Task Board
-        </h1>
-        <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, marginBottom: 0 }}>
-          {totalCount} requirements &middot; {assignedCount} assigned &middot; {completeCount} complete
+        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', margin: 0 }}>SME Task Board</h1>
+        <p style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)', fontFamily: "'IBM Plex Mono', monospace", marginTop: 4, marginBottom: 0 }}>
+          {totalCount} requirements · {assignedCount} assigned · {completeCount} complete
         </p>
       </div>
 
       {/* Stats bar */}
-      <div
-        style={{
-          background: '#fff',
-          border: '1px solid #E2E8F0',
-          borderRadius: 8,
-          padding: '16px 20px',
-          display: 'flex',
-          gap: 32,
-          marginBottom: 28,
-        }}
-      >
-        <StatPill label="Total" value={totalCount} color="#2F80FF" />
+      <div style={{ ...GLASS, padding: '16px 24px', display: 'flex', gap: 36, marginBottom: 24 }}>
+        <StatPill label="Total" value={totalCount} color="rgba(192,194,198,0.7)" />
         <StatPill label="Assigned" value={assignedCount} color="#2F80FF" />
         <StatPill label="In Progress" value={inProgressCount} color="#F59E0B" />
         <StatPill label="Complete" value={completeCount} color="#00C48C" />
       </div>
 
-      {/* Requirements table grouped by topic */}
       {allTopics.length === 0 && (
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 8,
-            padding: '40px 24px',
-            textAlign: 'center',
-            color: '#94A3B8',
-            fontSize: 14,
-          }}
-        >
+        <div style={{ ...GLASS, padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(192,194,198,0.45)' }}>
           No requirements found. Run RFP analysis first.
         </div>
       )}
@@ -187,60 +154,21 @@ export default async function TasksPage({ params }: Props) {
       {allTopics.map((topic) => {
         const reqs = grouped.get(topic) ?? []
         return (
-          <div key={topic} style={{ marginBottom: 32 }}>
-            {/* Group header */}
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: '#94A3B8',
-                marginBottom: 8,
-                paddingLeft: 4,
-              }}
-            >
+          <div key={topic} style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)', marginBottom: 8, paddingLeft: 4 }}>
               {topic}
             </div>
 
-            {/* Table card */}
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                overflow: 'hidden',
-              }}
-            >
+            <div style={{ ...GLASS, overflow: 'hidden' }}>
               {/* Table header */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '60px 1fr 90px 190px 130px 110px',
-                  gap: 0,
-                  padding: '8px 16px',
-                  borderBottom: '1px solid #E2E8F0',
-                  background: '#F8FAFC',
-                }}
-              >
+              <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr 90px 190px 130px 110px', padding: '8px 16px', borderBottom: '1px solid rgba(192,194,198,0.08)', background: 'rgba(11,11,13,0.3)' }}>
                 {['Req ID', 'Requirement', 'Class.', 'Assignee', 'Status', 'Section'].map((col) => (
-                  <div
-                    key={col}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      color: '#94A3B8',
-                      padding: '0 8px',
-                    }}
-                  >
+                  <div key={col} style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.4)', padding: '0 8px' }}>
                     {col}
                   </div>
                 ))}
               </div>
 
-              {/* Rows */}
               {reqs.map((req, idx) => {
                 const assignment = assignmentMap.get(req.id)
                 const currentAssigneeId = assignment?.assignee_id ?? ''
@@ -248,176 +176,52 @@ export default async function TasksPage({ params }: Props) {
                 const isMandatory = req.classification === 'mandatory'
 
                 return (
-                  <div
-                    key={req.id}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '60px 1fr 90px 190px 130px 110px',
-                      gap: 0,
-                      padding: '10px 16px',
-                      borderBottom: idx < reqs.length - 1 ? '1px solid #F1F5F9' : 'none',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {/* Req ID */}
+                  <div key={req.id} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 90px 190px 130px 110px', padding: '10px 16px', borderBottom: idx < reqs.length - 1 ? '1px solid rgba(192,194,198,0.06)' : 'none', alignItems: 'center' }}>
                     <div style={{ padding: '0 8px' }}>
-                      <span
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: 11,
-                          color: '#94A3B8',
-                        }}
-                      >
-                        {req.id}
-                      </span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(192,194,198,0.35)' }}>{req.id}</span>
                     </div>
 
-                    {/* Requirement text */}
                     <div style={{ padding: '0 8px' }}>
-                      <div
-                        title={req.text}
-                        style={{
-                          fontSize: 13,
-                          color: '#0F172A',
-                          lineHeight: 1.4,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <div title={req.text} style={{ fontSize: 12, color: '#C0C2C6', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {req.text}
                       </div>
                     </div>
 
-                    {/* Classification badge */}
                     <div style={{ padding: '0 8px' }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: isMandatory ? '#FF4D4F' : '#F59E0B',
-                          background: isMandatory ? '#FF4D4F14' : '#F59E0B14',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                        }}
-                      >
-                        {isMandatory ? 'Mandatory' : 'Desired'}
+                      <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', color: isMandatory ? '#FF4D4F' : '#F59E0B', background: isMandatory ? '#FF4D4F14' : '#F59E0B14', padding: '2px 6px', borderRadius: 4 }}>
+                        {isMandatory ? 'MUST' : 'SHOULD'}
                       </span>
                     </div>
 
-                    {/* Assignee select */}
                     <div style={{ padding: '0 8px' }}>
                       {teamMembers.length === 0 ? (
-                        <span style={{ fontSize: 12, color: '#CBD5E1' }}>—</span>
+                        <span style={{ fontSize: 12, color: 'rgba(192,194,198,0.25)' }}>—</span>
                       ) : (
-                        <form
-                          action={async (formData: FormData) => {
-                            'use server'
-                            const pid = formData.get('proposalId') as string
-                            const rid = formData.get('requirementId') as string
-                            const aid = formData.get('assigneeId') as string
-                            await assignRequirement(pid, rid, aid === '' ? null : aid)
-                          }}
-                          style={{ margin: 0 }}
-                        >
+                        <form action={async (formData: FormData) => { 'use server'; const pid = formData.get('proposalId') as string; const rid = formData.get('requirementId') as string; const aid = formData.get('assigneeId') as string; await assignRequirement(pid, rid, aid === '' ? null : aid) }} style={{ margin: 0 }}>
                           <input type="hidden" name="proposalId" value={id} />
                           <input type="hidden" name="requirementId" value={req.id} />
-                          <AutoSubmitSelect
-                            name="assigneeId"
-                            defaultValue={currentAssigneeId}
-                            style={{
-                              width: '100%',
-                              fontSize: 12,
-                              color: '#0F172A',
-                              border: '1px solid #E2E8F0',
-                              borderRadius: 6,
-                              padding: '4px 8px',
-                              background: '#fff',
-                              cursor: 'pointer',
-                            }}
-                          >
+                          <AutoSubmitSelect name="assigneeId" defaultValue={currentAssigneeId} style={{ width: '100%', fontSize: 11, color: '#C0C2C6', border: '1px solid rgba(192,194,198,0.15)', borderRadius: 6, padding: '4px 8px', background: 'rgba(11,11,13,0.5)', cursor: 'pointer' }}>
                             <option value="">Unassigned</option>
-                            {teamMembers.map((m) => (
-                              <option key={m.user_id} value={m.user_id}>
-                                {m.full_name ?? m.email ?? m.user_id}
-                              </option>
-                            ))}
+                            {teamMembers.map((m) => (<option key={m.user_id} value={m.user_id}>{m.full_name ?? m.email ?? m.user_id}</option>))}
                           </AutoSubmitSelect>
-                          <noscript>
-                            <button type="submit" style={{ marginTop: 4, fontSize: 11 }}>
-                              Save
-                            </button>
-                          </noscript>
                         </form>
                       )}
                     </div>
 
-                    {/* Status select */}
                     <div style={{ padding: '0 8px' }}>
-                      <form
-                        action={async (formData: FormData) => {
-                          'use server'
-                          const pid = formData.get('proposalId') as string
-                          const rid = formData.get('requirementId') as string
-                          const st = formData.get('status') as 'pending' | 'in_progress' | 'complete'
-                          await updateRequirementStatus(pid, rid, st)
-                        }}
-                        style={{ margin: 0 }}
-                      >
+                      <form action={async (formData: FormData) => { 'use server'; const pid = formData.get('proposalId') as string; const rid = formData.get('requirementId') as string; const st = formData.get('status') as 'pending' | 'in_progress' | 'complete'; await updateRequirementStatus(pid, rid, st) }} style={{ margin: 0 }}>
                         <input type="hidden" name="proposalId" value={id} />
                         <input type="hidden" name="requirementId" value={req.id} />
-                        <AutoSubmitSelect
-                          name="status"
-                          defaultValue={currentStatus}
-                          style={{
-                            width: '100%',
-                            fontSize: 12,
-                            color: statusColor(currentStatus),
-                            fontWeight: 600,
-                            border: '1px solid #E2E8F0',
-                            borderRadius: 6,
-                            padding: '4px 8px',
-                            background: currentStatus === 'complete'
-                              ? '#00C48C14'
-                              : currentStatus === 'in_progress'
-                              ? '#F59E0B14'
-                              : '#F8FAFC',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <option value="pending" style={{ color: '#94A3B8', fontWeight: 400, background: '#fff' }}>
-                            Pending
-                          </option>
-                          <option value="in_progress" style={{ color: '#F59E0B', fontWeight: 600, background: '#fff' }}>
-                            In Progress
-                          </option>
-                          <option value="complete" style={{ color: '#00C48C', fontWeight: 600, background: '#fff' }}>
-                            Complete
-                          </option>
+                        <AutoSubmitSelect name="status" defaultValue={currentStatus} style={{ width: '100%', fontSize: 11, fontWeight: 600, color: statusColor(currentStatus), border: '1px solid rgba(192,194,198,0.15)', borderRadius: 6, padding: '4px 8px', background: 'rgba(11,11,13,0.5)', cursor: 'pointer' }}>
+                          <option value="pending">Pending</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="complete">Complete</option>
                         </AutoSubmitSelect>
-                        <noscript>
-                          <button type="submit" style={{ marginTop: 4, fontSize: 11 }}>
-                            Save
-                          </button>
-                        </noscript>
                       </form>
                     </div>
 
-                    {/* Section (proposal_topic) */}
                     <div style={{ padding: '0 8px' }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          color: '#94A3B8',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: 'block',
-                        }}
-                      >
-                        {req.proposal_topic}
-                      </span>
+                      <span style={{ fontSize: 10, color: 'rgba(192,194,198,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{req.proposal_topic}</span>
                     </div>
                   </div>
                 )
@@ -430,28 +234,11 @@ export default async function TasksPage({ params }: Props) {
   )
 }
 
-function StatPill({
-  label,
-  value,
-  color,
-}: {
-  label: string
-  value: number
-  color: string
-}) {
+function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <span
-        style={{
-          fontSize: 22,
-          fontWeight: 800,
-          color,
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </span>
-      <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 26, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color, lineHeight: 1 }}>{value}</span>
+      <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(192,194,198,0.45)' }}>{label}</span>
     </div>
   )
 }

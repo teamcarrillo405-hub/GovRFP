@@ -8,13 +8,6 @@ interface SearchParams {
   saved?: string
 }
 
-/**
- * Capability Statement editor.
- *
- * One row per team or solo user (enforced by partial unique indexes).
- * RLS scopes the read; we just fetch the (at-most-one) row and pass to
- * the form. Form upserts on save.
- */
 export default async function CapabilityStatementPage({
   searchParams,
 }: {
@@ -26,8 +19,6 @@ export default async function CapabilityStatementPage({
   const params = await searchParams
   const supabase = await createClient()
 
-  // RLS narrows to: solo (user_id = auth.uid() AND team_id IS NULL) OR team rows
-  // For V1, prefer the solo row if one exists. Team-row UX comes when teams ship.
   const { data: row } = await supabase
     .from('capability_statements')
     .select('*')
@@ -35,7 +26,6 @@ export default async function CapabilityStatementPage({
     .limit(1)
     .maybeSingle()
 
-  // Strip DB-only columns to get the form's input shape
   const initial: Partial<CapabilityStatementInput> | undefined = row
     ? {
         team_id: row.team_id,
@@ -90,19 +80,24 @@ export default async function CapabilityStatementPage({
     : undefined
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Capability Statement</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        Your firm&rsquo;s evergreen identity. Auto-populates the boilerplate sections
-        of every proposal — company info, certifications, NAICS, bonding, key
-        capabilities. Update once; it flows everywhere.
-      </p>
+    <div style={{ maxWidth: 900 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', margin: 0 }}>
+          Capability Statement
+        </h1>
+        <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.55)', marginTop: 6 }}>
+          Your firm&rsquo;s evergreen identity. Auto-populates the boilerplate sections
+          of every proposal — company info, certifications, NAICS, bonding, key
+          capabilities. Update once; it flows everywhere.
+        </p>
+      </div>
 
       <CapabilityStatementForm
         initial={initial}
         saved={params.saved === '1'}
         onSubmit={upsertCapabilityStatement}
       />
-    </main>
+    </div>
   )
 }

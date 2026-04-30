@@ -200,16 +200,16 @@ export default async function HistoryPage({ params, searchParams }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 52px)', marginTop: -28, marginLeft: -28, marginRight: -28 }}>
       {/* Top bar */}
-      <div style={{ height: 48, background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
+      <div style={{ height: 48, background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(192,194,198,0.08)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
         <Link
           href={`/proposals/${id}/editor`}
-          style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}
+          style={{ color: 'rgba(192,194,198,0.45)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: 12 }}
         >
           <ChevronLeft size={14} strokeWidth={1.5} />
           {proposal.title}
         </Link>
         <span style={{ color: '#E2E8F0' }}>|</span>
-        <h1 style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', margin: 0 }}>Version History</h1>
+        <h1 style={{ fontSize: 14, fontWeight: 700, color: '#F5F5F7', margin: 0 }}>Version History</h1>
         <div style={{ flex: 1 }} />
         <SaveSnapshotButton proposalId={id} />
       </div>
@@ -219,7 +219,7 @@ export default async function HistoryPage({ params, searchParams }: Props) {
         {/* Left: snapshot list */}
         <div style={{ width: 280, borderRight: '1px solid #E2E8F0', background: '#FAFBFC', overflowY: 'auto', flexShrink: 0 }}>
           {snapshotGroups.length === 0 ? (
-            <div style={{ padding: 24, color: '#64748B', fontSize: 13, lineHeight: 1.6 }}>
+            <div style={{ padding: 24, color: 'rgba(192,194,198,0.55)', fontSize: 13, lineHeight: 1.6 }}>
               No snapshots yet. Save a snapshot to start tracking versions.
             </div>
           ) : (
@@ -228,7 +228,7 @@ export default async function HistoryPage({ params, searchParams }: Props) {
               if (items.length === 0) return null
               return (
                 <div key={group}>
-                  <div style={{ padding: '10px 16px 4px', fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  <div style={{ padding: '10px 16px 4px', fontSize: 11, fontWeight: 700, color: 'rgba(192,194,198,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                     {group}
                   </div>
                   {items.map((sg) => {
@@ -262,10 +262,10 @@ export default async function HistoryPage({ params, searchParams }: Props) {
                           borderBottom: '1px solid #F1F5F9',
                         }}
                       >
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', marginBottom: 2 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#F5F5F7', marginBottom: 2 }}>
                           {sg.label ?? 'Auto snapshot'}
                         </div>
-                        <div style={{ fontSize: 11, color: '#64748B', display: 'flex', gap: 6 }}>
+                        <div style={{ fontSize: 11, color: 'rgba(192,194,198,0.55)', display: 'flex', gap: 6 }}>
                           <span>{formatDate(sg.snapshotAt)} {formatTime(sg.snapshotAt)}</span>
                           <span style={{ color: '#CBD5E1' }}>·</span>
                           <span>{sg.sections.length} section{sg.sections.length !== 1 ? 's' : ''}</span>
@@ -285,29 +285,29 @@ export default async function HistoryPage({ params, searchParams }: Props) {
         </div>
 
         {/* Right: comparison panel */}
-        <div style={{ flex: 1, overflowY: 'auto', background: '#F8FAFC' }}>
+        <div style={{ flex: 1, overflowY: 'auto', background: 'rgba(11,11,13,0.3)' }}>
           {!v1 && !v2 ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <div style={{ textAlign: 'center', color: '#64748B', fontSize: 14 }}>
+              <div style={{ textAlign: 'center', color: 'rgba(192,194,198,0.55)', fontSize: 14 }}>
                 <div style={{ fontSize: 32, marginBottom: 12, color: '#CBD5E1' }}>[ ]</div>
-                <div style={{ fontWeight: 600, marginBottom: 4, color: '#0F172A' }}>No snapshots selected</div>
+                <div style={{ fontWeight: 600, marginBottom: 4, color: '#F5F5F7' }}>No snapshots selected</div>
                 <div>Select two snapshots from the left panel to compare them.</div>
               </div>
             </div>
           ) : v1 && !v2 ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <div style={{ textAlign: 'center', color: '#64748B', fontSize: 14 }}>
+              <div style={{ textAlign: 'center', color: 'rgba(192,194,198,0.55)', fontSize: 14 }}>
                 <div style={{ fontSize: 32, marginBottom: 12, color: '#2F80FF' }}>A</div>
-                <div style={{ fontWeight: 600, marginBottom: 4, color: '#0F172A' }}>Version A selected</div>
+                <div style={{ fontWeight: 600, marginBottom: 4, color: '#F5F5F7' }}>Version A selected</div>
                 <div>Select another snapshot to compare.</div>
               </div>
             </div>
           ) : v1 && v2 ? (
             <div style={{ padding: 24 }}>
               {/* Section tab bar */}
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 20, borderBottom: '1px solid #E2E8F0', paddingBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 20, borderBottom: '1px solid rgba(192,194,198,0.08)', paddingBottom: 12 }}>
                 {diffSectionNames.length === 0 ? (
-                  <span style={{ fontSize: 13, color: '#94A3B8' }}>No sections found in selected snapshots.</span>
+                  <span style={{ fontSize: 13, color: 'rgba(192,194,198,0.45)' }}>No sections found in selected snapshots.</span>
                 ) : (
                   diffSectionNames.map((sName) => {
                     const isActive = section === sName
@@ -336,13 +336,13 @@ export default async function HistoryPage({ params, searchParams }: Props) {
               </div>
 
               {!section ? (
-                <div style={{ color: '#64748B', fontSize: 13 }}>
+                <div style={{ color: 'rgba(192,194,198,0.55)', fontSize: 13 }}>
                   Select a section tab above to view the diff.
                 </div>
               ) : diff ? (
                 <div>
                   {/* Legend */}
-                  <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 12, color: '#64748B' }}>
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 12, color: 'rgba(192,194,198,0.55)' }}>
                     <span>
                       <span style={{ display: 'inline-block', width: 10, height: 10, background: '#FF4D4F14', border: '1px solid #FF4D4F', borderRadius: 2, marginRight: 4 }} />
                       Removed (Version A)
@@ -356,10 +356,10 @@ export default async function HistoryPage({ params, searchParams }: Props) {
                   {/* Side-by-side diff */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     {/* Version A */}
-                    <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
-                      <div style={{ padding: '8px 14px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(192,194,198,0.08)', background: 'rgba(11,11,13,0.3)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: '#2F80FF', letterSpacing: '0.06em' }}>VERSION A</span>
-                        <span style={{ fontSize: 11, color: '#94A3B8' }}>
+                        <span style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)' }}>
                           {snapshotRows.find((r) => r.id === v1)
                             ? `${formatDate(snapshotRows.find((r) => r.id === v1)!.snapshot_at)} ${formatTime(snapshotRows.find((r) => r.id === v1)!.snapshot_at)}`
                             : ''}
@@ -383,10 +383,10 @@ export default async function HistoryPage({ params, searchParams }: Props) {
                     </div>
 
                     {/* Version B */}
-                    <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
-                      <div style={{ padding: '8px 14px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(192,194,198,0.08)', background: 'rgba(11,11,13,0.3)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: '#F59E0B', letterSpacing: '0.06em' }}>VERSION B</span>
-                        <span style={{ fontSize: 11, color: '#94A3B8' }}>
+                        <span style={{ fontSize: 11, color: 'rgba(192,194,198,0.45)' }}>
                           {snapshotRows.find((r) => r.id === v2)
                             ? `${formatDate(snapshotRows.find((r) => r.id === v2)!.snapshot_at)} ${formatTime(snapshotRows.find((r) => r.id === v2)!.snapshot_at)}`
                             : ''}

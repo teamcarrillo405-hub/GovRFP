@@ -79,6 +79,14 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 44px 44px;
 }
 
+/* ─── Glass row hover state ─── */
+.glass-row {
+  transition: background 0.12s ease;
+}
+.glass-row:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
 /* ─── Panel entry animation (linear — no bounce) ─── */
 @keyframes panel-enter {
   from { opacity: 0; transform: translateY(6px); }

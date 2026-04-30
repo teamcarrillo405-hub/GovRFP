@@ -72,35 +72,30 @@ export default async function ReviewPage({ params }: Props) {
   const totalUnresolved = allComments.filter((c) => !c.resolved).length
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/dashboard" className="hover:text-gray-700">Dashboard</Link>
+    <div>
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(192,194,198,0.45)', marginBottom: 20 }}>
+        <Link href="/dashboard" style={{ color: 'rgba(192,194,198,0.45)', textDecoration: 'none' }}>Dashboard</Link>
         <span>/</span>
-        <Link href={`/proposals/${id}`} className="hover:text-gray-700">{proposal.title}</Link>
+        <Link href={`/proposals/${id}`} style={{ color: 'rgba(192,194,198,0.45)', textDecoration: 'none' }}>{proposal.title}</Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">Review</span>
+        <span style={{ color: '#C0C2C6' }}>Review</span>
       </nav>
 
-      <div className="flex items-center justify-between mb-8">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16 }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{proposal.title}</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', margin: 0 }}>{proposal.title}</h1>
           {totalUnresolved > 0 && (
-            <p className="text-sm text-yellow-700 mt-1">
-              {totalUnresolved} unresolved comment{totalUnresolved !== 1 ? 's' : ''}
-            </p>
+            <p style={{ fontSize: 12, color: '#F59E0B', marginTop: 4 }}>{totalUnresolved} unresolved comment{totalUnresolved !== 1 ? 's' : ''}</p>
           )}
         </div>
         {proposal.status === 'analyzed' && (
-          <Link
-            href={`/proposals/${id}/editor`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-semibold rounded-md hover:bg-blue-800 transition-colors"
-          >
-            Open Editor →
+          <Link href={`/proposals/${id}/editor`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#FF1A1A', color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', borderRadius: 8, textDecoration: 'none', flexShrink: 0 }}>
+            OPEN EDITOR →
           </Link>
         )}
       </div>
 
-      <div className="space-y-12">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         {SECTION_NAMES.map((sectionName) => {
           const section = sectionMap.get(sectionName)
           const sectionComments = commentsBySection[sectionName] ?? []
@@ -109,64 +104,47 @@ export default async function ReviewPage({ params }: Props) {
 
           return (
             <section key={sectionName}>
-              {/* Section header */}
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">{sectionName}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid rgba(192,194,198,0.08)' }}>
+                <h2 style={{ fontSize: 16, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F5F5F7', margin: 0 }}>{sectionName}</h2>
                 {(() => {
                   const sc = STATUS_COLOR[section?.draft_status ?? 'empty'] ?? STATUS_COLOR.empty
                   return (
-                    <span style={{ fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, color: sc.color, background: sc.bg }}>
-                      {STATUS_LABEL[section?.draft_status ?? 'empty'] ?? section?.draft_status}
+                    <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.08em', padding: '2px 8px', borderRadius: 9999, color: sc.color, background: sc.bg }}>
+                      {(STATUS_LABEL[section?.draft_status ?? 'empty'] ?? section?.draft_status ?? '').toUpperCase()}
                     </span>
                   )
                 })()}
                 {unresolvedCount > 0 && (
-                  <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 9999, color: '#F59E0B', background: '#F59E0B14' }}>
-                    {unresolvedCount} comment{unresolvedCount !== 1 ? 's' : ''}
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', padding: '2px 8px', borderRadius: 9999, color: '#F59E0B', background: '#F59E0B14' }}>
+                    {unresolvedCount} COMMENT{unresolvedCount !== 1 ? 'S' : ''}
                   </span>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Section content (read-only) */}
-                <div className="prose prose-sm max-w-none">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                <div>
                   {hasContent && section?.content ? (
                     <ReadOnlySectionContent content={section.content as JSONContent} />
                   ) : (
-                    <div className="rounded-lg border-2 border-dashed border-gray-200 p-8 text-center">
-                      <p className="text-sm text-gray-500">No draft yet for this section.</p>
+                    <div style={{ borderRadius: 10, border: '2px dashed rgba(192,194,198,0.15)', padding: 32, textAlign: 'center' }}>
+                      <p style={{ fontSize: 13, color: 'rgba(192,194,198,0.45)', marginBottom: 8 }}>No draft yet for this section.</p>
                       {proposal.status === 'analyzed' && (
-                        <Link
-                          href={`/proposals/${id}/editor`}
-                          className="mt-2 inline-block text-xs text-blue-700 hover:underline"
-                        >
-                          Generate in editor →
-                        </Link>
+                        <Link href={`/proposals/${id}/editor`} style={{ fontSize: 12, color: '#FF1A1A', textDecoration: 'none' }}>Generate in editor →</Link>
                       )}
                     </div>
                   )}
                 </div>
-
-                {/* Comment thread */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                    Comments
-                    {sectionComments.length > 0 && (
-                      <span className="ml-1.5 text-gray-500 font-normal">({sectionComments.length})</span>
-                    )}
-                  </h3>
-                  <CommentThread
-                    proposalId={id}
-                    sectionName={sectionName}
-                    initialComments={sectionComments}
-                    currentUserId={user.id}
-                  />
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(192,194,198,0.55)', marginBottom: 12 }}>
+                    Comments{sectionComments.length > 0 && <span style={{ marginLeft: 6, fontWeight: 400 }}>({sectionComments.length})</span>}
+                  </div>
+                  <CommentThread proposalId={id} sectionName={sectionName} initialComments={sectionComments} currentUserId={user.id} />
                 </div>
               </div>
             </section>
           )
         })}
       </div>
-    </main>
+    </div>
   )
 }

@@ -144,6 +144,7 @@ export default async function ProposalsPage() {
               <Link
                 key={p.id}
                 href={`/proposals/${p.id}/editor`}
+                className="glass-row"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 140px 120px',
@@ -152,7 +153,6 @@ export default async function ProposalsPage() {
                   borderLeft: '2px solid rgba(255,26,26,0.4)',
                   textDecoration: 'none',
                   alignItems: 'center',
-                  transition: 'background 0.15s',
                 }}
               >
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F7' }}>{p.title}</span>

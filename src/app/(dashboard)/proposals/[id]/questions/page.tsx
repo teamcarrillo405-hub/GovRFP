@@ -49,16 +49,13 @@ export default async function QuestionsPage({ params }: Props) {
     : []
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <Link
-        href={`/proposals/${proposalId}`}
-        className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-block"
-      >
+    <div style={{ maxWidth: 900 }}>
+      <Link href={`/proposals/${proposalId}`} style={{ fontSize: 12, color: 'rgba(192,194,198,0.45)', textDecoration: 'none', marginBottom: 20, display: 'inline-block' }}>
         ← Back to proposal
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">{proposal.title}</h1>
-      <p className="text-sm text-gray-500 mb-8">
+      <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', margin: 0, marginBottom: 6 }}>{proposal.title}</h1>
+      <p style={{ fontSize: 12, color: 'rgba(192,194,198,0.5)', marginBottom: 28 }}>
         Contract-specific question session. Templated core (work-type aware) + AI-generated
         per-RFP questions. Answers feed every section your editor drafts.
       </p>
@@ -69,6 +66,6 @@ export default async function QuestionsPage({ params }: Props) {
         initialStatus={session?.status ?? null}
         initialItems={items}
       />
-    </main>
+    </div>
   )
 }
