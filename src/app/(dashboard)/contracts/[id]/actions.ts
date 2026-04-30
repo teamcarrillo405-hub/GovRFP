@@ -11,19 +11,21 @@ export async function updateDeliverableStatus(
   const user = await getUser()
   if (!user) throw new Error('Unauthenticated')
   const supabase = await createClient()
+  const patch: Record<string, unknown> = { status }
+  if (status === 'submitted') patch.submitted_at = new Date().toISOString()
   const { error } = await supabase
     .from('contract_deliverables')
-    .update({ status, submitted_at: status === 'submitted' ? new Date().toISOString() : null })
+    .update(patch)
     .eq('id', id)
   if (error) throw new Error(error.message)
-  revalidatePath('/contracts/[id]', 'page')
+  revalidatePath('/contracts', 'layout')
 }
 
 export async function addDeliverable(contractId: string, formData: FormData) {
   const user = await getUser()
   if (!user) throw new Error('Unauthenticated')
   const supabase = await createClient()
-  await supabase.from('contract_deliverables').insert({
+  const { error } = await supabase.from('contract_deliverables').insert({
     contract_id: contractId,
     title: formData.get('title') as string,
     description: (formData.get('description') as string) || null,
@@ -31,6 +33,7 @@ export async function addDeliverable(contractId: string, formData: FormData) {
     frequency: (formData.get('frequency') as ContractDeliverable['frequency']) || null,
     status: 'pending',
   })
+  if (error) throw new Error(error.message)
   revalidatePath(`/contracts/${contractId}`)
 }
 

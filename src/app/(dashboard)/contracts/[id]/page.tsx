@@ -95,7 +95,7 @@ export default async function ContractDetailPage({ params }: Props) {
               <div style={{ fontSize: 8, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: '#C0C2C6', marginBottom: 4 }}>{label}</div>
               <div style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: value ? '#F5F5F7' : 'rgba(192,194,198,0.3)' }}>
                 {label === 'Source Proposal' && contract.proposal_id
-                  ? <Link href={`/proposals/${contract.proposal_id}`} style={{ color: '#FF1A1A', textDecoration: 'none' }}>View proposal</Link>
+                  ? <Link href={`/proposals/${contract.proposal_id}`} style={{ color: '#2F80FF', textDecoration: 'none' }}>View proposal</Link>
                   : (value ?? '\u2014')}
               </div>
             </div>
@@ -133,7 +133,7 @@ export default async function ContractDetailPage({ params }: Props) {
               <option value="annual">Annual</option>
             </select>
           </div>
-          <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 14px', background: '#FF1A1A', color: '#fff', fontSize: 10, fontFamily: "'Oxanium', sans-serif", fontWeight: 700, borderRadius: 6, border: 'none', cursor: 'pointer', flexShrink: 0, letterSpacing: '0.06em', whiteSpace: 'nowrap' as const }}>
+          <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 14px', background: '#2F80FF', color: '#fff', fontSize: 10, fontFamily: "'Oxanium', sans-serif", fontWeight: 700, borderRadius: 6, border: 'none', cursor: 'pointer', flexShrink: 0, letterSpacing: '0.06em', whiteSpace: 'nowrap' as const }}>
             <Plus size={11} /> Add
           </button>
         </form>
