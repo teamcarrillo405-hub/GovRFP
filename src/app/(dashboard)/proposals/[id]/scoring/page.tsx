@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getUser, createClient } from '@/lib/supabase/server'
 import { requireProposalRole } from '@/lib/auth/proposal-role'
 import { ChevronLeft, CheckCircle } from 'lucide-react'
+import { WatchdogEvolutionBar } from '@/components/scoring/WatchdogEvolutionBar'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -130,6 +131,20 @@ export default async function ScoringPage({ params, searchParams }: Props) {
     }
   }
 
+  // Group ALL section_scores rows by section_name for WatchdogEvolutionBar
+  const watchdogBySection = new Map<string, Array<{ attempt: number; score: number; passed: boolean; critique: string | null }>>()
+  for (const row of sectionRows ?? []) {
+    const key = row.section_name as string
+    const arr = watchdogBySection.get(key) ?? []
+    arr.push({
+      attempt: row.attempt as number,
+      score: row.score as number,
+      passed: row.passed as boolean,
+      critique: row.critique as string | null,
+    })
+    watchdogBySection.set(key, arr)
+  }
+
   // --- Score History: query ALL attempts ---
   const { data: allScoreRows } = await supabase
     .from('section_scores')
@@ -217,7 +232,17 @@ export default async function ScoringPage({ params, searchParams }: Props) {
           <ChevronLeft size={14} strokeWidth={1.5} />{proposal.title}
         </Link>
       </div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '-0.01em', marginBottom: 20 }}>Scoring & Red Team</h1>
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 3, height: 22, background: '#FF1A1A', borderRadius: 2, boxShadow: '0 0 8px rgba(255,26,26,0.6)', flexShrink: 0 }} />
+        <div>
+          <h1 style={{ fontSize: 17, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", color: '#F5F5F7', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
+            Quality Watchdog Report
+          </h1>
+          <p style={{ fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(192,194,198,0.45)', margin: '4px 0 0', letterSpacing: '0.06em' }}>
+            Each section auto-drafted, scored vs Section M criteria, and redrafted until passing 75/100 threshold
+          </p>
+        </div>
+      </div>
 
       {/* Score header */}
       <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '24px', marginBottom: 16 }}>
@@ -253,34 +278,12 @@ export default async function ScoringPage({ params, searchParams }: Props) {
         </div>
       )}
 
-      {sections.length > 0 && (
+      {watchdogBySection.size > 0 && (
         <div style={{ background: 'rgba(26,29,33,0.72)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192,194,198,0.1)', borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)' }}>Section Breakdown</div>
-            {hasMultipleAttempts && (
-              <Link href={compareHref} style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", letterSpacing: '0.06em', color: compareMode ? '#fff' : '#C0C2C6', background: compareMode ? '#FF1A1A' : 'rgba(192,194,198,0.08)', border: compareMode ? 'none' : '1px solid rgba(192,194,198,0.15)', borderRadius: 6, padding: '4px 12px', textDecoration: 'none' }}>
-                {compareMode ? 'HIDE COMPARE' : 'COMPARE DRAFTS'}
-              </Link>
-            )}
-          </div>
-          {sections.map(s => {
-            const delta = compareMode ? deltaMap[s.section_name] : undefined
-            const deltaColor = delta === undefined ? 'rgba(192,194,198,0.45)' : delta > 0 ? '#00C48C' : delta < 0 ? '#FF4D4F' : 'rgba(192,194,198,0.45)'
-            const deltaLabel = delta === undefined ? null : delta > 0 ? `+${delta}` : delta < 0 ? `\u2212${Math.abs(delta)}` : '0'
-            const deltaArrow = delta === undefined ? null : delta > 0 ? '\u25b2' : delta < 0 ? '\u25bc' : '\u2014'
-
-            return (
-              <div key={s.id} style={{ display: 'grid', gridTemplateColumns: compareMode ? '180px 1fr 56px' : '180px 1fr', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#C0C2C6', fontFamily: "'Space Grotesk', sans-serif" }}>{s.section_name}</span>
-                <ScoreBar score={s.score ?? 0} />
-                {compareMode && (
-                  <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace", color: deltaColor, textAlign: 'right' as const, whiteSpace: 'nowrap' as const }}>
-                    {deltaArrow !== null && deltaLabel !== null ? `${deltaArrow} ${deltaLabel}` : '\u2014'}
-                  </span>
-                )}
-              </div>
-            )
-          })}
+          <div style={{ fontSize: 9, fontWeight: 700, fontFamily: "'Oxanium', sans-serif", textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(192,194,198,0.45)', marginBottom: 16 }}>Section Breakdown</div>
+          {Array.from(watchdogBySection.entries()).map(([section, attempts]) => (
+            <WatchdogEvolutionBar key={section} section={section} attempts={attempts} threshold={75} />
+          ))}
         </div>
       )}
 
