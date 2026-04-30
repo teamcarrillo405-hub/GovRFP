@@ -7,7 +7,6 @@ import { WatchdogEvolutionBar } from '@/components/scoring/WatchdogEvolutionBar'
 
 interface Props {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ compare?: string }>
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -93,10 +92,8 @@ function ScoreHistoryChart({ points }: { points: AttemptPoint[] }) {
   )
 }
 
-export default async function ScoringPage({ params, searchParams }: Props) {
+export default async function ScoringPage({ params }: Props) {
   const { id } = await params
-  const { compare } = await searchParams
-  const compareMode = compare === '1'
 
   const user = await getUser()
   if (!user) redirect('/login')
@@ -220,10 +217,6 @@ export default async function ScoringPage({ params, searchParams }: Props) {
   const verdictColor = score >= 80 ? '#00C48C' : score >= 65 ? '#F59E0B' : '#FF4D4F'
   const reviewSteps = ['Draft 1', 'Draft 2', 'Pink Team', 'Red Team', 'Final']
   const currentStep = 3
-
-  const compareHref = compareMode
-    ? `/proposals/${id}/scoring`
-    : `/proposals/${id}/scoring?compare=1`
 
   return (
     <div>
